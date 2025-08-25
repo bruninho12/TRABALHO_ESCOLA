@@ -3,7 +3,16 @@ import cors from "cors";
 import XLSX from "xlsx";
 
 const app = express();
-app.use(cors());
+
+// Configuração CORS mais detalhada para evitar problemas de acesso
+app.use(
+  cors({
+    origin: "*", // Em produção, você pode limitar isso para seus domínios específicos
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 
 let produtos = [
@@ -270,6 +279,15 @@ let produtos = [
   },
 ];
 
+// Rota principal para verificar se o servidor está rodando
+app.get("/", (req, res) => {
+  res.json({
+    status: "online",
+    message: "InovaTech API está rodando!",
+    version: "1.0.0",
+  });
+});
+
 app.get("/produtos", (req, res) => {
   res.json(produtos);
 });
@@ -349,5 +367,26 @@ app.get("/exportar", (req, res) => {
   res.send(buf);
 });
 
+// Middleware para tratamento de erros
+app.use((err, req, res, next) => {
+  console.error("Erro na aplicação:", err.stack);
+  res.status(500).json({
+    status: "error",
+    message: "Ocorreu um erro interno no servidor.",
+    error: process.env.NODE_ENV === "production" ? {} : err.message,
+  });
+});
+
+// Rota para tratar rotas não encontradas (404)
+app.use((req, res) => {
+  res.status(404).json({
+    status: "error",
+    message: `Rota ${req.originalUrl} não encontrada!`,
+  });
+});
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend rodando na porta ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Backend rodando na porta ${PORT}`);
+  console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
+});

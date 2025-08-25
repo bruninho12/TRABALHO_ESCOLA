@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "healthcheck": "curl --fail http://localhost:$PORT || exit 1"
   },
   "dependencies": {
     "cors": "^2.8.5",
