@@ -1,0 +1,14 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd backend && npm install"
+rootDirectory = "backend"
+
+[deploy]
+startCommand = "cd backend && npm start"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "on-failure"
+
+[[services]]
+name = "web"
+envs = [{ key = "PORT", value = "3001" }]

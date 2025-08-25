@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>InovaTech - Firebase</title>
+        <link rel="stylesheet" href="style.css" />
+        <!-- Firebase SDK -->
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    </head>
+
+    <body>
+        <nav class="navbar">
+            <div class="navbar-logo">
+                <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="38" height="38" rx="10" fill="#0078d7" />
+                    <path d="M10 28L19 10L28 28H10Z" fill="#fff" />
+                    <circle cx="19" cy="19" r="4" fill="#0078d7" stroke="#fff" stroke-width="2" />
+                </svg>
+                <span class="navbar-title">InovaTech</span>
+            </div>
+        </nav>
+        <div id="welcome-page">
+            <div class="welcome-container">
+                <h1>Bem-vindo ao InovaTech Estoque!</h1>
+                <p>Gerencie o estoque do seu setor de tecnologia de forma moderna, rápida e segura.</p>
+                <ul class="welcome-list">
+                    <li>✔ Cadastro e consulta de produtos</li>
+                    <li>✔ Exportação para Excel</li>
+                    <li>✔ Visual moderno e responsivo</li>
+                </ul>
+                <button id="btn-ir-estoque" class="btn-welcome">Acessar Estoque</button>
+            </div>
+        </div>
+        <div id="root" style="display:none">
+            <!-- Abas de navegação -->
+            <div class="tabs">
+                <div class="tab active" data-tab="tab-listagem">Listagem</div>
+                <div class="tab" data-tab="tab-gerenciar">Gerenciar Produtos</div>
+            </div>
+
+            <!-- Conteúdo da aba de listagem -->
+            <div id="tab-listagem" class="tab-content active">
+                <form id="form-produto">
+                    <input id="nome" placeholder="Nome do produto" required />
+                    <input id="quantidadeMinima" placeholder="Quantidade mínima" required type="number" />
+                    <input id="condicaoPagamento" placeholder="Condição de pagamento" required />
+                    <button type="submit">Adicionar</button>
+                </form>
+                <button id="btn-exportar">Exportar para Excel</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade Mínima</th>
+                            <th>Condição de Pagamento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produtos-tbody"></tbody>
+                </table>
+            </div>
+
+            <!-- Conteúdo da aba de gerenciar produtos -->
+            <div id="tab-gerenciar" class="tab-content">
+                <div class="tab-gerenciar-header">
+                    <h2>Gerenciar Produtos</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade</th>
+                            <th>Empresa</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gerenciar-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Firebase Config -->
+        <script>
+            // Configuração do Firebase - Você deve substituir pelos seus valores reais
+            const firebaseConfig = {
+                apiKey: "SUBSTITUA_PELO_SEU_API_KEY",
+                authDomain: "seu-projeto.firebaseapp.com",
+                projectId: "seu-projeto",
+                storageBucket: "seu-projeto.appspot.com",
+                messagingSenderId: "123456789",
+                appId: "1:123456789:web:abcdefg"
+            };
+
+            // Inicializa o Firebase
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+        </script>
+        <script src="firebase-app.js"></script>
+    </body>
+
+</html>
