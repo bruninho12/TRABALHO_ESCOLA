@@ -2,7 +2,7 @@
 const api =
   window.location.hostname === "localhost"
     ? "http://localhost:3001"
-    : "https://trabalho-escola-black.vercel.app/api"; // URL da API hospedada no Vercel
+    : "https://trabalho-escola-black.vercel.app"; // URL da API hospedada no Vercel (sem /api)
 
 function showMessage(msg, type = "success") {
   let msgDiv = document.getElementById("msg-feedback");
