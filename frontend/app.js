@@ -1,8 +1,13 @@
-// API URL - altera automaticamente entre produção e desenvolvimento
-const api =
-  window.location.hostname === "localhost"
-    ? "http://localhost:3001"
-    : "https://trabalho-escola-black.vercel.app"; // URL da API hospedada no Vercel (sem /api)
+// API URL - altera automaticamente entre desenvolvimento local e produção
+let api = "https://trabalho-escola-black.vercel.app"; // URL fixa da API hospedada no Vercel
+
+// Se estiver em ambiente local, usa a API local
+if (
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+) {
+  api = "http://localhost:3001";
+}
 
 function showMessage(msg, type = "success") {
   let msgDiv = document.getElementById("msg-feedback");
