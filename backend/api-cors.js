@@ -4,42 +4,38 @@ import XLSX from "xlsx";
 
 const app = express();
 
-// Configuração CORS
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5500",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:5500",
-  "https://trabalho-escola-5lqz-3rm820502-brunos-projects-4b4f61b9.vercel.app",
-  "https://trabalho-escola-brunos-projects-4b4f61b9.vercel.app",
-  "https://trabalho-escola.vercel.app",
-  "https://trabalho-escola-frontend.vercel.app",
-  "https://trabalho-escola-git-main-brunos-projects.vercel.app",
-  /^https:\/\/trabalho-escola-.*\.vercel\.app$/,
-  /^https:\/\/.*-brunos-projects-4b4f61b9\.vercel\.app$/,
-  /^https:\/\/.*-bruninho12\.vercel\.app$/,
-];
-
-// Configuração CORS simplificada - permite todas as origens para resolver problemas
+// CORS Middleware - SUPER PERMISSIVO
 app.use(
   cors({
     origin: "*",
-    credentials: false,
     methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    optionsSuccessStatus: 200,
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
+    credentials: false,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
 
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.get("Origin") || "*");
+// Headers para todas as rotas
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Requested-With"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.status(200).send();
+  next();
+});
+
+// Tratamento especial para OPTIONS
+app.options("*", (req, res) => {
+  res.status(204).send();
 });
 
 app.use(express.json());
@@ -124,6 +120,19 @@ function verificarToken(req, res, next) {
   }
 }
 
+// Rota de teste CORS
+app.get("/cors-test", (req, res) => {
+  res.json({
+    success: true,
+    message: "CORS está funcionando!",
+    timestamp: new Date().toISOString(),
+    headers: {
+      "access-control-allow-origin": "*",
+      "content-type": "application/json",
+    },
+  });
+});
+
 // Rota de teste
 app.get("/", (req, res) => {
   res.json({
@@ -192,6 +201,8 @@ app.post("/login", (req, res) => {
 // Rota de cadastro
 app.post("/cadastro", (req, res) => {
   try {
+    console.log("Recebido pedido de cadastro:", req.body);
+
     const { nome, email, senha } = req.body;
 
     if (!nome || !email || !senha) {
@@ -219,6 +230,11 @@ app.post("/cadastro", (req, res) => {
 
     usuarios.push(novoUsuario);
     const token = novoUsuario.id.toString();
+
+    console.log("Novo usuário criado:", {
+      id: novoUsuario.id,
+      nome: novoUsuario.nome,
+    });
 
     res.status(201).json({
       status: "success",
