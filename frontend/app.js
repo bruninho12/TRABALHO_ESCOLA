@@ -226,35 +226,40 @@ function carregarResumo() {
     headers: { Authorization: `Bearer ${authToken}` },
   })
     .then((res) => res.json())
-    .then((data) => {
+    .then((response) => {
+      // Verificar se a resposta tem a estrutura esperada
+      if (!response || !response.data) {
+        console.error("Formato de resposta inválido:", response);
+        return;
+      }
+
+      const data = response.data;
+
       const totalReceitasEl = document.getElementById("total-receitas");
       if (totalReceitasEl) {
-        totalReceitasEl.textContent = `R$ ${data.totalReceitas.toLocaleString(
-          "pt-BR",
-          {
-            minimumFractionDigits: 2,
-          }
-        )}`;
+        const valor = data.totalReceitas || 0;
+        totalReceitasEl.textContent = `R$ ${valor.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}`;
       }
 
       const totalDespesasEl = document.getElementById("total-despesas");
       if (totalDespesasEl) {
-        totalDespesasEl.textContent = `R$ ${data.totalDespesas.toLocaleString(
-          "pt-BR",
-          {
-            minimumFractionDigits: 2,
-          }
-        )}`;
+        const valor = data.totalDespesas || 0;
+        totalDespesasEl.textContent = `R$ ${valor.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}`;
       }
 
       const saldoTotalEl = document.getElementById("saldo-total");
       if (saldoTotalEl) {
-        saldoTotalEl.textContent = `R$ ${data.saldo.toLocaleString("pt-BR", {
+        const saldo = data.saldo || 0;
+        saldoTotalEl.textContent = `R$ ${saldo.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
         })}`;
 
         // Atualiza classe do saldo baseado no valor
-        if (data.saldo >= 0) {
+        if (saldo >= 0) {
           saldoTotalEl.style.color = "#28a745";
         } else {
           saldoTotalEl.style.color = "#dc3545";
@@ -263,7 +268,7 @@ function carregarResumo() {
 
       // Exibe categorias
       const categoriasLista = document.getElementById("categorias-lista");
-      if (categoriasLista) {
+      if (categoriasLista && data.despesasPorCategoria) {
         categoriasLista.innerHTML = "";
         Object.entries(data.despesasPorCategoria).forEach(
           ([categoria, valor]) => {
@@ -313,10 +318,15 @@ function adicionarDespesa(event) {
     }),
   })
     .then((res) => res.json())
-    .then((data) => {
-      showMessage("Despesa adicionada com sucesso!");
-      document.getElementById("form-despesa").reset();
-      carregarDados();
+    .then((response) => {
+      if (response.status === "success") {
+        showMessage("Despesa adicionada com sucesso!");
+        document.getElementById("form-despesa").reset();
+        carregarDados();
+      } else {
+        showMessage(response.message || "Erro ao adicionar despesa", "error");
+        console.error("Erro na resposta:", response);
+      }
     })
     .catch((err) => {
       showMessage("Erro ao adicionar despesa", "error");
@@ -351,10 +361,15 @@ function adicionarReceita(event) {
     }),
   })
     .then((res) => res.json())
-    .then((data) => {
-      showMessage("Receita adicionada com sucesso!");
-      document.getElementById("form-receita").reset();
-      carregarDados();
+    .then((response) => {
+      if (response.status === "success") {
+        showMessage("Receita adicionada com sucesso!");
+        document.getElementById("form-receita").reset();
+        carregarDados();
+      } else {
+        showMessage(response.message || "Erro ao adicionar receita", "error");
+        console.error("Erro na resposta:", response);
+      }
     })
     .catch((err) => {
       showMessage("Erro ao adicionar receita", "error");
@@ -367,7 +382,14 @@ function carregarDespesas() {
     headers: { Authorization: `Bearer ${authToken}` },
   })
     .then((res) => res.json())
-    .then((despesas) => {
+    .then((response) => {
+      // Verificar se a resposta tem a estrutura esperada
+      if (!response || !response.data || !Array.isArray(response.data)) {
+        console.error("Formato de resposta inválido:", response);
+        return;
+      }
+
+      const despesas = response.data;
       const listaDespesas = document.getElementById("lista-despesas");
       if (!listaDespesas) {
         console.warn("Elemento lista-despesas não encontrado");
@@ -410,7 +432,14 @@ function carregarReceitas() {
     headers: { Authorization: `Bearer ${authToken}` },
   })
     .then((res) => res.json())
-    .then((despesas) => {
+    .then((response) => {
+      // Verificar se a resposta tem a estrutura esperada
+      if (!response || !response.data || !Array.isArray(response.data)) {
+        console.error("Formato de resposta inválido:", response);
+        return;
+      }
+
+      const despesas = response.data;
       const listaReceitas = document.getElementById("lista-receitas");
       if (!listaReceitas) {
         console.warn("Elemento lista-receitas não encontrado");
@@ -453,7 +482,14 @@ function carregarHistoricoCompleto() {
     headers: { Authorization: `Bearer ${authToken}` },
   })
     .then((res) => res.json())
-    .then((itens) => {
+    .then((response) => {
+      // Verificar se a resposta tem a estrutura esperada
+      if (!response || !response.data || !Array.isArray(response.data)) {
+        console.error("Formato de resposta inválido:", response);
+        return;
+      }
+
+      const itens = response.data;
       const historicoCompleto = document.getElementById("historico-completo");
       if (!historicoCompleto) {
         console.warn("Elemento historico-completo não encontrado");
@@ -500,9 +536,14 @@ function excluirItem(id) {
       headers: { Authorization: `Bearer ${authToken}` },
     })
       .then((res) => res.json())
-      .then((data) => {
-        showMessage("Item excluído com sucesso!");
-        carregarDados();
+      .then((response) => {
+        if (response.status === "success") {
+          showMessage("Item excluído com sucesso!");
+          carregarDados();
+        } else {
+          showMessage(response.message || "Erro ao excluir item", "error");
+          console.error("Erro na resposta:", response);
+        }
       })
       .catch((err) => {
         showMessage("Erro ao excluir item", "error");
