@@ -121,24 +121,39 @@ function logout() {
 
 // Funções de navegação entre páginas
 function mostrarPaginaLogin() {
-  document.getElementById("login-page").style.display = "flex";
-  document.getElementById("cadastro-page").style.display = "none";
-  document.getElementById("main-page").style.display = "none";
-  document.getElementById("navbar-user").style.display = "none";
+  const loginPage = document.getElementById("login-page");
+  const cadastroPage = document.getElementById("cadastro-page");
+  const mainPage = document.getElementById("main-page");
+  const navbarUser = document.getElementById("navbar-user");
+
+  if (loginPage) loginPage.style.display = "flex";
+  if (cadastroPage) cadastroPage.style.display = "none";
+  if (mainPage) mainPage.style.display = "none";
+  if (navbarUser) navbarUser.style.display = "none";
 }
 
 function mostrarPaginaCadastro() {
-  document.getElementById("login-page").style.display = "none";
-  document.getElementById("cadastro-page").style.display = "flex";
-  document.getElementById("main-page").style.display = "none";
+  const loginPage = document.getElementById("login-page");
+  const cadastroPage = document.getElementById("cadastro-page");
+  const mainPage = document.getElementById("main-page");
+
+  if (loginPage) loginPage.style.display = "none";
+  if (cadastroPage) cadastroPage.style.display = "flex";
+  if (mainPage) mainPage.style.display = "none";
 }
 
 function mostrarPaginaPrincipal() {
-  document.getElementById("login-page").style.display = "none";
-  document.getElementById("cadastro-page").style.display = "none";
-  document.getElementById("main-page").style.display = "block";
-  document.getElementById("navbar-user").style.display = "flex";
-  document.getElementById("user-name").textContent = usuarioAtual.nome;
+  const loginPage = document.getElementById("login-page");
+  const cadastroPage = document.getElementById("cadastro-page");
+  const mainPage = document.getElementById("main-page");
+  const navbarUser = document.getElementById("navbar-user");
+  const userName = document.getElementById("user-name");
+
+  if (loginPage) loginPage.style.display = "none";
+  if (cadastroPage) cadastroPage.style.display = "none";
+  if (mainPage) mainPage.style.display = "block";
+  if (navbarUser) navbarUser.style.display = "flex";
+  if (userName && usuarioAtual) userName.textContent = usuarioAtual.nome;
   carregarDados();
 }
 
@@ -156,46 +171,58 @@ function carregarResumo() {
   })
     .then((res) => res.json())
     .then((data) => {
-      document.getElementById(
-        "total-receitas"
-      ).textContent = `R$ ${data.totalReceitas.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-      })}`;
-      document.getElementById(
-        "total-despesas"
-      ).textContent = `R$ ${data.totalDespesas.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-      })}`;
-      document.getElementById(
-        "saldo-total"
-      ).textContent = `R$ ${data.saldo.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-      })}`;
+      const totalReceitasEl = document.getElementById("total-receitas");
+      if (totalReceitasEl) {
+        totalReceitasEl.textContent = `R$ ${data.totalReceitas.toLocaleString(
+          "pt-BR",
+          {
+            minimumFractionDigits: 2,
+          }
+        )}`;
+      }
 
-      // Atualiza classe do saldo baseado no valor
-      const saldoElement = document.getElementById("saldo-total");
-      if (data.saldo >= 0) {
-        saldoElement.style.color = "#28a745";
-      } else {
-        saldoElement.style.color = "#dc3545";
+      const totalDespesasEl = document.getElementById("total-despesas");
+      if (totalDespesasEl) {
+        totalDespesasEl.textContent = `R$ ${data.totalDespesas.toLocaleString(
+          "pt-BR",
+          {
+            minimumFractionDigits: 2,
+          }
+        )}`;
+      }
+
+      const saldoTotalEl = document.getElementById("saldo-total");
+      if (saldoTotalEl) {
+        saldoTotalEl.textContent = `R$ ${data.saldo.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}`;
+
+        // Atualiza classe do saldo baseado no valor
+        if (data.saldo >= 0) {
+          saldoTotalEl.style.color = "#28a745";
+        } else {
+          saldoTotalEl.style.color = "#dc3545";
+        }
       }
 
       // Exibe categorias
       const categoriasLista = document.getElementById("categorias-lista");
-      categoriasLista.innerHTML = "";
-      Object.entries(data.despesasPorCategoria).forEach(
-        ([categoria, valor]) => {
-          const div = document.createElement("div");
-          div.className = "categoria-item";
-          div.innerHTML = `
-          <span>${categoria}</span>
-          <span>R$ ${valor.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          })}</span>
-        `;
-          categoriasLista.appendChild(div);
-        }
-      );
+      if (categoriasLista) {
+        categoriasLista.innerHTML = "";
+        Object.entries(data.despesasPorCategoria).forEach(
+          ([categoria, valor]) => {
+            const div = document.createElement("div");
+            div.className = "categoria-item";
+            div.innerHTML = `
+            <span>${categoria}</span>
+            <span>R$ ${valor.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+            })}</span>
+          `;
+            categoriasLista.appendChild(div);
+          }
+        );
+      }
     })
     .catch((err) => {
       showMessage("Erro ao carregar resumo", "error");
@@ -286,6 +313,10 @@ function carregarDespesas() {
     .then((res) => res.json())
     .then((despesas) => {
       const listaDespesas = document.getElementById("lista-despesas");
+      if (!listaDespesas) {
+        console.warn("Elemento lista-despesas não encontrado");
+        return;
+      }
       listaDespesas.innerHTML = "";
 
       const despesasFiltradas = despesas.filter((d) => d.tipo === "despesa");
@@ -325,6 +356,10 @@ function carregarReceitas() {
     .then((res) => res.json())
     .then((despesas) => {
       const listaReceitas = document.getElementById("lista-receitas");
+      if (!listaReceitas) {
+        console.warn("Elemento lista-receitas não encontrado");
+        return;
+      }
       listaReceitas.innerHTML = "";
 
       const receitasFiltradas = despesas.filter((d) => d.tipo === "receita");
@@ -364,6 +399,10 @@ function carregarHistoricoCompleto() {
     .then((res) => res.json())
     .then((itens) => {
       const historicoCompleto = document.getElementById("historico-completo");
+      if (!historicoCompleto) {
+        console.warn("Elemento historico-completo não encontrado");
+        return;
+      }
       historicoCompleto.innerHTML = "";
 
       // Ordena por data (mais recente primeiro)
@@ -438,50 +477,73 @@ function verificarLogin() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Event listeners para formulários
-  document
-    .getElementById("form-login")
-    .addEventListener("submit", realizarLogin);
-  document
-    .getElementById("form-cadastro")
-    .addEventListener("submit", realizarCadastro);
-  document
-    .getElementById("form-despesa")
-    .addEventListener("submit", adicionarDespesa);
-  document
-    .getElementById("form-receita")
-    .addEventListener("submit", adicionarReceita);
+  // Event listeners para formulários (com verificação de existência)
+  const formLogin = document.getElementById("form-login");
+  if (formLogin) {
+    formLogin.addEventListener("submit", realizarLogin);
+  }
 
-  // Event listeners para navegação
-  document.getElementById("link-cadastro").addEventListener("click", (e) => {
-    e.preventDefault();
-    mostrarPaginaCadastro();
-  });
+  const formCadastro = document.getElementById("form-cadastro");
+  if (formCadastro) {
+    formCadastro.addEventListener("submit", realizarCadastro);
+  }
 
-  document.getElementById("link-login").addEventListener("click", (e) => {
-    e.preventDefault();
-    mostrarPaginaLogin();
-  });
+  const formDespesa = document.getElementById("form-despesa");
+  if (formDespesa) {
+    formDespesa.addEventListener("submit", adicionarDespesa);
+  }
 
-  document.getElementById("btn-logout").addEventListener("click", logout);
-  document
-    .getElementById("btn-exportar")
-    .addEventListener("click", exportarExcel);
+  const formReceita = document.getElementById("form-receita");
+  if (formReceita) {
+    formReceita.addEventListener("submit", adicionarReceita);
+  }
+
+  // Event listeners para navegação (com verificação de existência)
+  const linkCadastro = document.getElementById("link-cadastro");
+  if (linkCadastro) {
+    linkCadastro.addEventListener("click", (e) => {
+      e.preventDefault();
+      mostrarPaginaCadastro();
+    });
+  }
+
+  const linkLogin = document.getElementById("link-login");
+  if (linkLogin) {
+    linkLogin.addEventListener("click", (e) => {
+      e.preventDefault();
+      mostrarPaginaLogin();
+    });
+  }
+
+  const btnLogout = document.getElementById("btn-logout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", logout);
+  }
+
+  const btnExportar = document.getElementById("btn-exportar");
+  if (btnExportar) {
+    btnExportar.addEventListener("click", exportarExcel);
+  }
 
   // Configuração das abas
   const tabs = document.querySelectorAll(".tab");
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      tabs.forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
+  if (tabs.length > 0) {
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
 
-      const contents = document.querySelectorAll(".tab-content");
-      contents.forEach((content) => content.classList.remove("active"));
+        const contents = document.querySelectorAll(".tab-content");
+        contents.forEach((content) => content.classList.remove("active"));
 
-      const targetId = tab.getAttribute("data-tab");
-      document.getElementById(targetId).classList.add("active");
+        const targetId = tab.getAttribute("data-tab");
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          targetElement.classList.add("active");
+        }
+      });
     });
-  });
+  }
 
   // Verificar login ao carregar a página
   verificarLogin();
