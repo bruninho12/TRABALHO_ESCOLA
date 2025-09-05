@@ -1,7 +1,7 @@
 {
-  "name": "inovatech-backend",
+  "name": "controle-despesas-backend",
   "version": "1.0.0",
-  "description": "Backend para o sistema InovaTech de gestão de estoque",
+  "description": "Backend para o sistema de Controle de Despesas Pessoais",
   "main": "index.js",
   "type": "module",
   "scripts": {

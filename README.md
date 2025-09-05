@@ -1,21 +1,74 @@
-# InovaTech - Sistema de Gestão de Estoque
+# 💰 Sistema de Controle de Despesas Pessoais
 
-Este projeto é um sistema de gerenciamento de estoque para produtos tecnológicos, desenvolvido com JavaScript, Node.js e Express.
+Um sistema completo para gerenciar suas finanças pessoais, permitindo controlar receitas, despesas e visualizar relatórios financeiros.
 
-## Estrutura do Projeto
+## 🚀 Funcionalidades
 
-- **frontend/**: Interface de usuário em HTML, CSS e JavaScript
-- **backend/**: API REST construída com Node.js e Express
+### 🔐 Autenticação
 
-## Funcionalidades
+- **Login de usuário** - Acesso seguro ao sistema
+- **Cadastro de novos usuários** - Criação de conta personalizada
+- **Logout** - Saída segura do sistema
 
-- Cadastro e listagem de produtos
-- Edição e exclusão de produtos
-- Exportação para Excel
-- Visualização detalhada de produtos
-- Interface responsiva e moderna
+### 📊 Dashboard Financeiro
 
-## Como Executar Localmente
+- **Resumo financeiro** - Visualização das receitas, despesas e saldo
+- **Categorias de gastos** - Organização por categoria
+- **Cards informativos** - Interface clara e intuitiva
+
+### 💸 Gestão de Despesas
+
+- **Adicionar despesas** - Registro de gastos com categoria e data
+- **Listar despesas** - Visualização de todas as despesas
+- **Excluir despesas** - Remoção de registros desnecessários
+
+### 💰 Gestão de Receitas
+
+- **Adicionar receitas** - Registro de ganhos com categoria e data
+- **Listar receitas** - Visualização de todas as receitas
+- **Excluir receitas** - Remoção de registros desnecessários
+
+### 📈 Relatórios
+
+- **Histórico completo** - Visualização de todas as transações
+- **Exportação para Excel** - Download de relatórios em planilha
+- **Análise por categoria** - Agrupamento de gastos
+
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+
+- **Node.js** - Runtime JavaScript
+- **Express.js** - Framework web
+- **CORS** - Controle de acesso
+- **XLSX** - Geração de planilhas Excel
+
+### Frontend
+
+- **HTML5** - Estrutura da interface
+- **CSS3** - Estilização moderna
+- **JavaScript (Vanilla)** - Interatividade
+- **Design Responsivo** - Compatível com mobile
+
+## 📁 Estrutura do Projeto
+
+```
+projeto/
+├── backend/
+│   ├── index.js          # Servidor principal
+│   ├── package.json      # Dependências do backend
+│   ├── Procfile         # Configuração para deploy
+│   └── railway.toml     # Configuração Railway
+├── frontend/
+│   ├── index.html       # Página principal
+│   ├── app.js          # Lógica do frontend
+│   ├── style.css       # Estilos
+│   ├── package.json    # Dependências do frontend
+│   └── netlify/        # Configuração para deploy
+└── README.md           # Este arquivo
+```
+
+## 🔧 Instalação e Execução
 
 ### Backend
 
@@ -25,40 +78,104 @@ npm install
 npm start
 ```
 
-O servidor estará disponível em `http://localhost:3001`
-
 ### Frontend
 
-Abra o arquivo `frontend/index.html` em um navegador web ou utilize uma extensão como Live Server no VS Code.
+```bash
+cd frontend
+npm install
+npm start
+```
 
-## Como Fazer Deploy
+## 👤 Usuários de Teste
+
+Para facilitar os testes, existem usuários pré-cadastrados:
+
+- **Email:** bruno@exemplo.com | **Senha:** 123456
+- **Email:** maria@exemplo.com | **Senha:** 123456
+
+## 🎨 Interface
+
+### Tela de Login
+
+- Interface moderna com gradiente azul
+- Formulário de login e cadastro
+- Validação de campos
+
+### Dashboard
+
+- Cards com resumo financeiro
+- Gráfico de despesas por categoria
+- Navegação por abas
+
+### Gestão de Transações
+
+- Formulários intuitivos
+- Listagem organizada
+- Ações rápidas (excluir)
+
+## 🌐 Deploy
 
 ### Backend (Railway)
 
-1. Crie uma conta no [Railway](https://railway.app/)
-2. No dashboard do Railway, clique em "New Project" > "Deploy from GitHub"
-3. Selecione o repositório e a pasta backend do projeto
-4. Railway detectará automaticamente o projeto Node.js e fará o deploy
-5. Anote a URL fornecida pela Railway para uso no frontend
+O backend está configurado para deploy no Railway com:
 
-### Frontend (Vercel)
+- Variáveis de ambiente
+- Health check
+- Auto-deploy
 
-1. Crie uma conta no [Vercel](https://vercel.com/)
-2. No dashboard do Vercel, clique em "Add New" > "Project"
-3. Selecione o repositório e a pasta frontend do projeto
-4. Configure as seguintes opções:
-   - Framework Preset: Other
-   - Root Directory: frontend
-   - Build Command: deixe em branco
-   - Output Directory: deixe em branco
-5. Clique em "Deploy"
+### Frontend (Netlify)
 
-## Tecnologias Utilizadas
+O frontend está configurado para deploy no Netlify com:
 
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Backend**: Node.js, Express
-- **Exportação de dados**: XLSX
+- Build automático
+- CDN global
+- HTTPS gratuito
 
-## Projeto Desenvolvido por
+## 📊 Funcionalidades do Sistema
 
-Grupo InovaTech © 2025
+### API Endpoints
+
+- `POST /login` - Autenticar usuário
+- `POST /cadastro` - Cadastrar novo usuário
+- `GET /despesas` - Listar transações do usuário
+- `POST /despesas` - Adicionar nova transação
+- `PUT /despesas/:id` - Atualizar transação
+- `DELETE /despesas/:id` - Excluir transação
+- `GET /resumo` - Obter resumo financeiro
+- `GET /exportar` - Exportar para Excel
+
+## 👤 Usuários de Teste
+
+Para facilitar os testes, existem usuários pré-cadastrados:
+
+- **Email:** bruno@exemplo.com | **Senha:** 123456
+- **Email:** maria@exemplo.com | **Senha:** 123456
+
+## 🔒 Como Testar
+
+1. Acesse a aplicação
+2. Faça login com um dos usuários de teste
+3. Explore as funcionalidades:
+   - Adicione despesas e receitas
+   - Visualize o dashboard
+   - Exporte relatórios
+   - Teste a responsividade
+
+## 📱 Responsividade
+
+O sistema é totalmente responsivo e funciona perfeitamente em:
+
+- Desktop (1200px+)
+- Tablet (768px-1199px)
+- Mobile (até 767px)
+
+## 👥 Desenvolvido por
+
+**Sistema de Controle de Despesas Pessoais**
+
+- Tecnologias modernas e interface intuitiva
+- Desenvolvido em 2025
+
+---
+
+⭐ **Sistema de Controle de Despesas** - Gerencie suas finanças de forma simples e eficiente!

@@ -1,6 +1,7 @@
 {
-  "name": "frontend",
+  "name": "controle-despesas-frontend",
   "version": "1.0.0",
+  "description": "Frontend para o sistema de Controle de Despesas Pessoais",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",

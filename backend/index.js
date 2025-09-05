@@ -15,354 +15,261 @@ app.use(
 
 app.use(express.json());
 
-let produtos = [
+// Chave secreta para autenticação simples (em produção, use JWT)
+const AUTH_SECRET = "controle-despesas-secret-key";
+
+// Dados simulados para usuários e despesas
+let usuarios = [
   {
-    nome: "Notebook Dell Inspiron 15",
-    quantidadeMinima: 20,
-    condicaoPagamento: "30 dias",
-    empresa: "Dell",
-    valorPago: 5000,
-    valorFalta: 2000,
-    dataCompra: "2025-08-01",
+    id: 1,
+    nome: "Bruno Souza",
+    email: "bruno@exemplo.com",
+    senha: "123456", // Em produção, use hash
   },
   {
-    nome: 'Monitor LG 24"',
-    quantidadeMinima: 30,
-    condicaoPagamento: "à vista",
-    empresa: "LG",
-    valorPago: 1200,
-    valorFalta: 0,
-    dataCompra: "2025-07-15",
-  },
-  {
-    nome: "Mouse Logitech M170",
-    quantidadeMinima: 30,
-    condicaoPagamento: "15 dias",
-    empresa: "Logitech",
-    valorPago: 300,
-    valorFalta: 50,
-    dataCompra: "2025-07-20",
-  },
-  {
-    nome: "Teclado Mecânico Redragon Kumara",
-    quantidadeMinima: 15,
-    condicaoPagamento: "45 dias",
-    empresa: "Redragon",
-    valorPago: 180,
-    valorFalta: 70,
-    dataCompra: "2025-07-25",
-  },
-  {
-    nome: "Headset Hyperx Cloud II",
-    quantidadeMinima: 10,
-    condicaoPagamento: "à vista",
-    empresa: "HyperX",
-    valorPago: 450,
-    valorFalta: 0,
-    dataCompra: "2025-08-10",
-  },
-  {
-    nome: "SSD Samsung 1TB",
-    quantidadeMinima: 25,
-    condicaoPagamento: "30 dias",
-    empresa: "Samsung",
-    valorPago: 350,
-    valorFalta: 200,
-    dataCompra: "2025-08-05",
-  },
-  {
-    nome: "Placa de Vídeo RTX 4060",
-    quantidadeMinima: 8,
-    condicaoPagamento: "60 dias",
-    empresa: "NVIDIA",
-    valorPago: 2000,
-    valorFalta: 1500,
-    dataCompra: "2025-07-30",
-  },
-  {
-    nome: "Impressora HP LaserJet Pro",
-    quantidadeMinima: 5,
-    condicaoPagamento: "30 dias",
-    empresa: "HP",
-    valorPago: 1800,
-    valorFalta: 900,
-    dataCompra: "2025-08-12",
-  },
-  {
-    nome: "Roteador TP-Link Archer C6",
-    quantidadeMinima: 12,
-    condicaoPagamento: "à vista",
-    empresa: "TP-Link",
-    valorPago: 280,
-    valorFalta: 0,
-    dataCompra: "2025-07-18",
-  },
-  {
-    nome: "Webcam Logitech C920",
-    quantidadeMinima: 18,
-    condicaoPagamento: "15 dias",
-    empresa: "Logitech",
-    valorPago: 350,
-    valorFalta: 150,
-    dataCompra: "2025-08-07",
-  },
-  {
-    nome: "Smartphone Samsung Galaxy S23",
-    quantidadeMinima: 10,
-    condicaoPagamento: "45 dias",
-    empresa: "Samsung",
-    valorPago: 3000,
-    valorFalta: 1800,
-    dataCompra: "2025-08-15",
-  },
-  {
-    nome: "Tablet Apple iPad Pro",
-    quantidadeMinima: 7,
-    condicaoPagamento: "Dolar",
-    empresa: "Apple",
-    valorPago: 4500,
-    valorFalta: 3000,
-    dataCompra: "2025-07-28",
-  },
-  {
-    nome: "Dock Station Universal",
-    quantidadeMinima: 22,
-    condicaoPagamento: "à vista",
-    empresa: "Multilaser",
-    valorPago: 220,
-    valorFalta: 0,
-    dataCompra: "2025-08-03",
-  },
-  {
-    nome: "Memória RAM Kingston 16GB",
-    quantidadeMinima: 40,
-    condicaoPagamento: "30 dias",
-    empresa: "Kingston",
-    valorPago: 280,
-    valorFalta: 120,
-    dataCompra: "2025-07-22",
-  },
-  {
-    nome: "Processador AMD Ryzen 7",
-    quantidadeMinima: 15,
-    condicaoPagamento: "45 dias",
-    empresa: "AMD",
-    valorPago: 1500,
-    valorFalta: 800,
-    dataCompra: "2025-08-08",
-  },
-  {
-    nome: "Estabilizador SMS Revolution",
-    quantidadeMinima: 25,
-    condicaoPagamento: "à vista",
-    empresa: "SMS",
-    valorPago: 180,
-    valorFalta: 0,
-    dataCompra: "2025-07-12",
-  },
-  {
-    nome: "Cabo HDMI 2.1 3 metros",
-    quantidadeMinima: 50,
-    condicaoPagamento: "15 dias",
-    empresa: "Multilaser",
-    valorPago: 35,
-    valorFalta: 15,
-    dataCompra: "2025-08-02",
-  },
-  {
-    nome: "Adaptador USB-C para HDMI",
-    quantidadeMinima: 35,
-    condicaoPagamento: "à vista",
-    empresa: "Baseus",
-    valorPago: 70,
-    valorFalta: 0,
-    dataCompra: "2025-07-16",
-  },
-  {
-    nome: "Cadeira Gamer ThunderX3",
-    quantidadeMinima: 8,
-    condicaoPagamento: "60 dias",
-    empresa: "ThunderX3",
-    valorPago: 800,
-    valorFalta: 600,
-    dataCompra: "2025-08-11",
-  },
-  {
-    nome: "Kit Teclado e Mouse sem Fio",
-    quantidadeMinima: 20,
-    condicaoPagamento: "30 dias",
-    empresa: "Microsoft",
-    valorPago: 250,
-    valorFalta: 100,
-    dataCompra: "2025-07-19",
-  },
-  {
-    nome: 'Monitor Ultrawide LG 29"',
-    quantidadeMinima: 12,
-    condicaoPagamento: "45 dias",
-    empresa: "LG",
-    valorPago: 1800,
-    valorFalta: 900,
-    dataCompra: "2025-08-05",
-  },
-  {
-    nome: "Hub USB 7 Portas",
-    quantidadeMinima: 25,
-    condicaoPagamento: "à vista",
-    empresa: "Anker",
-    valorPago: 120,
-    valorFalta: 0,
-    dataCompra: "2025-07-24",
-  },
-  {
-    nome: "No-Break APC 1500VA",
-    quantidadeMinima: 10,
-    condicaoPagamento: "60 dias",
-    empresa: "APC",
-    valorPago: 890,
-    valorFalta: 550,
-    dataCompra: "2025-08-09",
-  },
-  {
-    nome: "Mouse Pad Gamer Extra Grande",
-    quantidadeMinima: 30,
-    condicaoPagamento: "15 dias",
-    empresa: "Havit",
-    valorPago: 55,
-    valorFalta: 20,
-    dataCompra: "2025-07-27",
-  },
-  {
-    nome: "Suporte Articulado para Monitor",
-    quantidadeMinima: 18,
-    condicaoPagamento: "30 dias",
-    empresa: "ELG",
-    valorPago: 180,
-    valorFalta: 90,
-    dataCompra: "2025-08-14",
-  },
-  {
-    nome: "Fone de Ouvido Bluetooth JBL",
-    quantidadeMinima: 22,
-    condicaoPagamento: "à vista",
-    empresa: "JBL",
-    valorPago: 280,
-    valorFalta: 0,
-    dataCompra: "2025-07-23",
-  },
-  {
-    nome: "Carregador Portátil 20000mAh",
-    quantidadeMinima: 15,
-    condicaoPagamento: "Credito",
-    empresa: "Xiaomi",
-    valorPago: 170,
-    valorFalta: 80,
-    dataCompra: "2025-08-06",
-  },
-  {
-    nome: "Câmera de Segurança Wi-Fi",
-    quantidadeMinima: 10,
-    condicaoPagamento: "45 dias",
-    empresa: "Intelbras",
-    valorPago: 240,
-    valorFalta: 150,
-    dataCompra: "2025-07-17",
-  },
-  {
-    nome: "Projetor Epson PowerLite",
-    quantidadeMinima: 5,
-    condicaoPagamento: "60 dias",
-    empresa: "Epson",
-    valorPago: 3200,
-    valorFalta: 1800,
-    dataCompra: "2025-08-13",
+    id: 2,
+    nome: "Maria Silva",
+    email: "maria@exemplo.com",
+    senha: "123456",
   },
 ];
+
+let despesas = [
+  {
+    id: 1,
+    usuarioId: 1,
+    descricao: "Supermercado",
+    valor: 250.5,
+    categoria: "Alimentação",
+    data: "2025-09-01",
+    tipo: "despesa",
+  },
+  {
+    id: 2,
+    usuarioId: 1,
+    descricao: "Salário",
+    valor: 3500.0,
+    categoria: "Salário",
+    data: "2025-09-01",
+    tipo: "receita",
+  },
+  {
+    id: 3,
+    usuarioId: 1,
+    descricao: "Gasolina",
+    valor: 180.0,
+    categoria: "Transporte",
+    data: "2025-09-02",
+    tipo: "despesa",
+  },
+  {
+    id: 4,
+    usuarioId: 1,
+    descricao: "Academia",
+    valor: 89.9,
+    categoria: "Saúde",
+    data: "2025-09-01",
+    tipo: "despesa",
+  },
+  {
+    id: 5,
+    usuarioId: 2,
+    descricao: "Freelance",
+    valor: 800.0,
+    categoria: "Trabalho Extra",
+    data: "2025-09-03",
+    tipo: "receita",
+  },
+];
+
+// Middleware para verificar autenticação simples
+const verificarAuth = (req, res, next) => {
+  const authHeader = req.header("Authorization");
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token de autorização necessário" });
+  }
+
+  // Autenticação simples baseada no email do usuário
+  const userEmail = authHeader.replace("Bearer ", "");
+  const usuario = usuarios.find((u) => u.email === userEmail);
+
+  if (!usuario) {
+    return res.status(401).json({ message: "Usuário não autorizado" });
+  }
+
+  req.usuario = usuario;
+  next();
+};
 
 // Rota principal para verificar se o servidor está rodando
 app.get("/", (req, res) => {
   res.json({
     status: "online",
-    message: "InovaTech API está rodando!",
+    message: "API de Controle de Despesas está rodando!",
     version: "1.0.0",
   });
 });
 
-app.get("/produtos", (req, res) => {
-  res.json(produtos);
-});
+// Rota de login
+app.post("/login", (req, res) => {
+  const { email, senha } = req.body;
 
-app.post("/produtos", (req, res) => {
-  const {
-    nome,
-    quantidadeMinima,
-    condicaoPagamento,
-    empresa,
-    valorPago,
-    valorFalta,
-    dataCompra,
-  } = req.body;
-  produtos.push({
-    nome,
-    quantidadeMinima,
-    condicaoPagamento,
-    empresa,
-    valorPago,
-    valorFalta,
-    dataCompra,
-  });
-  res.status(201).json({ message: "Produto adicionado!" });
-});
-
-// Nova rota para atualizar produtos
-app.put("/produtos/:index", (req, res) => {
-  const index = parseInt(req.params.index);
-
-  if (isNaN(index) || index < 0 || index >= produtos.length) {
-    return res.status(404).json({ message: "Produto não encontrado!" });
+  const usuario = usuarios.find((u) => u.email === email && u.senha === senha);
+  if (!usuario) {
+    return res.status(401).json({ message: "Credenciais inválidas" });
   }
 
-  const {
-    nome,
-    quantidadeMinima,
-    condicaoPagamento,
-    empresa,
-    valorPago,
-    valorFalta,
-    dataCompra,
-  } = req.body;
+  res.json({
+    message: "Login realizado com sucesso",
+    usuario: {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+    },
+    token: usuario.email, // Token simples baseado no email
+  });
+});
 
-  produtos[index] = {
+// Rota para cadastro de usuário
+app.post("/cadastro", (req, res) => {
+  const { nome, email, senha } = req.body;
+
+  const usuarioExistente = usuarios.find((u) => u.email === email);
+  if (usuarioExistente) {
+    return res.status(400).json({ message: "Email já cadastrado" });
+  }
+
+  const novoUsuario = {
+    id: usuarios.length + 1,
     nome,
-    quantidadeMinima,
-    condicaoPagamento,
-    empresa,
-    valorPago,
-    valorFalta,
-    dataCompra,
+    email,
+    senha,
   };
 
-  res.json({ message: "Produto atualizado com sucesso!" });
+  usuarios.push(novoUsuario);
+
+  res.status(201).json({
+    message: "Usuário cadastrado com sucesso",
+    usuario: {
+      id: novoUsuario.id,
+      nome: novoUsuario.nome,
+      email: novoUsuario.email,
+    },
+    token: novoUsuario.email,
+  });
 });
 
-// Nova rota para excluir produtos
-app.delete("/produtos/:index", (req, res) => {
-  const index = parseInt(req.params.index);
+// Obter despesas do usuário logado
+app.get("/despesas", verificarAuth, (req, res) => {
+  const despesasUsuario = despesas.filter(
+    (d) => d.usuarioId === req.usuario.id
+  );
+  res.json(despesasUsuario);
+});
 
-  if (isNaN(index) || index < 0 || index >= produtos.length) {
-    return res.status(404).json({ message: "Produto não encontrado!" });
+// Adicionar nova despesa/receita
+app.post("/despesas", verificarAuth, (req, res) => {
+  const { descricao, valor, categoria, data, tipo } = req.body;
+
+  const novaDespesa = {
+    id: despesas.length + 1,
+    usuarioId: req.usuario.id,
+    descricao,
+    valor: parseFloat(valor),
+    categoria,
+    data,
+    tipo,
+  };
+
+  despesas.push(novaDespesa);
+  res.status(201).json({ message: "Item adicionado!", despesa: novaDespesa });
+});
+
+// Atualizar despesa/receita
+app.put("/despesas/:id", verificarAuth, (req, res) => {
+  const id = parseInt(req.params.id);
+  const despesaIndex = despesas.findIndex(
+    (d) => d.id === id && d.usuarioId === req.usuario.id
+  );
+
+  if (despesaIndex === -1) {
+    return res.status(404).json({ message: "Item não encontrado!" });
   }
 
-  produtos.splice(index, 1);
-  res.json({ message: "Produto excluído com sucesso!" });
+  const { descricao, valor, categoria, data, tipo } = req.body;
+  despesas[despesaIndex] = {
+    ...despesas[despesaIndex],
+    descricao,
+    valor: parseFloat(valor),
+    categoria,
+    data,
+    tipo,
+  };
+
+  res.json({ message: "Item atualizado!", despesa: despesas[despesaIndex] });
 });
 
-app.get("/exportar", (req, res) => {
-  const ws = XLSX.utils.json_to_sheet(produtos);
+// Excluir despesa/receita
+app.delete("/despesas/:id", verificarAuth, (req, res) => {
+  const id = parseInt(req.params.id);
+  const despesaIndex = despesas.findIndex(
+    (d) => d.id === id && d.usuarioId === req.usuario.id
+  );
+
+  if (despesaIndex === -1) {
+    return res.status(404).json({ message: "Item não encontrado!" });
+  }
+
+  despesas.splice(despesaIndex, 1);
+  res.json({ message: "Item excluído!" });
+});
+
+// Obter resumo financeiro
+app.get("/resumo", verificarAuth, (req, res) => {
+  const despesasUsuario = despesas.filter(
+    (d) => d.usuarioId === req.usuario.id
+  );
+
+  const totalReceitas = despesasUsuario
+    .filter((d) => d.tipo === "receita")
+    .reduce((total, d) => total + d.valor, 0);
+
+  const totalDespesas = despesasUsuario
+    .filter((d) => d.tipo === "despesa")
+    .reduce((total, d) => total + d.valor, 0);
+
+  const saldo = totalReceitas - totalDespesas;
+
+  // Despesas por categoria
+  const despesasPorCategoria = {};
+  despesasUsuario
+    .filter((d) => d.tipo === "despesa")
+    .forEach((d) => {
+      if (!despesasPorCategoria[d.categoria]) {
+        despesasPorCategoria[d.categoria] = 0;
+      }
+      despesasPorCategoria[d.categoria] += d.valor;
+    });
+
+  res.json({
+    totalReceitas,
+    totalDespesas,
+    saldo,
+    despesasPorCategoria,
+  });
+});
+
+// Exportar despesas para Excel
+app.get("/exportar", verificarAuth, (req, res) => {
+  const despesasUsuario = despesas.filter(
+    (d) => d.usuarioId === req.usuario.id
+  );
+  const ws = XLSX.utils.json_to_sheet(despesasUsuario);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Produtos");
+  XLSX.utils.book_append_sheet(wb, ws, "Despesas");
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
-  res.setHeader("Content-Disposition", 'attachment; filename="produtos.xlsx"');
+  res.setHeader("Content-Disposition", 'attachment; filename="despesas.xlsx"');
   res.type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   res.send(buf);
 });
@@ -387,6 +294,6 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Backend rodando na porta ${PORT}`);
+  console.log(`API de Controle de Despesas rodando na porta ${PORT}`);
   console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
 });
