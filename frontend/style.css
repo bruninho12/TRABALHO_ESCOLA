@@ -27,6 +27,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .navbar-logo {
@@ -47,6 +48,7 @@ body {
   align-items: center;
   gap: 15px;
   color: #eaf6fb;
+  flex-wrap: wrap;
 }
 
 .btn-logout {
@@ -159,6 +161,8 @@ body {
   border-radius: 12px;
   padding: 8px;
   border: 2px solid #2c5364;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tab {
@@ -168,6 +172,8 @@ body {
   transition: all 0.3s;
   font-weight: 600;
   color: #eaf6fb;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .tab.active {
@@ -459,9 +465,104 @@ body {
   color: white;
 }
 
-/* Responsividade */
+/* Media Queries para Responsividade Móvel Avançada */
+
+/* Tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+  .resumo-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+
+  #main-page {
+    padding: 15px;
+  }
+
+  .tab {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Smartphones (até 768px) */
 @media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .navbar {
+    padding: 10px 15px;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .navbar-title {
+    font-size: 1.3rem;
+  }
+
+  .navbar-user {
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-logout {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Login e Cadastro Mobile */
+  #login-page,
+  #cadastro-page {
+    padding: 15px;
+    min-height: calc(100vh - 120px);
+  }
+
+  .login-container {
+    padding: 25px 20px;
+    max-width: 100%;
+  }
+
+  .login-form h2 {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+  }
+
+  .login-form input {
+    padding: 12px;
+    font-size: 16px; /* Previne zoom no iOS */
+  }
+
+  .login-form button {
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  /* Dashboard Mobile */
+  .dashboard-header h2 {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+
+  .resumo-cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .card {
+    padding: 20px 15px;
+  }
+
+  .card p {
+    font-size: 1.5rem;
+  }
+
+  /* Tabs Mobile */
   .tabs {
+    margin-bottom: 20px;
+    padding: 5px;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 5px;
   }
@@ -471,35 +572,208 @@ body {
     min-width: 100px;
     text-align: center;
     padding: 10px 12px;
+    font-size: 0.85rem;
   }
 
-  .resumo-cards {
-    grid-template-columns: 1fr;
+  /* Formulários Mobile */
+  .form-container {
+    padding: 15px;
+  }
+
+  .form-container h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
   }
 
   .form-container form {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .form-container input,
+  .form-container select {
+    padding: 10px;
+    font-size: 16px; /* Previne zoom no iOS */
+  }
+
+  .form-container button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  /* Listas Mobile */
+  .lista-container {
+    padding: 15px;
+  }
+
+  .lista-container h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
   }
 
   .item-financeiro {
     grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .relatorios-header {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-
-  .navbar {
-    flex-direction: column;
+    padding: 15px;
     gap: 10px;
     text-align: center;
   }
 
-  .navbar-user {
+  .item-info h4 {
+    font-size: 1rem;
+  }
+
+  .item-info p {
+    font-size: 0.85rem;
+  }
+
+  .item-valor {
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 8px;
+    border-radius: 6px;
+    margin-top: 5px;
+  }
+
+  .item-acoes {
     justify-content: center;
+    margin-top: 10px;
+  }
+
+  .btn-excluir {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* Categorias Mobile */
+  .categorias-container {
+    padding: 15px;
+  }
+
+  .categoria-item {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  /* Relatórios Mobile */
+  .relatorios-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    padding: 15px;
+  }
+
+  .relatorios-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .btn-exportar {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    width: 100%;
+  }
+
+  #main-page {
+    padding: 10px;
+  }
+}
+
+/* Smartphones pequenos (até 480px) */
+@media (max-width: 480px) {
+  .navbar-title {
+    font-size: 1.1rem;
+  }
+
+  .navbar-user span {
+    display: none; /* Esconde "Olá," para economizar espaço */
+  }
+
+  .login-container {
+    padding: 20px 15px;
+    border-radius: 12px;
+  }
+
+  .dashboard-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .card {
+    padding: 15px 10px;
+  }
+
+  .card h3 {
+    font-size: 0.95rem;
+  }
+
+  .card p {
+    font-size: 1.3rem;
+  }
+
+  .tabs {
+    padding: 3px;
+  }
+
+  .tab {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-width: 80px;
+  }
+
+  .form-container,
+  .lista-container,
+  .categorias-container {
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+
+  .item-financeiro {
+    padding: 12px;
+  }
+
+  .item-valor {
+    font-size: 1rem;
+  }
+
+  #main-page {
+    padding: 8px;
+  }
+}
+
+/* Orientação paisagem em mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .navbar {
+    padding: 8px 15px;
+  }
+
+  .dashboard-header h2 {
+    margin-bottom: 15px;
+  }
+
+  .resumo-cards {
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 20px;
+  }
+
+  .card {
+    padding: 15px 10px;
+  }
+
+  .tabs {
+    margin-bottom: 15px;
+  }
+}
+
+/* Melhorias para touch devices */
+@media (pointer: coarse) {
+  .tab,
+  .btn-logout,
+  .form-container button,
+  .btn-exportar,
+  .btn-excluir {
+    min-height: 44px; /* Tamanho mínimo recomendado para touch */
+  }
+
+  .item-financeiro {
+    min-height: 60px;
   }
 }
 
