@@ -578,19 +578,26 @@ app.use((req, res) => {
   });
 });
 
-// Iniciar servidor
+// Iniciar servidor (apenas para desenvolvimento local)
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`API de Controle de Despesas rodando na porta ${PORT}`);
-  console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
-  console.log(`📊 Funcionalidades ativas:`);
-  console.log(`  ✅ Persistência de dados em arquivos JSON`);
-  console.log(`  ✅ Autenticação de usuários`);
-  console.log(`  ✅ CRUD completo de despesas/receitas`);
-  console.log(`  ✅ Busca e filtros avançados`);
-  console.log(`  ✅ Estatísticas e relatórios`);
-  console.log(`  ✅ Exportação Excel e JSON`);
-  console.log(`  ✅ Backup de dados do usuário`);
-  console.log(`  ✅ Validação de dados`);
-  console.log(`  ✅ Tratamento de erros`);
-});
+
+// Para Vercel (serverless)
+export default app;
+
+// Para desenvolvimento local
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`API de Controle de Despesas rodando na porta ${PORT}`);
+    console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
+    console.log(`📊 Funcionalidades ativas:`);
+    console.log(`  ✅ Persistência de dados em arquivos JSON`);
+    console.log(`  ✅ Autenticação de usuários`);
+    console.log(`  ✅ CRUD completo de despesas/receitas`);
+    console.log(`  ✅ Busca e filtros avançados`);
+    console.log(`  ✅ Estatísticas e relatórios`);
+    console.log(`  ✅ Exportação Excel e JSON`);
+    console.log(`  ✅ Backup de dados do usuário`);
+    console.log(`  ✅ Validação de dados`);
+    console.log(`  ✅ Tratamento de erros`);
+  });
+}
