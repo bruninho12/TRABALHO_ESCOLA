@@ -7,13 +7,56 @@ import path from "path";
 const app = express();
 
 // Configuração CORS
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://trabalho-escola-5lqz-3rm820502-brunos-projects-4b4f61b9.vercel.app",
+  "https://trabalho-escola-brunos-projects-4b4f61b9.vercel.app",
+  "https://trabalho-escola.vercel.app",
+  /^https:\/\/trabalho-escola-.*\.vercel\.app$/,
+  /^https:\/\/.*-brunos-projects-4b4f61b9\.vercel\.app$/,
+];
+
 app.use(
   cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: function (origin, callback) {
+      // Permitir requisições sem origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      // Verificar se o origin está na lista permitida
+      const isAllowed = allowedOrigins.some((allowedOrigin) => {
+        if (typeof allowedOrigin === "string") {
+          return origin === allowedOrigin;
+        }
+        // Para regex
+        return allowedOrigin.test(origin);
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.log("CORS bloqueado para origin:", origin);
+        callback(new Error("Não permitido pelo CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    optionsSuccessStatus: 200,
   })
 );
+
+// Middleware adicional para CORS preflight
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.get("Origin") || "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.status(200).send();
+});
 
 app.use(express.json());
 

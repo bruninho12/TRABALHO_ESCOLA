@@ -1,12 +1,58 @@
-// API URL - altera automaticamente entre desenvolvimento local e produção
-let api = "https://trabalho-escola-black.vercel.app"; // URL fixa da API hospedada no Vercel
+// API URL - detecção automática e robusta de ambiente
+let api;
 
-// Se estiver em ambiente local, usa a API local
-if (
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-) {
-  api = "http://localhost:3001";
+// Configuração de ambientes
+const environments = {
+  local: "http://localhost:3001",
+  production: "https://trabalho-escola-black.vercel.app",
+};
+
+// Detectar ambiente
+function detectEnvironment() {
+  const hostname = window.location.hostname;
+  const isLocal =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("192.168.");
+
+  if (isLocal) {
+    return environments.local;
+  } else {
+    return environments.production;
+  }
+}
+
+api = detectEnvironment();
+
+// Log para debug
+console.log(`🌐 Ambiente detectado: ${api}`);
+
+// Função helper para requisições HTTP com configurações CORS robustas
+async function apiRequest(endpoint, options = {}) {
+  const defaultOptions = {
+    mode: "cors",
+    credentials: "omit",
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  };
+
+  const finalOptions = { ...defaultOptions, ...options };
+
+  try {
+    console.log(`🔄 Fazendo requisição para: ${api}${endpoint}`);
+    const response = await fetch(`${api}${endpoint}`, finalOptions);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Erro na requisição:", error);
+    throw error;
+  }
 }
 
 // Estado da aplicação
@@ -53,7 +99,12 @@ function realizarLogin(event) {
 
   fetch(api + "/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    mode: "cors",
+    credentials: "omit",
     body: JSON.stringify({ email, senha }),
   })
     .then((res) => res.json())
@@ -88,7 +139,12 @@ function realizarCadastro(event) {
 
   fetch(api + "/cadastro", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    mode: "cors",
+    credentials: "omit",
     body: JSON.stringify({ nome, email, senha }),
   })
     .then((res) => res.json())
