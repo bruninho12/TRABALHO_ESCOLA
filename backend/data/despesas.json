@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "usuarioId": 1,
+    "descricao": "Supermercado",
+    "valor": 250.5,
+    "categoria": "Alimentação",
+    "data": "2025-09-01",
+    "tipo": "despesa"
+  },
+  {
+    "id": 2,
+    "usuarioId": 1,
+    "descricao": "Salário",
+    "valor": 3500,
+    "categoria": "Salário",
+    "data": "2025-09-01",
+    "tipo": "receita"
+  },
+  {
+    "id": 3,
+    "usuarioId": 1,
+    "descricao": "Gasolina",
+    "valor": 180,
+    "categoria": "Transporte",
+    "data": "2025-09-02",
+    "tipo": "despesa"
+  },
+  {
+    "id": 4,
+    "usuarioId": 1,
+    "descricao": "Academia",
+    "valor": 89.9,
+    "categoria": "Saúde",
+    "data": "2025-09-01",
+    "tipo": "despesa"
+  },
+  {
+    "id": 5,
+    "usuarioId": 2,
+    "descricao": "Freelance",
+    "valor": 800,
+    "categoria": "Trabalho Extra",
+    "data": "2025-09-03",
+    "tipo": "receita"
+  }
+]

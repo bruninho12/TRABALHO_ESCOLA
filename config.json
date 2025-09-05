@@ -1,0 +1,51 @@
+{
+  "servidor": {
+    "porta": 3001,
+    "ambiente": "development",
+    "cors": {
+      "origem": "*",
+      "metodos": ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"]
+    }
+  },
+  "dados": {
+    "diretorio": "data",
+    "arquivos": {
+      "usuarios": "usuarios.json",
+      "despesas": "despesas.json"
+    },
+    "backup_automatico": true
+  },
+  "autenticacao": {
+    "tipo": "token_simples",
+    "chave_secreta": "controle-despesas-secret-key",
+    "expiracao_sessao": "24h"
+  },
+  "aplicacao": {
+    "nome": "Sistema Controle de Despesas",
+    "versao": "2.0.0",
+    "descricao": "Sistema completo para controle financeiro pessoal"
+  },
+  "funcionalidades": {
+    "persistencia_dados": true,
+    "multiplos_usuarios": true,
+    "exportacao_excel": true,
+    "interface_mobile": true,
+    "validacao_dados": true,
+    "backup_usuario": true,
+    "busca_filtros": true,
+    "estatisticas": true
+  },
+  "categorias_padrao": {
+    "despesas": [
+      "Alimentação",
+      "Transporte",
+      "Saúde",
+      "Casa",
+      "Lazer",
+      "Educação",
+      "Vestuário",
+      "Outros"
+    ],
+    "receitas": ["Salário", "Freelance", "Investimentos", "Vendas", "Outros"]
+  }
+}
