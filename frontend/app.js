@@ -27,7 +27,7 @@ api = detectEnvironment();
 // Log para debug
 console.log(`🌐 Ambiente detectado: ${api}`);
 
-// Fu// Função para verificar autenticação
+// Função para verificar autenticação
 function verificarLogin() {
   const token = localStorage.getItem("authToken");
   const usuario = localStorage.getItem("usuario");
@@ -42,7 +42,9 @@ function verificarLogin() {
   } else {
     mostrarPaginaLogin();
   }
-} requisições HTTP com configurações CORS robustas
+}
+
+// Função helper para requisições HTTP com configurações CORS robustas
 async function apiRequest(endpoint, options = {}) {
   const defaultOptions = {
     mode: "cors",
@@ -271,25 +273,32 @@ function carregarResumo() {
     .then((res) => {
       console.log("Status da resposta de resumo:", res.status);
       if (!res.ok) {
-        console.error("Erro na resposta de resumo:", res.status, res.statusText);
+        console.error(
+          "Erro na resposta de resumo:",
+          res.status,
+          res.statusText
+        );
       }
       return res.json();
     })
     .then((response) => {
       console.log("Resposta de resumo:", response);
-      
+
       // Verificar se a resposta tem a estrutura esperada
       if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
         return;
       }
-      
+
       // Se não tiver success no status, mostrar erro
       if (response.status !== "success") {
-        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        console.error(
+          "Erro na resposta:",
+          response.message || "Erro desconhecido"
+        );
         return;
       }
-      
+
       // Verificar se os dados existem
       if (!response.data) {
         console.error("Dados inválidos na resposta:", response.data);
@@ -386,7 +395,11 @@ function adicionarDespesa(event) {
     .then((res) => {
       console.log("Status da resposta de adicionar despesa:", res.status);
       if (!res.ok) {
-        console.error("Erro na resposta de adicionar despesa:", res.status, res.statusText);
+        console.error(
+          "Erro na resposta de adicionar despesa:",
+          res.status,
+          res.statusText
+        );
       }
       return res.json();
     })
@@ -437,7 +450,11 @@ function adicionarReceita(event) {
     .then((res) => {
       console.log("Status da resposta de adicionar receita:", res.status);
       if (!res.ok) {
-        console.error("Erro na resposta de adicionar receita:", res.status, res.statusText);
+        console.error(
+          "Erro na resposta de adicionar receita:",
+          res.status,
+          res.statusText
+        );
       }
       return res.json();
     })
@@ -466,25 +483,32 @@ function carregarDespesas() {
     .then((res) => {
       console.log("Status da resposta de despesas:", res.status);
       if (!res.ok) {
-        console.error("Erro na resposta de despesas:", res.status, res.statusText);
+        console.error(
+          "Erro na resposta de despesas:",
+          res.status,
+          res.statusText
+        );
       }
       return res.json();
     })
     .then((response) => {
       console.log("Resposta de despesas:", response);
-      
+
       // Verificar se a resposta tem a estrutura esperada
       if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
         return;
       }
-      
+
       // Se não tiver success no status, mostrar erro
       if (response.status !== "success") {
-        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        console.error(
+          "Erro na resposta:",
+          response.message || "Erro desconhecido"
+        );
         return;
       }
-      
+
       // Verificar se os dados existem e são um array
       if (!response.data || !Array.isArray(response.data)) {
         console.error("Dados inválidos na resposta:", response.data);
@@ -537,25 +561,32 @@ function carregarReceitas() {
     .then((res) => {
       console.log("Status da resposta de receitas:", res.status);
       if (!res.ok) {
-        console.error("Erro na resposta de receitas:", res.status, res.statusText);
+        console.error(
+          "Erro na resposta de receitas:",
+          res.status,
+          res.statusText
+        );
       }
       return res.json();
     })
     .then((response) => {
       console.log("Resposta de receitas:", response);
-      
+
       // Verificar se a resposta tem a estrutura esperada
       if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
         return;
       }
-      
+
       // Se não tiver success no status, mostrar erro
       if (response.status !== "success") {
-        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        console.error(
+          "Erro na resposta:",
+          response.message || "Erro desconhecido"
+        );
         return;
       }
-      
+
       // Verificar se os dados existem e são um array
       if (!response.data || !Array.isArray(response.data)) {
         console.error("Dados inválidos na resposta:", response.data);
@@ -608,25 +639,32 @@ function carregarHistoricoCompleto() {
     .then((res) => {
       console.log("Status da resposta de histórico:", res.status);
       if (!res.ok) {
-        console.error("Erro na resposta de histórico:", res.status, res.statusText);
+        console.error(
+          "Erro na resposta de histórico:",
+          res.status,
+          res.statusText
+        );
       }
       return res.json();
     })
     .then((response) => {
       console.log("Resposta de histórico:", response);
-      
+
       // Verificar se a resposta tem a estrutura esperada
       if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
         return;
       }
-      
+
       // Se não tiver success no status, mostrar erro
       if (response.status !== "success") {
-        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        console.error(
+          "Erro na resposta:",
+          response.message || "Erro desconhecido"
+        );
         return;
       }
-      
+
       // Verificar se os dados existem e são um array
       if (!response.data || !Array.isArray(response.data)) {
         console.error("Dados inválidos na resposta:", response.data);
@@ -683,7 +721,11 @@ function excluirItem(id) {
       .then((res) => {
         console.log("Status da resposta de exclusão:", res.status);
         if (!res.ok) {
-          console.error("Erro na resposta de exclusão:", res.status, res.statusText);
+          console.error(
+            "Erro na resposta de exclusão:",
+            res.status,
+            res.statusText
+          );
         }
         return res.json();
       })
