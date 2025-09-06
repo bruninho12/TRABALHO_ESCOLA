@@ -373,22 +373,8 @@ function realizarCadastro(event) {
     browserInfo: navigator.userAgent,
   });
 
-  // UTILIZA MÉTODO DIRETO PARA TESTES
-  fetch(api + "/cadastro", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "X-Requested-With": "XMLHttpRequest",
-    },
-    mode: "cors",
-    credentials: "omit",
-    body: JSON.stringify({ nome, email, senha }),
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
-    })
+  // Usa a função robusta que implementamos para lidar com CORS
+  tentarCadastro({ nome, email, senha })
     .then((data) => {
       console.log("Resposta do cadastro:", data);
       if (data.status === "success" && data.token) {
