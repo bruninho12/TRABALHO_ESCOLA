@@ -2,10 +2,11 @@
   "name": "controle-despesas",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd frontend && npm run build",
+    "build": "echo \"No build required for backend-only deployment\" && cd backend && npm install",
     "start": "node start.js",
     "start:backend": "cd backend && npm run start",
     "start:render": "cd backend && node index.js",
+    "start:railway": "cd backend && node index.js",
     "build:render": "sh render-build.sh"
   }
 }

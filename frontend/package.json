@@ -12,6 +12,7 @@
     "serverless-http": "^3.2.0"
   },
   "scripts": {
-    "start": "npx serve -s ."
+    "start": "npx serve -s .",
+    "build": "echo \"No build steps required for static frontend\" && true"
   }
 }
