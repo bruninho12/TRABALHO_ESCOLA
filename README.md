@@ -122,10 +122,12 @@ O backend está configurado para deploy no Railway com:
 - Variáveis de ambiente
 - Health check
 - Auto-deploy
+- Persistência de dados
+- Sem limitação de timeout
 
-### Frontend (Netlify)
+### Frontend (Netlify/Vercel)
 
-O frontend está configurado para deploy no Netlify com:
+O frontend está configurado para deploy no Netlify ou Vercel com:
 
 - Build automático
 - CDN global

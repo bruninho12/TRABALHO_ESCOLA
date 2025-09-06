@@ -1,0 +1,8 @@
+{
+  "name": "controle-despesas",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "deploy:render": "cd backend && npm run start:render"
+  }
+}

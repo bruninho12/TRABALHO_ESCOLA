@@ -4,7 +4,8 @@ let api;
 // Configuração de ambientes
 const environments = {
   local: "http://localhost:3001",
-  production: "https://trabalho-escola-black.vercel.app", // URL corrigida para o atual deploy
+  railway: "https://trabalho-escola-production.up.railway.app", // URL para o Railway
+  render: "https://controle-despesas-backend.onrender.com", // URL para o Render
 };
 
 // Detectar ambiente
@@ -18,7 +19,9 @@ function detectEnvironment() {
   if (isLocal) {
     return environments.local;
   } else {
-    return environments.production;
+    // Você pode configurar aqui qual backend será usado em produção
+    // Atualmente configurado para usar o Render
+    return environments.render;
   }
 }
 

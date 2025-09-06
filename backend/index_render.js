@@ -1,33 +1,62 @@
 import express from "express";
 import cors from "cors";
+import compression from "compression";
+import helmet from "helmet";
 import XLSX from "xlsx";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
+// Obter o diretório atual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Inicializar a aplicação Express
 const app = express();
+console.log("Inicializando servidor Render...");
 
-// Garantir que os diretórios necessários existam ao iniciar
-console.log("Verificando diretórios necessários...");
+// Aplicar middlewares de segurança e performance
+app.use(helmet());
+app.use(compression());
+app.use(express.json());
+
+// Diretórios para dados
+// Verificar se estamos no Render (eles usam um caminho específico para discos persistentes)
+const isRender = process.env.RENDER === "true";
+const DATA_DIR = isRender
+  ? path.join("/opt/render/project/src/backend/data")
+  : path.join(__dirname, "data");
+
+console.log("Verificando diretórios necessários para o Render...");
 try {
-  const DATA_DIR = path.join(process.cwd(), "data");
+  console.log("Diretório de dados: ", DATA_DIR);
   if (!fs.existsSync(DATA_DIR)) {
     console.log("Criando diretório de dados...");
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
+
+  // Testar permissões de escrita
+  const testFile = path.join(DATA_DIR, "test.txt");
+  fs.writeFileSync(testFile, "Test write permissions on Render");
+  fs.unlinkSync(testFile);
+  console.log("Permissões de escrita verificadas com sucesso!");
+
   console.log("Diretórios verificados com sucesso!");
 } catch (error) {
   console.error("Erro ao verificar/criar diretórios:", error);
+  console.error("Detalhes do erro:", error.message);
+  console.error("Stack trace:", error.stack);
 }
 
 // Configuração CORS
 const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
-  "https://trabalho-escola-5lqz-3rm820502-brunos-projects-4b4f61b9.vercel.app",
-  "https://trabalho-escola-brunos-projects-4b4f61b9.vercel.app",
   "https://trabalho-escola.vercel.app",
+  "https://trabalho-escola.netlify.app",
   /^https:\/\/trabalho-escola-.*\.vercel\.app$/,
-  /^https:\/\/.*-brunos-projects-4b4f61b9\.vercel\.app$/,
+  /^https:\/\/trabalho-escola-.*\.netlify\.app$/,
+  /^https:\/\/trabalho-escola-.*\.onrender\.com$/,
 ];
 
 app.use(
@@ -71,20 +100,9 @@ app.options("*", (req, res) => {
   res.status(200).send();
 });
 
-app.use(express.json());
-
-// Chave secreta para autenticação
-const AUTH_SECRET = "controle-despesas-secret-key";
-
 // Arquivos de dados
-const DATA_DIR = path.join(process.cwd(), "data");
 const USERS_FILE = path.join(DATA_DIR, "usuarios.json");
 const EXPENSES_FILE = path.join(DATA_DIR, "despesas.json");
-
-// Criar diretório de dados se não existir
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
 
 // Função para carregar dados do arquivo
 function loadData(filepath, defaultData = []) {
@@ -183,6 +201,13 @@ if (!fs.existsSync(EXPENSES_FILE)) {
   saveData(EXPENSES_FILE, despesas);
 }
 
+// Configurar salvamento periódico de dados (backup a cada 5 minutos)
+setInterval(() => {
+  console.log("Salvando backup periódico dos dados...");
+  saveData(USERS_FILE, usuarios);
+  saveData(EXPENSES_FILE, despesas);
+}, 5 * 60 * 1000);
+
 // Middleware para validar dados de entrada
 const validarDespesa = (req, res, next) => {
   const { descricao, valor, categoria, data, tipo } = req.body;
@@ -261,8 +286,10 @@ const verificarAuth = (req, res, next) => {
 app.get("/", (req, res) => {
   res.json({
     status: "online",
-    message: "API de Controle de Despesas está rodando!",
-    version: "2.0.0",
+    message: "API de Controle de Despesas está rodando no Render!",
+    version: "3.0.0",
+    ambiente: process.env.NODE_ENV || "development",
+    plataforma: "Render",
     funcionalidades: [
       "✅ Autenticação de usuários",
       "✅ CRUD de despesas/receitas",
@@ -271,6 +298,9 @@ app.get("/", (req, res) => {
       "✅ Estatísticas",
       "✅ Exportação Excel/JSON",
       "✅ Backup de dados",
+      "✅ Otimização de performance",
+      "✅ Segurança aprimorada",
+      "✅ Salvamento periódico de dados",
     ],
   });
 });
@@ -449,7 +479,10 @@ app.put("/despesas/:id", verificarAuth, validarDespesa, (req, res) => {
   );
 
   if (despesaIndex === -1) {
-    return res.status(404).json({ message: "Item não encontrado!" });
+    return res.status(404).json({
+      status: "error",
+      message: "Item não encontrado!",
+    });
   }
 
   const { descricao, valor, categoria, data, tipo } = req.body;
@@ -464,10 +497,17 @@ app.put("/despesas/:id", verificarAuth, validarDespesa, (req, res) => {
   };
 
   if (!saveData(EXPENSES_FILE, despesas)) {
-    return res.status(500).json({ message: "Erro ao salvar alteração" });
+    return res.status(500).json({
+      status: "error",
+      message: "Erro ao salvar alteração",
+    });
   }
 
-  res.json({ message: "Item atualizado!", despesa: despesas[despesaIndex] });
+  res.json({
+    status: "success",
+    message: "Item atualizado!",
+    data: despesas[despesaIndex],
+  });
 });
 
 // Excluir despesa/receita
@@ -541,7 +581,11 @@ app.get("/despesas/buscar", verificarAuth, (req, res) => {
 
   despesasUsuario.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-  res.json(despesasUsuario);
+  res.json({
+    status: "success",
+    message: "Dados filtrados com sucesso",
+    data: despesasUsuario,
+  });
 });
 
 // Obter categorias
@@ -552,7 +596,11 @@ app.get("/categorias", verificarAuth, (req, res) => {
 
   const categorias = [...new Set(despesasUsuario.map((d) => d.categoria))];
 
-  res.json(categorias.sort());
+  res.json({
+    status: "success",
+    message: "Categorias recuperadas com sucesso",
+    data: categorias.sort(),
+  });
 });
 
 // Resumo financeiro
@@ -626,15 +674,19 @@ app.get("/estatisticas", verificarAuth, (req, res) => {
   });
 
   res.json({
-    totalReceitas,
-    totalDespesas,
-    saldo: totalReceitas - totalDespesas,
-    despesasPorCategoria,
-    receitasPorCategoria,
-    quantidadeItens: despesasUsuario.length,
-    mediaGasto:
-      despesasLista.length > 0 ? totalDespesas / despesasLista.length : 0,
-    periodo: ano && mes ? `${mes}/${ano}` : "Todos os registros",
+    status: "success",
+    message: "Estatísticas recuperadas com sucesso",
+    data: {
+      totalReceitas,
+      totalDespesas,
+      saldo: totalReceitas - totalDespesas,
+      despesasPorCategoria,
+      receitasPorCategoria,
+      quantidadeItens: despesasUsuario.length,
+      mediaGasto:
+        despesasLista.length > 0 ? totalDespesas / despesasLista.length : 0,
+      periodo: ano && mes ? `${mes}/${ano}` : "Todos os registros",
+    },
   });
 });
 
@@ -689,6 +741,19 @@ app.get("/exportar", verificarAuth, (req, res) => {
   res.send(buf);
 });
 
+// Health check para Render
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    platform: "Render",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+    dataDirectory: DATA_DIR,
+    usersCount: usuarios.length,
+    transactionsCount: despesas.length,
+  });
+});
+
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
   console.error("Erro na aplicação:", err.stack);
@@ -707,13 +772,13 @@ app.use((req, res) => {
   });
 });
 
-// Iniciar servidor para todas as plataformas
+// Iniciar servidor para Render
 const PORT = process.env.PORT || 3001;
 
-// Inicializar servidor para qualquer ambiente
-app.listen(PORT, () => {
-  console.log(`API de Controle de Despesas rodando na porta ${PORT}`);
-  console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ API de Controle de Despesas rodando na porta ${PORT}`);
+  console.log(`🔧 Ambiente: ${process.env.NODE_ENV || "development"}`);
+  console.log(`🖥️ Plataforma: Render`);
   console.log(`📊 Funcionalidades ativas:`);
   console.log(`  ✅ Persistência de dados em arquivos JSON`);
   console.log(`  ✅ Autenticação de usuários`);
@@ -724,4 +789,22 @@ app.listen(PORT, () => {
   console.log(`  ✅ Backup de dados do usuário`);
   console.log(`  ✅ Validação de dados`);
   console.log(`  ✅ Tratamento de erros`);
+  console.log(`  ✅ Compressão de resposta`);
+  console.log(`  ✅ Segurança com helmet`);
+  console.log(`  ✅ Salvamento periódico`);
+});
+
+// Listeners para processo parado
+process.on("SIGTERM", () => {
+  console.log("Processo finalizado (SIGTERM). Salvando dados...");
+  saveData(USERS_FILE, usuarios);
+  saveData(EXPENSES_FILE, despesas);
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("Processo interrompido (SIGINT). Salvando dados...");
+  saveData(USERS_FILE, usuarios);
+  saveData(EXPENSES_FILE, despesas);
+  process.exit(0);
 });

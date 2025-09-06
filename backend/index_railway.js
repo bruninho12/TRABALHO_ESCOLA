@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import compression from "compression";
+import helmet from "helmet";
 import XLSX from "xlsx";
 import fs from "fs";
 import path from "path";
@@ -7,17 +9,31 @@ import path from "path";
 const app = express();
 
 // Garantir que os diretórios necessários existam ao iniciar
-console.log("Verificando diretórios necessários...");
+console.log("Verificando diretórios necessários para o Railway...");
 try {
   const DATA_DIR = path.join(process.cwd(), "data");
+  console.log("Diretório de dados: ", DATA_DIR);
   if (!fs.existsSync(DATA_DIR)) {
     console.log("Criando diretório de dados...");
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
+
+  // Testar permissões de escrita
+  const testFile = path.join(DATA_DIR, "test.txt");
+  fs.writeFileSync(testFile, "Test write permissions");
+  fs.unlinkSync(testFile);
+  console.log("Permissões de escrita verificadas com sucesso!");
+
   console.log("Diretórios verificados com sucesso!");
 } catch (error) {
   console.error("Erro ao verificar/criar diretórios:", error);
+  console.error("Detalhes do erro:", error.message);
+  console.error("Stack trace:", error.stack);
 }
+
+// Adicionar middlewares de segurança e otimização
+app.use(helmet());
+app.use(compression());
 
 // Configuração CORS
 const allowedOrigins = [
@@ -261,8 +277,10 @@ const verificarAuth = (req, res, next) => {
 app.get("/", (req, res) => {
   res.json({
     status: "online",
-    message: "API de Controle de Despesas está rodando!",
-    version: "2.0.0",
+    message: "API de Controle de Despesas está rodando no Railway!",
+    version: "2.1.0",
+    ambiente: process.env.NODE_ENV || "development",
+    plataforma: "Railway",
     funcionalidades: [
       "✅ Autenticação de usuários",
       "✅ CRUD de despesas/receitas",
@@ -271,6 +289,8 @@ app.get("/", (req, res) => {
       "✅ Estatísticas",
       "✅ Exportação Excel/JSON",
       "✅ Backup de dados",
+      "✅ Otimização de performance",
+      "✅ Segurança aprimorada",
     ],
   });
 });
@@ -449,7 +469,10 @@ app.put("/despesas/:id", verificarAuth, validarDespesa, (req, res) => {
   );
 
   if (despesaIndex === -1) {
-    return res.status(404).json({ message: "Item não encontrado!" });
+    return res.status(404).json({
+      status: "error",
+      message: "Item não encontrado!",
+    });
   }
 
   const { descricao, valor, categoria, data, tipo } = req.body;
@@ -464,10 +487,17 @@ app.put("/despesas/:id", verificarAuth, validarDespesa, (req, res) => {
   };
 
   if (!saveData(EXPENSES_FILE, despesas)) {
-    return res.status(500).json({ message: "Erro ao salvar alteração" });
+    return res.status(500).json({
+      status: "error",
+      message: "Erro ao salvar alteração",
+    });
   }
 
-  res.json({ message: "Item atualizado!", despesa: despesas[despesaIndex] });
+  res.json({
+    status: "success",
+    message: "Item atualizado!",
+    data: despesas[despesaIndex],
+  });
 });
 
 // Excluir despesa/receita
@@ -541,7 +571,11 @@ app.get("/despesas/buscar", verificarAuth, (req, res) => {
 
   despesasUsuario.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-  res.json(despesasUsuario);
+  res.json({
+    status: "success",
+    message: "Dados filtrados com sucesso",
+    data: despesasUsuario,
+  });
 });
 
 // Obter categorias
@@ -552,7 +586,11 @@ app.get("/categorias", verificarAuth, (req, res) => {
 
   const categorias = [...new Set(despesasUsuario.map((d) => d.categoria))];
 
-  res.json(categorias.sort());
+  res.json({
+    status: "success",
+    message: "Categorias recuperadas com sucesso",
+    data: categorias.sort(),
+  });
 });
 
 // Resumo financeiro
@@ -626,15 +664,19 @@ app.get("/estatisticas", verificarAuth, (req, res) => {
   });
 
   res.json({
-    totalReceitas,
-    totalDespesas,
-    saldo: totalReceitas - totalDespesas,
-    despesasPorCategoria,
-    receitasPorCategoria,
-    quantidadeItens: despesasUsuario.length,
-    mediaGasto:
-      despesasLista.length > 0 ? totalDespesas / despesasLista.length : 0,
-    periodo: ano && mes ? `${mes}/${ano}` : "Todos os registros",
+    status: "success",
+    message: "Estatísticas recuperadas com sucesso",
+    data: {
+      totalReceitas,
+      totalDespesas,
+      saldo: totalReceitas - totalDespesas,
+      despesasPorCategoria,
+      receitasPorCategoria,
+      quantidadeItens: despesasUsuario.length,
+      mediaGasto:
+        despesasLista.length > 0 ? totalDespesas / despesasLista.length : 0,
+      periodo: ano && mes ? `${mes}/${ano}` : "Todos os registros",
+    },
   });
 });
 
@@ -707,13 +749,20 @@ app.use((req, res) => {
   });
 });
 
-// Iniciar servidor para todas as plataformas
+// Health check para Railway
+app.get("/health", (req, res) => {
+  res
+    .status(200)
+    .json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
+// Iniciar servidor para Railway
 const PORT = process.env.PORT || 3001;
 
-// Inicializar servidor para qualquer ambiente
-app.listen(PORT, () => {
-  console.log(`API de Controle de Despesas rodando na porta ${PORT}`);
-  console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ API de Controle de Despesas rodando na porta ${PORT}`);
+  console.log(`🔧 Ambiente: ${process.env.NODE_ENV || "development"}`);
+  console.log(`🚂 Plataforma: Railway`);
   console.log(`📊 Funcionalidades ativas:`);
   console.log(`  ✅ Persistência de dados em arquivos JSON`);
   console.log(`  ✅ Autenticação de usuários`);
@@ -724,4 +773,14 @@ app.listen(PORT, () => {
   console.log(`  ✅ Backup de dados do usuário`);
   console.log(`  ✅ Validação de dados`);
   console.log(`  ✅ Tratamento de erros`);
+  console.log(`  ✅ Compressão de resposta`);
+  console.log(`  ✅ Segurança com helmet`);
+});
+
+// Listener para processo parado
+process.on("SIGTERM", () => {
+  console.log("Processo finalizado. Salvando dados...");
+  saveData(USERS_FILE, usuarios);
+  saveData(EXPENSES_FILE, despesas);
+  process.exit(0);
 });
