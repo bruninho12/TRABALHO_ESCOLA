@@ -4,7 +4,7 @@ services:
     env: node
     region: oregon # Você pode mudar para uma região mais próxima do Brasil
     buildCommand: npm install && cd backend && npm install
-    startCommand: node index_render.js
+    startCommand: node start.js
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
