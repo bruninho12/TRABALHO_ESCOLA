@@ -26,6 +26,7 @@ const allowedOrigins = [
   "https://trabalho-escola-5lqz-3rm820502-brunos-projects-4b4f61b9.vercel.app",
   "https://trabalho-escola-brunos-projects-4b4f61b9.vercel.app",
   "https://trabalho-escola.vercel.app",
+  "https://trabalho-escola-black.vercel.app",
   /^https:\/\/trabalho-escola-.*\.vercel\.app$/,
   /^https:\/\/.*-brunos-projects-4b4f61b9\.vercel\.app$/,
 ];

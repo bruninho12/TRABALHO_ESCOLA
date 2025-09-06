@@ -5,7 +5,7 @@ let api;
 const environments = {
   local: "http://localhost:3001",
   production: "https://controle-despesas-c7oj.onrender.com", // URL para produção no Render
-  vercel: "https://api.controle-despesas.vercel.app", // URL para produção na Vercel
+  vercel: "https://trabalho-escola-black.vercel.app", // URL para produção na Vercel
 };
 
 // Detectar ambiente
@@ -157,23 +157,10 @@ function realizarLogin(event) {
 
   console.log("Tentando login com:", { email });
 
-  fetch(api + "/login", {
+  apiRequest("/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    mode: "cors",
-    credentials: "omit",
     body: JSON.stringify({ email, senha }),
   })
-    .then((res) => {
-      console.log("Status da resposta:", res.status);
-      if (!res.ok) {
-        console.error("Erro na resposta:", res.status, res.statusText);
-      }
-      return res.json();
-    })
     .then((data) => {
       console.log("Resposta do login:", data);
       if (data.status === "success" && data.token) {
@@ -247,27 +234,10 @@ function realizarCadastro(event) {
 
   console.log("Tentando cadastro com:", { email, nome });
 
-  fetch(api + "/cadastro", {
+  apiRequest("/cadastro", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    mode: "cors",
-    credentials: "omit",
     body: JSON.stringify({ nome, email, senha }),
   })
-    .then((res) => {
-      console.log("Status da resposta do cadastro:", res.status);
-      if (!res.ok) {
-        console.error(
-          "Erro na resposta do cadastro:",
-          res.status,
-          res.statusText
-        );
-      }
-      return res.json();
-    })
     .then((data) => {
       console.log("Resposta do cadastro:", data);
       if (data.status === "success" && data.token) {
