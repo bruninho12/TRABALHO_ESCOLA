@@ -212,6 +212,7 @@ const verificarAuth = (req, res, next) => {
   const authHeader = req.header("Authorization");
 
   if (!authHeader) {
+    console.log("Requisição sem token de autorização");
     return res.status(401).json({
       status: "error",
       message: "Token de autorização necessário",
@@ -225,12 +226,18 @@ const verificarAuth = (req, res, next) => {
   const usuario = usuarios.find((u) => u.email === userEmail);
 
   if (!usuario) {
+    console.log(
+      `Autenticação falhou: usuário não encontrado para token: ${userEmail}`
+    );
     return res.status(401).json({
       status: "error",
       message: "Usuário não autorizado",
     });
   }
 
+  console.log(
+    `Usuário autenticado com sucesso: ${usuario.nome} (${usuario.email})`
+  );
   req.usuario = usuario;
   next();
 };
@@ -259,14 +266,27 @@ app.get("/", (req, res) => {
 app.post("/login", (req, res) => {
   const { email, senha } = req.body;
 
+  console.log(`Tentativa de login: ${email}`);
+
+  // Validar dados de entrada
+  if (!email || !senha) {
+    console.log("Login falhou: campos incompletos");
+    return res.status(400).json({
+      status: "error",
+      message: "Email e senha são obrigatórios",
+    });
+  }
+
   const usuario = usuarios.find((u) => u.email === email && u.senha === senha);
   if (!usuario) {
+    console.log("Login falhou: credenciais inválidas");
     return res.status(401).json({
       status: "error",
       message: "Credenciais inválidas",
     });
   }
 
+  console.log(`Login bem-sucedido para: ${usuario.nome}`);
   res.json({
     status: "success",
     message: "Login realizado com sucesso",
@@ -283,14 +303,38 @@ app.post("/login", (req, res) => {
 app.post("/cadastro", (req, res) => {
   const { nome, email, senha } = req.body;
 
+  console.log(`Tentativa de cadastro: ${nome}, ${email}`);
+
   if (!nome || !email || !senha) {
-    return res
-      .status(400)
-      .json({ message: "Todos os campos são obrigatórios" });
+    console.log("Cadastro falhou: campos incompletos");
+    return res.status(400).json({
+      status: "error",
+      message: "Todos os campos são obrigatórios",
+    });
+  }
+
+  // Validação de formato de email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    console.log("Cadastro falhou: formato de email inválido");
+    return res.status(400).json({
+      status: "error",
+      message: "Formato de email inválido",
+    });
+  }
+
+  // Validação básica de senha (mínimo 6 caracteres)
+  if (senha.length < 6) {
+    console.log("Cadastro falhou: senha muito curta");
+    return res.status(400).json({
+      status: "error",
+      message: "A senha deve ter pelo menos 6 caracteres",
+    });
   }
 
   const usuarioExistente = usuarios.find((u) => u.email === email);
   if (usuarioExistente) {
+    console.log("Cadastro falhou: email já cadastrado");
     return res.status(400).json({
       status: "error",
       message: "Email já cadastrado",
@@ -308,12 +352,16 @@ app.post("/cadastro", (req, res) => {
   usuarios.push(novoUsuario);
 
   if (!saveData(USERS_FILE, usuarios)) {
+    console.log("Cadastro falhou: erro ao salvar no arquivo");
     return res.status(500).json({
       status: "error",
       message: "Erro ao salvar usuário",
     });
   }
 
+  console.log(
+    `Cadastro bem-sucedido para: ${novoUsuario.nome}, ID: ${novoUsuario.id}`
+  );
   res.status(201).json({
     status: "success",
     message: "Usuário cadastrado com sucesso",

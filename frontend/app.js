@@ -33,12 +33,37 @@ function verificarLogin() {
   const usuario = localStorage.getItem("usuario");
 
   if (token && usuario) {
-    // Adicionar o prefixo "Bearer " ao token
-    authToken = "Bearer " + token;
-    usuarioAtual = JSON.parse(usuario);
-    console.log("Usuário autenticado:", usuarioAtual);
-    console.log("Token formatado para backend:", authToken);
-    mostrarPaginaPrincipal();
+    try {
+      // Adicionar o prefixo "Bearer " ao token
+      authToken = "Bearer " + token;
+      usuarioAtual = JSON.parse(usuario);
+      console.log("Usuário autenticado:", usuarioAtual);
+      console.log("Token formatado para backend:", authToken);
+
+      // Validar o token fazendo uma requisição simples ao servidor
+      fetch(api + "/resumo", {
+        headers: { Authorization: authToken },
+      })
+        .then((res) => {
+          if (res.ok) {
+            // Token válido, mostrar página principal
+            mostrarPaginaPrincipal();
+          } else {
+            // Token inválido ou expirado, fazer logout
+            console.log("Token inválido ou expirado, realizando logout");
+            logout();
+          }
+        })
+        .catch((err) => {
+          console.error("Erro ao validar token:", err);
+          // Em caso de erro de conectividade, mostrar página principal de qualquer forma
+          // O usuário receberá erros de conexão ao tentar usar a aplicação
+          mostrarPaginaPrincipal();
+        });
+    } catch (err) {
+      console.error("Erro ao processar dados salvos:", err);
+      logout();
+    }
   } else {
     mostrarPaginaLogin();
   }
@@ -114,6 +139,13 @@ function realizarLogin(event) {
     return;
   }
 
+  // Desabilitar o botão durante o processo de login
+  const submitBtn = document.querySelector("#form-login button[type='submit']");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Entrando...";
+  }
+
   console.log("Tentando login com:", { email });
 
   fetch(api + "/login", {
@@ -146,11 +178,28 @@ function realizarLogin(event) {
         mostrarPaginaPrincipal();
       } else {
         showMessage(data.message || "Erro no login", "error");
+        // Reabilitar o botão se o login falhar
+        const submitBtn = document.querySelector(
+          "#form-login button[type='submit']"
+        );
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "Entrar";
+        }
       }
     })
     .catch((err) => {
       showMessage("Erro ao fazer login", "error");
       console.error(err);
+
+      // Reabilitar o botão em caso de erro
+      const submitBtn = document.querySelector(
+        "#form-login button[type='submit']"
+      );
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Entrar";
+      }
     });
 }
 
@@ -163,6 +212,28 @@ function realizarCadastro(event) {
   if (!nome || !email || !senha) {
     showMessage("Preencha todos os campos!", "error");
     return;
+  }
+
+  // Validação básica de email no frontend
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showMessage("Formato de email inválido", "error");
+    return;
+  }
+
+  // Validação básica de senha
+  if (senha.length < 6) {
+    showMessage("A senha deve ter pelo menos 6 caracteres", "error");
+    return;
+  }
+
+  // Desabilitar o botão durante o processo de cadastro
+  const submitBtn = document.querySelector(
+    "#form-cadastro button[type='submit']"
+  );
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Cadastrando...";
   }
 
   console.log("Tentando cadastro com:", { email, nome });
@@ -201,11 +272,27 @@ function realizarCadastro(event) {
         mostrarPaginaPrincipal();
       } else {
         showMessage(data.message || "Erro no cadastro", "error");
+        // Reabilitar o botão se o cadastro falhar
+        const submitBtn = document.querySelector(
+          "#form-cadastro button[type='submit']"
+        );
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "Cadastrar";
+        }
       }
     })
     .catch((err) => {
       showMessage("Erro ao fazer cadastro", "error");
       console.error(err);
+      // Reabilitar o botão em caso de erro
+      const submitBtn = document.querySelector(
+        "#form-cadastro button[type='submit']"
+      );
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Cadastrar";
+      }
     });
 }
 
