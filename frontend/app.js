@@ -85,6 +85,8 @@ async function apiRequest(endpoint, options = {}) {
     credentials: "omit",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
+      Origin: window.location.origin,
       ...options.headers,
     },
   };
@@ -92,17 +94,97 @@ async function apiRequest(endpoint, options = {}) {
   const finalOptions = { ...defaultOptions, ...options };
 
   try {
-    console.log(`🔄 Fazendo requisição para: ${api}${endpoint}`);
+    console.log(`🔄 Fazendo requisição para: ${api}${endpoint}`, finalOptions);
     const response = await fetch(`${api}${endpoint}`, finalOptions);
 
     if (!response.ok) {
+      console.error(
+        `❌ Erro na resposta: ${response.status} ${response.statusText}`
+      );
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
     console.error("❌ Erro na requisição:", error);
+
+    // Log detalhado para diagnóstico
+    console.log("Detalhes da requisição que falhou:", {
+      url: `${api}${endpoint}`,
+      options: finalOptions,
+      error: error.message,
+    });
+
     throw error;
+  }
+}
+
+// Função para tentar o cadastro de diferentes formas
+async function tentarCadastro(dados) {
+  try {
+    // Primeira tentativa com apiRequest padrão
+    return await apiRequest("/cadastro", {
+      method: "POST",
+      body: JSON.stringify(dados),
+    });
+  } catch (error) {
+    console.log(
+      "Primeira tentativa de cadastro falhou, tentando com configuração alternativa"
+    );
+
+    try {
+      // Segunda tentativa com fetch direto e headers adicionais
+      const response = await fetch(`${api}/cadastro`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "Access-Control-Request-Method": "POST",
+          "Access-Control-Request-Headers": "content-type, accept",
+          Origin: window.location.origin,
+        },
+        mode: "cors",
+        credentials: "omit",
+        body: JSON.stringify(dados),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (secondError) {
+      console.error("Segunda tentativa falhou:", secondError);
+
+      // Terceira tentativa com XMLHttpRequest (pode contornar alguns problemas de CORS)
+      return new Promise((resolve, reject) => {
+        console.log("Tentando cadastro com XMLHttpRequest como último recurso");
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${api}/cadastro`, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.withCredentials = false;
+
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data);
+            } catch (e) {
+              reject(new Error("Erro ao analisar resposta JSON"));
+            }
+          } else {
+            reject(new Error(`XHR Error: ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = function () {
+          reject(new Error("Erro de rede ao tentar cadastro"));
+        };
+
+        xhr.send(JSON.stringify(dados));
+      });
+    }
   }
 }
 
@@ -234,10 +316,16 @@ function realizarCadastro(event) {
 
   console.log("Tentando cadastro com:", { email, nome });
 
-  apiRequest("/cadastro", {
-    method: "POST",
-    body: JSON.stringify({ nome, email, senha }),
-  })
+  // Exibe informações de debug sobre a chamada API que vai ser feita
+  console.log("Informações de CORS Debug:", {
+    apiUrl: api,
+    endpoint: "/cadastro",
+    currentOrigin: window.location.origin,
+    browserInfo: navigator.userAgent,
+  });
+
+  // Primeira tentativa usando apiRequest com múltiplos fallbacks
+  tentarCadastro({ nome, email, senha })
     .then((data) => {
       console.log("Resposta do cadastro:", data);
       if (data.status === "success" && data.token) {
