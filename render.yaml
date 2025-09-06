@@ -3,6 +3,23 @@ services:
     name: controle-despesas-backend
     env: node
     region: oregon # Você pode mudar para uma região mais próxima do Brasil
+    buildCommand: pwd && echo "Listando diretório:" && ls -la && echo "Instalando dependências root..." && npm install && echo "Criando pasta backend se necessário" && mkdir -p backend && echo "Copiando arquivos se necessário" && [ ! -f backend/index.js ] && cp -r backup/* backend/ || echo "Arquivos já existem" && echo "Instalando dependências backend..." && cd backend && npm install
+    startCommand: node render-start.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: RENDER
+        value: "true"
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1: web
+    name: controle-despesas-backend
+    env: node
+    region: oregon # Você pode mudar para uma região mais próxima do Brasil
     buildCommand: ls -la && npm install && ls -la && mkdir -p backend && cd backend && npm install
     startCommand: node start.js
     healthCheckPath: /
