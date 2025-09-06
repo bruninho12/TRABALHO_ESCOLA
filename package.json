@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "cd frontend && npm run build",
-    "deploy:render": "cd backend && npm run start:render"
+    "deploy:render": "cd backend && npm run start:render",
+    "start": "node start.js"
   }
 }
