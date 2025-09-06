@@ -333,20 +333,9 @@ function carregarDados() {
 
 function carregarResumo() {
   console.log("Carregando resumo com token:", authToken);
-  fetch(api + "/resumo", {
+  apiRequest("/resumo", {
     headers: { Authorization: authToken },
   })
-    .then((res) => {
-      console.log("Status da resposta de resumo:", res.status);
-      if (!res.ok) {
-        console.error(
-          "Erro na resposta de resumo:",
-          res.status,
-          res.statusText
-        );
-      }
-      return res.json();
-    })
     .then((response) => {
       console.log("Resposta de resumo:", response);
 
