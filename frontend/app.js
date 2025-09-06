@@ -5,7 +5,8 @@ let api;
 const environments = {
   local: "http://localhost:3001",
   production: "https://controle-despesas-c7oj.onrender.com", // URL para produção no Render
-  vercel: "https://trabalho-escola-black.vercel.app", // URL para produção na Vercel
+  render: "https://controle-despesas-c7oj.onrender.com", // URL explícita para o backend no Render
+  vercel: "https://trabalho-escola-black.vercel.app", // URL para produção na Vercel (antiga configuração)
 };
 
 // Detectar ambiente
@@ -22,11 +23,14 @@ function detectEnvironment() {
     return environments.local;
   }
 
-  // Verifica ambientes de produção
+  // CONFIGURAÇÃO ATUAL: Frontend no Vercel conectando ao backend no Render
   if (hostname.includes("vercel.app")) {
-    return environments.vercel;
+    console.log("Detectado frontend no Vercel, usando backend no Render");
+    return environments.render; // Usar backend no Render quando frontend está no Vercel
+  } else if (hostname.includes("render.com")) {
+    return environments.production; // Backend e frontend no mesmo domínio Render
   } else {
-    // Padrão para Render ou outros ambientes
+    // Padrão para outros ambientes
     return environments.production;
   }
 }
@@ -80,6 +84,13 @@ function verificarLogin() {
 
 // Função helper para requisições HTTP com configurações CORS robustas
 async function apiRequest(endpoint, options = {}) {
+  // Identificar o ambiente atual para logs
+  const env = window.location.hostname.includes("vercel.app")
+    ? "Vercel"
+    : window.location.hostname.includes("render.com")
+    ? "Render"
+    : "Local";
+
   const defaultOptions = {
     mode: "cors",
     credentials: "omit",
@@ -87,6 +98,7 @@ async function apiRequest(endpoint, options = {}) {
       "Content-Type": "application/json",
       Accept: "application/json",
       Origin: window.location.origin,
+      "X-Requested-With": "XMLHttpRequest", // Adicional para alguns servidores
       ...options.headers,
     },
   };
@@ -94,7 +106,13 @@ async function apiRequest(endpoint, options = {}) {
   const finalOptions = { ...defaultOptions, ...options };
 
   try {
-    console.log(`🔄 Fazendo requisição para: ${api}${endpoint}`, finalOptions);
+    console.log(`🔄 [${env}] Fazendo requisição para: ${api}${endpoint}`, {
+      url: `${api}${endpoint}`,
+      method: finalOptions.method || "GET",
+      headers: finalOptions.headers,
+      fromOrigin: window.location.origin,
+      toOrigin: new URL(api).origin,
+    });
     const response = await fetch(`${api}${endpoint}`, finalOptions);
 
     if (!response.ok) {
@@ -119,22 +137,42 @@ async function apiRequest(endpoint, options = {}) {
   }
 }
 
-// Função para tentar o cadastro de diferentes formas
+// Função para tentar o cadastro de diferentes formas - otimizada para Vercel -> Render
 async function tentarCadastro(dados) {
+  // Detectar se estamos no Vercel para otimizar a requisição
+  const isVercel = window.location.hostname.includes("vercel.app");
+
   try {
     // Primeira tentativa com apiRequest padrão
+    if (isVercel) {
+      console.log(
+        "📡 Ambiente Vercel detectado - usando configuração otimizada para Render"
+      );
+    }
+
     return await apiRequest("/cadastro", {
       method: "POST",
       body: JSON.stringify(dados),
     });
   } catch (error) {
     console.log(
-      "Primeira tentativa de cadastro falhou, tentando com configuração alternativa"
+      "Primeira tentativa de cadastro falhou, tentando com configuração alternativa para Vercel->Render"
     );
 
     try {
-      // Segunda tentativa com fetch direto e headers adicionais
-      const response = await fetch(`${api}/cadastro`, {
+      // Segunda tentativa com fetch direto e headers adicionais otimizados para Vercel->Render
+      console.log(
+        `🔄 Segunda tentativa para ${api}/cadastro com headers especiais`
+      );
+
+      // Verificar URL do Render para garantir HTTPS
+      let apiUrl = api;
+      if (api.includes("render.com") && !api.startsWith("https:")) {
+        apiUrl = api.replace("http:", "https:");
+        console.log("⚠️ Convertendo URL para HTTPS:", apiUrl);
+      }
+
+      const response = await fetch(`${apiUrl}/cadastro`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -142,6 +180,7 @@ async function tentarCadastro(dados) {
           "Access-Control-Request-Method": "POST",
           "Access-Control-Request-Headers": "content-type, accept",
           Origin: window.location.origin,
+          "X-Requested-With": "XMLHttpRequest",
         },
         mode: "cors",
         credentials: "omit",
@@ -158,11 +197,23 @@ async function tentarCadastro(dados) {
 
       // Terceira tentativa com XMLHttpRequest (pode contornar alguns problemas de CORS)
       return new Promise((resolve, reject) => {
-        console.log("Tentando cadastro com XMLHttpRequest como último recurso");
+        console.log(
+          "Tentando cadastro com XMLHttpRequest como último recurso (Vercel->Render)"
+        );
+
+        // Verificar URL do Render para garantir HTTPS
+        let apiUrl = api;
+        if (api.includes("render.com") && !api.startsWith("https:")) {
+          apiUrl = api.replace("http:", "https:");
+          console.log("⚠️ Convertendo URL para HTTPS:", apiUrl);
+        }
+
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", `${api}/cadastro`, true);
+        xhr.open("POST", `${apiUrl}/cadastro`, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        xhr.setRequestHeader("Origin", window.location.origin);
         xhr.withCredentials = false;
 
         xhr.onload = function () {
