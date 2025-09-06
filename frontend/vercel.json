@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "outputDirectory": ".",
+  "outputDirectory": "public",
   "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
@@ -11,6 +11,6 @@
   "github": {
     "silent": true
   },
-  "buildCommand": "echo \"No build required for static site\"",
+  "buildCommand": "npm run build",
   "framework": null
 }

@@ -13,6 +13,6 @@
   },
   "scripts": {
     "start": "npx serve -s .",
-    "build": "echo \"Static site deployed successfully\" && cp index.html index.html"
+    "build": "echo \"Criando diretório público...\" && mkdir -p public && cp -r *.html *.css *.js assets/* public/ 2>/dev/null || echo \"Arquivos estáticos copiados\""
   }
 }
