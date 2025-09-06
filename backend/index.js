@@ -174,30 +174,34 @@ if (!fs.existsSync(EXPENSES_FILE)) {
 const validarDespesa = (req, res, next) => {
   const { descricao, valor, categoria, data, tipo } = req.body;
 
-  if (!descricao || !valor || !categoria || !data || !tipo) {
-    return res
-      .status(400)
-      .json({ message: "Todos os campos são obrigatórios" });
+  if (!descricao || valor === undefined || !categoria || !data || !tipo) {
+    return res.status(400).json({
+      status: "error",
+      message: "Todos os campos são obrigatórios",
+    });
   }
 
-  if (isNaN(valor) || valor <= 0) {
-    return res
-      .status(400)
-      .json({ message: "Valor deve ser um número positivo" });
+  if (isNaN(parseFloat(valor)) || parseFloat(valor) <= 0) {
+    return res.status(400).json({
+      status: "error",
+      message: "Valor deve ser um número positivo",
+    });
   }
 
   if (!["despesa", "receita"].includes(tipo)) {
-    return res
-      .status(400)
-      .json({ message: "Tipo deve ser 'despesa' ou 'receita'" });
+    return res.status(400).json({
+      status: "error",
+      message: "Tipo deve ser 'despesa' ou 'receita'",
+    });
   }
 
   // Validar formato da data
   const dataRegex = /^\d{4}-\d{2}-\d{2}$/;
   if (!dataRegex.test(data)) {
-    return res
-      .status(400)
-      .json({ message: "Data deve estar no formato YYYY-MM-DD" });
+    return res.status(400).json({
+      status: "error",
+      message: "Data deve estar no formato YYYY-MM-DD",
+    });
   }
 
   next();
@@ -257,10 +261,14 @@ app.post("/login", (req, res) => {
 
   const usuario = usuarios.find((u) => u.email === email && u.senha === senha);
   if (!usuario) {
-    return res.status(401).json({ message: "Credenciais inválidas" });
+    return res.status(401).json({
+      status: "error",
+      message: "Credenciais inválidas",
+    });
   }
 
   res.json({
+    status: "success",
     message: "Login realizado com sucesso",
     usuario: {
       id: usuario.id,
@@ -283,7 +291,10 @@ app.post("/cadastro", (req, res) => {
 
   const usuarioExistente = usuarios.find((u) => u.email === email);
   if (usuarioExistente) {
-    return res.status(400).json({ message: "Email já cadastrado" });
+    return res.status(400).json({
+      status: "error",
+      message: "Email já cadastrado",
+    });
   }
 
   const novoUsuario = {
@@ -297,10 +308,14 @@ app.post("/cadastro", (req, res) => {
   usuarios.push(novoUsuario);
 
   if (!saveData(USERS_FILE, usuarios)) {
-    return res.status(500).json({ message: "Erro ao salvar usuário" });
+    return res.status(500).json({
+      status: "error",
+      message: "Erro ao salvar usuário",
+    });
   }
 
   res.status(201).json({
+    status: "success",
     message: "Usuário cadastrado com sucesso",
     usuario: {
       id: novoUsuario.id,

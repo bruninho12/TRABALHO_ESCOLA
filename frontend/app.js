@@ -324,8 +324,10 @@ function carregarResumo() {
         // Atualiza classe do saldo baseado no valor
         if (saldo >= 0) {
           saldoTotalEl.style.color = "#28a745";
+          saldoTotalEl.style.fontWeight = "bold";
         } else {
           saldoTotalEl.style.color = "#dc3545";
+          saldoTotalEl.style.fontWeight = "bold";
         }
       }
 
