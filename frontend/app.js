@@ -4,18 +4,31 @@ let api;
 // Configuração de ambientes
 const environments = {
   local: "http://localhost:3001",
-  production: "https://api.controle-despesas.vercel.app", // URL para produção
+  production: "https://controle-despesas-c7oj.onrender.com", // URL para produção no Render
+  vercel: "https://api.controle-despesas.vercel.app", // URL para produção na Vercel
 };
 
 // Detectar ambiente
 function detectEnvironment() {
   const hostname = window.location.hostname;
+
+  // Verifica se é ambiente local
   const isLocal =
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
     hostname.startsWith("192.168.");
 
-  return isLocal ? environments.local : environments.production;
+  if (isLocal) {
+    return environments.local;
+  }
+
+  // Verifica ambientes de produção
+  if (hostname.includes("vercel.app")) {
+    return environments.vercel;
+  } else {
+    // Padrão para Render ou outros ambientes
+    return environments.production;
+  }
 }
 
 api = detectEnvironment();
