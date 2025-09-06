@@ -4,7 +4,7 @@ let api;
 // Configuração de ambientes
 const environments = {
   local: "http://localhost:3001",
-  production: "https://trabalho-escola-api.vercel.app", // URL atualizada após deploy com novo nome
+  production: "https://trabalho-escola-black.vercel.app", // URL corrigida para o atual deploy
 };
 
 // Detectar ambiente
