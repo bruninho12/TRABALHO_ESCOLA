@@ -109,9 +109,11 @@ function realizarLogin(event) {
   })
     .then((res) => res.json())
     .then((data) => {
-      if (data.token) {
+      console.log("Resposta do login:", data);
+      if (data.status === "success" && data.token) {
         usuarioAtual = data.usuario;
-        authToken = data.token;
+        // O token é o ID do usuário
+        authToken = data.token; // Não adicione "Bearer" aqui
         localStorage.setItem("authToken", authToken);
         localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
         showMessage("Login realizado com sucesso!");
@@ -149,7 +151,8 @@ function realizarCadastro(event) {
   })
     .then((res) => res.json())
     .then((data) => {
-      if (data.token) {
+      console.log("Resposta do cadastro:", data);
+      if (data.status === "success" && data.token) {
         usuarioAtual = data.usuario;
         authToken = data.token;
         localStorage.setItem("authToken", authToken);
@@ -215,6 +218,7 @@ function mostrarPaginaPrincipal() {
 
 // Funções de dados
 function carregarDados() {
+  console.log("Carregando dados com token:", authToken);
   carregarResumo();
   carregarDespesas();
   carregarReceitas();
@@ -223,7 +227,7 @@ function carregarDados() {
 
 function carregarResumo() {
   fetch(api + "/resumo", {
-    headers: { Authorization: `Bearer ${authToken}` },
+    headers: { Authorization: authToken }, // Removido o prefixo Bearer
   })
     .then((res) => res.json())
     .then((response) => {
@@ -307,7 +311,7 @@ function adicionarDespesa(event) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
+      Authorization: authToken, // Removido o prefixo Bearer
     },
     body: JSON.stringify({
       descricao,
@@ -350,7 +354,7 @@ function adicionarReceita(event) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
+      Authorization: authToken, // Removido o prefixo Bearer
     },
     body: JSON.stringify({
       descricao,
@@ -379,7 +383,7 @@ function adicionarReceita(event) {
 
 function carregarDespesas() {
   fetch(api + "/despesas", {
-    headers: { Authorization: `Bearer ${authToken}` },
+    headers: { Authorization: authToken }, // Removido o prefixo Bearer
   })
     .then((res) => res.json())
     .then((response) => {
@@ -429,7 +433,7 @@ function carregarDespesas() {
 
 function carregarReceitas() {
   fetch(api + "/despesas", {
-    headers: { Authorization: `Bearer ${authToken}` },
+    headers: { Authorization: authToken }, // Removido o prefixo Bearer
   })
     .then((res) => res.json())
     .then((response) => {
@@ -479,7 +483,7 @@ function carregarReceitas() {
 
 function carregarHistoricoCompleto() {
   fetch(api + "/despesas", {
-    headers: { Authorization: `Bearer ${authToken}` },
+    headers: { Authorization: authToken }, // Removido o prefixo Bearer
   })
     .then((res) => res.json())
     .then((response) => {
@@ -533,7 +537,7 @@ function excluirItem(id) {
   if (confirm("Tem certeza que deseja excluir este item?")) {
     fetch(api + `/despesas/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: { Authorization: authToken }, // Removido o prefixo Bearer
     })
       .then((res) => res.json())
       .then((response) => {
@@ -565,8 +569,11 @@ function verificarLogin() {
   const usuario = localStorage.getItem("usuario");
 
   if (token && usuario) {
+    // Usando o token diretamente, sem adicionar "Bearer"
     authToken = token;
     usuarioAtual = JSON.parse(usuario);
+    console.log("Usuário autenticado:", usuarioAtual);
+    console.log("Token:", authToken);
     mostrarPaginaPrincipal();
   } else {
     mostrarPaginaLogin();
