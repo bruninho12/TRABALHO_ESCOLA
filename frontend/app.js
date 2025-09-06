@@ -1,21 +1,17 @@
 // API URL - detecção automática de ambiente
 let api;
 
-// Configuração de ambientes - VERSÃO CORRIGIDA COM URLs CERTAS
+// Configuração de ambientes - Simplificado para usar apenas o Render em produção
 const environments = {
-  local: "http://localhost:3001", // Backend local
-  render: "https://controle-despesas-c7oj.onrender.com", // URL do BACKEND no Render (para uso em produção)
-  vercel_backend_obsoleto: "https://trabalho-escola-black.vercel.app", // URL antiga que não deve mais ser usada
+  local: "http://localhost:3001", // Backend local para desenvolvimento
+  production: "https://controle-despesas-c7oj.onrender.com", // URL do backend no Render para produção
 };
 
-// Detectar ambiente - VERSÃO SIMPLIFICADA
+// Detectar ambiente - Versão simples e robusta
 function detectEnvironment() {
   const hostname = window.location.hostname;
 
-  // CONFIGURAÇÃO MUITO SIMPLES:
-  // Local: usa servidor local
-  // Qualquer outro lugar (Vercel, etc): usa backend no Render
-
+  // Ambiente local - usa a API local
   if (
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
@@ -23,11 +19,11 @@ function detectEnvironment() {
   ) {
     console.log("🏠 Ambiente local detectado - usando API local");
     return environments.local;
-  } else {
-    // Em produção (Vercel, GitHub Pages, etc.), SEMPRE usar o backend do Render
-    console.log("🌐 Ambiente de produção detectado - usando API no Render");
-    return environments.render;
   }
+
+  // Qualquer outro ambiente (Vercel em produção) - usa a API no Render
+  console.log("🌐 Ambiente de produção detectado - usando API no Render");
+  return environments.production;
 }
 
 api = detectEnvironment();

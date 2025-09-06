@@ -2,6 +2,19 @@
 
 Um sistema completo para gerenciar suas finanças pessoais, permitindo controlar receitas, despesas e visualizar relatórios financeiros.
 
+## 🌐 Arquitetura Distribuída
+
+Este projeto utiliza uma arquitetura distribuída:
+
+- **Backend**: Hospedado no Render.com
+
+  - URL: https://controle-despesas-c7oj.onrender.com
+
+- **Frontend**: Hospedado no Vercel
+  - URL: [URL do seu frontend no Vercel]
+
+Esta separação permite melhor escalabilidade e manutenção do sistema.
+
 ## 🚀 Funcionalidades
 
 ### 🔐 Autenticação

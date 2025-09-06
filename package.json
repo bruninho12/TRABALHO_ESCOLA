@@ -1,12 +1,20 @@
 {
   "name": "controle-despesas",
   "version": "1.0.0",
+  "description": "Sistema de Controle de Despesas Pessoais",
   "scripts": {
-    "build": "echo \"No build required for backend-only deployment\" && cd backend && npm install",
+    "build": "cd backend && npm install",
     "start": "node start.js",
     "start:backend": "cd backend && npm run start",
-    "start:render": "cd backend && node index.js",
-    "start:railway": "cd backend && node index.js",
-    "build:render": "sh render-build.sh"
-  }
+    "start:render": "cd backend && node index.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bruninho12/TRABALHO_ESCOLA.git"
+  },
+  "author": "Bruno Souza",
+  "license": "MIT"
 }
