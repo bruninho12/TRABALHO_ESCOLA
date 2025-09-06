@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Sistema de Controle de Despesas Pessoais",
   "scripts": {
-    "build": "cd backend && npm install",
+    "build": "echo \"Usando frontend ou backend específico para build\" && true",
+    "build:backend": "cd backend && npm install",
+    "build:frontend": "cd frontend && npm install",
     "start": "node start.js",
     "start:backend": "cd backend && npm run start",
+    "start:frontend": "cd frontend && npm start",
     "start:render": "cd backend && node index.js"
   },
   "engines": {
