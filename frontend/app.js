@@ -459,9 +459,36 @@ function adicionarDespesa(event) {
   const categoria = document.getElementById("categoria-despesa").value.trim();
   const data = document.getElementById("data-despesa").value;
 
+  // Validações aprimoradas
   if (!descricao || !valor || !categoria || !data) {
     showMessage("Preencha todos os campos!", "error");
     return;
+  }
+
+  if (descricao.length < 3) {
+    showMessage("A descrição deve ter pelo menos 3 caracteres", "error");
+    return;
+  }
+
+  const valorNumerico = parseFloat(valor);
+  if (isNaN(valorNumerico) || valorNumerico <= 0) {
+    showMessage("O valor deve ser um número positivo", "error");
+    return;
+  }
+
+  if (categoria.length < 2) {
+    showMessage("Informe uma categoria válida", "error");
+    return;
+  }
+
+  // Desabilitar o botão durante o processamento
+  const submitBtn = document.querySelector(
+    "#form-despesa button[type='submit']"
+  );
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Adicionando...";
+    submitBtn.classList.add("loading");
   }
 
   console.log("Adicionando despesa com token:", authToken);
@@ -473,7 +500,7 @@ function adicionarDespesa(event) {
     },
     body: JSON.stringify({
       descricao,
-      valor: parseFloat(valor),
+      valor: valorNumerico,
       categoria,
       data,
       tipo: "despesa",
@@ -487,6 +514,7 @@ function adicionarDespesa(event) {
           res.status,
           res.statusText
         );
+        throw new Error(`Erro ${res.status}: ${res.statusText}`);
       }
       return res.json();
     })
@@ -502,8 +530,16 @@ function adicionarDespesa(event) {
       }
     })
     .catch((err) => {
-      showMessage("Erro ao adicionar despesa", "error");
+      showMessage("Erro ao adicionar despesa: " + err.message, "error");
       console.error(err);
+    })
+    .finally(() => {
+      // Reabilitar o botão após o processamento
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Adicionar Despesa";
+        submitBtn.classList.remove("loading");
+      }
     });
 }
 
@@ -514,9 +550,36 @@ function adicionarReceita(event) {
   const categoria = document.getElementById("categoria-receita").value.trim();
   const data = document.getElementById("data-receita").value;
 
+  // Validações aprimoradas
   if (!descricao || !valor || !categoria || !data) {
     showMessage("Preencha todos os campos!", "error");
     return;
+  }
+
+  if (descricao.length < 3) {
+    showMessage("A descrição deve ter pelo menos 3 caracteres", "error");
+    return;
+  }
+
+  const valorNumerico = parseFloat(valor);
+  if (isNaN(valorNumerico) || valorNumerico <= 0) {
+    showMessage("O valor deve ser um número positivo", "error");
+    return;
+  }
+
+  if (categoria.length < 2) {
+    showMessage("Informe uma categoria válida", "error");
+    return;
+  }
+
+  // Desabilitar o botão durante o processamento
+  const submitBtn = document.querySelector(
+    "#form-receita button[type='submit']"
+  );
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "Adicionando...";
+    submitBtn.classList.add("loading");
   }
 
   console.log("Adicionando receita com token:", authToken);
@@ -528,7 +591,7 @@ function adicionarReceita(event) {
     },
     body: JSON.stringify({
       descricao,
-      valor: parseFloat(valor),
+      valor: valorNumerico,
       categoria,
       data,
       tipo: "receita",
@@ -542,6 +605,7 @@ function adicionarReceita(event) {
           res.status,
           res.statusText
         );
+        throw new Error(`Erro ${res.status}: ${res.statusText}`);
       }
       return res.json();
     })
@@ -557,8 +621,16 @@ function adicionarReceita(event) {
       }
     })
     .catch((err) => {
-      showMessage("Erro ao adicionar receita", "error");
+      showMessage("Erro ao adicionar receita: " + err.message, "error");
       console.error(err);
+    })
+    .finally(() => {
+      // Reabilitar o botão após o processamento
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Adicionar Receita";
+        submitBtn.classList.remove("loading");
+      }
     });
 }
 
@@ -720,6 +792,14 @@ function carregarReceitas() {
 
 function carregarHistoricoCompleto() {
   console.log("Carregando histórico com token:", authToken);
+
+  // Mostrar indicador de carregamento
+  const historicoCompleto = document.getElementById("historico-completo");
+  if (historicoCompleto) {
+    historicoCompleto.innerHTML =
+      '<div class="loading-indicator">Carregando histórico...</div>';
+  }
+
   fetch(api + "/despesas", {
     headers: { Authorization: authToken },
   })
@@ -731,6 +811,7 @@ function carregarHistoricoCompleto() {
           res.status,
           res.statusText
         );
+        throw new Error(`Erro ${res.status}: ${res.statusText}`);
       }
       return res.json();
     })
@@ -740,7 +821,7 @@ function carregarHistoricoCompleto() {
       // Verificar se a resposta tem a estrutura esperada
       if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
-        return;
+        throw new Error("Formato de resposta inválido");
       }
 
       // Se não tiver success no status, mostrar erro
@@ -749,13 +830,13 @@ function carregarHistoricoCompleto() {
           "Erro na resposta:",
           response.message || "Erro desconhecido"
         );
-        return;
+        throw new Error(response.message || "Erro desconhecido");
       }
 
       // Verificar se os dados existem e são um array
       if (!response.data || !Array.isArray(response.data)) {
         console.error("Dados inválidos na resposta:", response.data);
-        return;
+        throw new Error("Dados inválidos na resposta");
       }
 
       const itens = response.data;
@@ -766,41 +847,163 @@ function carregarHistoricoCompleto() {
       }
       historicoCompleto.innerHTML = "";
 
-      // Ordena por data (mais recente primeiro)
-      itens.sort((a, b) => new Date(b.data) - new Date(a.data));
+      // Adiciona filtros ao histórico
+      const filtrosDiv = document.createElement("div");
+      filtrosDiv.className = "filtros-historico";
+      filtrosDiv.innerHTML = `
+        <div class="filtro-container">
+          <label for="filtro-tipo">Tipo:</label>
+          <select id="filtro-tipo">
+            <option value="todos">Todos</option>
+            <option value="receita">Receitas</option>
+            <option value="despesa">Despesas</option>
+          </select>
+          
+          <label for="filtro-categoria">Categoria:</label>
+          <input type="text" id="filtro-categoria" placeholder="Todas as categorias">
+          
+          <button id="btn-aplicar-filtro">Aplicar Filtro</button>
+          <button id="btn-limpar-filtro">Limpar</button>
+        </div>
+      `;
+      historicoCompleto.appendChild(filtrosDiv);
 
-      itens.forEach((item) => {
-        const div = document.createElement("div");
-        div.className = `item-financeiro ${item.tipo}`;
-        div.innerHTML = `
-          <div class="item-info">
-            <h4>${item.descricao}</h4>
-            <p>Categoria: ${item.categoria}</p>
-            <p>Data: ${new Date(item.data).toLocaleDateString()}</p>
-            <span class="tipo-badge ${item.tipo}">${
-          item.tipo === "receita" ? "Receita" : "Despesa"
-        }</span>
-          </div>
-          <div class="item-valor ${item.tipo}-valor">
-            ${
-              item.tipo === "receita" ? "+" : "-"
-            }R$ ${item.valor.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })}
-          </div>
-        `;
-        historicoCompleto.appendChild(div);
-      });
+      // Adiciona o container para os itens
+      const itensContainer = document.createElement("div");
+      itensContainer.id = "itens-historico";
+      historicoCompleto.appendChild(itensContainer);
+
+      // Adiciona os eventos para os filtros
+      document
+        .getElementById("btn-aplicar-filtro")
+        .addEventListener("click", aplicarFiltrosHistorico);
+      document
+        .getElementById("btn-limpar-filtro")
+        .addEventListener("click", limparFiltrosHistorico);
+
+      // Guarda os dados em uma variável global para facilitar a filtragem
+      window.dadosHistorico = itens;
+
+      // Mostra todos os itens
+      atualizarHistoricoExibido(itens);
     })
     .catch((err) => {
-      showMessage("Erro ao carregar histórico", "error");
+      showMessage("Erro ao carregar histórico: " + err.message, "error");
       console.error(err);
+
+      // Mostrar mensagem de erro no elemento
+      const historicoCompleto = document.getElementById("historico-completo");
+      if (historicoCompleto) {
+        historicoCompleto.innerHTML = `
+          <div class="erro-carregamento">
+            <p>Não foi possível carregar o histórico.</p>
+            <button onclick="carregarHistoricoCompleto()">Tentar novamente</button>
+          </div>
+        `;
+      }
     });
+}
+
+// Função para atualizar o histórico com base nos filtros
+function aplicarFiltrosHistorico() {
+  const filtroTipo = document.getElementById("filtro-tipo").value;
+  const filtroCategoria = document
+    .getElementById("filtro-categoria")
+    .value.toLowerCase()
+    .trim();
+
+  if (!window.dadosHistorico) return;
+
+  let itensFiltrados = [...window.dadosHistorico];
+
+  // Filtrar por tipo
+  if (filtroTipo !== "todos") {
+    itensFiltrados = itensFiltrados.filter((item) => item.tipo === filtroTipo);
+  }
+
+  // Filtrar por categoria
+  if (filtroCategoria) {
+    itensFiltrados = itensFiltrados.filter((item) =>
+      item.categoria.toLowerCase().includes(filtroCategoria)
+    );
+  }
+
+  atualizarHistoricoExibido(itensFiltrados);
+}
+
+// Função para limpar filtros
+function limparFiltrosHistorico() {
+  document.getElementById("filtro-tipo").value = "todos";
+  document.getElementById("filtro-categoria").value = "";
+
+  if (window.dadosHistorico) {
+    atualizarHistoricoExibido(window.dadosHistorico);
+  }
+}
+
+// Função para exibir os itens do histórico
+function atualizarHistoricoExibido(itens) {
+  const itensContainer = document.getElementById("itens-historico");
+  if (!itensContainer) return;
+
+  itensContainer.innerHTML = "";
+
+  if (itens.length === 0) {
+    itensContainer.innerHTML =
+      '<div class="sem-registros">Nenhum registro encontrado.</div>';
+    return;
+  }
+
+  // Ordena por data (mais recente primeiro)
+  itens.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+  itens.forEach((item) => {
+    const div = document.createElement("div");
+    div.className = `item-financeiro ${item.tipo}`;
+    div.innerHTML = `
+      <div class="item-info">
+        <h4>${item.descricao}</h4>
+        <p>Categoria: ${item.categoria}</p>
+        <p>Data: ${new Date(item.data).toLocaleDateString()}</p>
+        <span class="tipo-badge ${item.tipo}">${
+      item.tipo === "receita" ? "Receita" : "Despesa"
+    }</span>
+      </div>
+      <div class="item-valor ${item.tipo}-valor">
+        ${item.tipo === "receita" ? "+" : "-"}R$ ${item.valor.toLocaleString(
+      "pt-BR",
+      {
+        minimumFractionDigits: 2,
+      }
+    )}
+      </div>
+      <div class="item-acoes">
+        <button onclick="excluirItem(${
+          item.id
+        })" class="btn-excluir-item">Excluir</button>
+        <button onclick="prepararEdicaoItem(${
+          item.id
+        })" class="btn-editar-item">Editar</button>
+      </div>
+    `;
+    itensContainer.appendChild(div);
+  });
 }
 
 function excluirItem(id) {
   if (confirm("Tem certeza que deseja excluir este item?")) {
     console.log("Excluindo item com ID:", id, "usando token:", authToken);
+
+    // Mostrar indicador de exclusão
+    const itemElement = document
+      .querySelector(`div.item-financeiro button[onclick*="${id}"]`)
+      ?.closest(".item-financeiro");
+    if (itemElement) {
+      itemElement.classList.add("excluindo");
+      itemElement.innerHTML +=
+        '<div class="overlay-loading">Excluindo...</div>';
+    }
+
     fetch(api + `/despesas/${id}`, {
       method: "DELETE",
       headers: { Authorization: authToken },
@@ -813,6 +1016,7 @@ function excluirItem(id) {
             res.status,
             res.statusText
           );
+          throw new Error(`Erro ${res.status}: ${res.statusText}`);
         }
         return res.json();
       })
@@ -820,15 +1024,43 @@ function excluirItem(id) {
         console.log("Resposta de exclusão:", response);
         if (response.status === "success") {
           showMessage("Item excluído com sucesso!");
-          carregarDados();
+
+          // Remover o elemento com animação suave
+          if (itemElement) {
+            itemElement.style.height = itemElement.offsetHeight + "px";
+            itemElement.classList.add("removendo");
+            setTimeout(() => {
+              itemElement.style.height = "0";
+              itemElement.style.opacity = "0";
+              itemElement.style.margin = "0";
+              itemElement.style.padding = "0";
+              setTimeout(() => {
+                carregarDados();
+              }, 300);
+            }, 100);
+          } else {
+            carregarDados();
+          }
         } else {
           showMessage(response.message || "Erro ao excluir item", "error");
           console.error("Erro na resposta:", response);
+          // Remover overlay de carregamento se houver erro
+          if (itemElement) {
+            itemElement.classList.remove("excluindo");
+            const overlay = itemElement.querySelector(".overlay-loading");
+            if (overlay) overlay.remove();
+          }
         }
       })
       .catch((err) => {
-        showMessage("Erro ao excluir item", "error");
+        showMessage("Erro ao excluir item: " + err.message, "error");
         console.error(err);
+        // Remover overlay de carregamento se houver erro
+        if (itemElement) {
+          itemElement.classList.remove("excluindo");
+          const overlay = itemElement.querySelector(".overlay-loading");
+          if (overlay) overlay.remove();
+        }
       });
   }
 }
