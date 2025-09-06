@@ -5,6 +5,7 @@
     "build": "cd frontend && npm run build",
     "start": "node start.js",
     "start:backend": "cd backend && npm run start",
-    "start:render": "node backend/index.js"
+    "start:render": "cd backend && node index.js",
+    "build:render": "sh render-build.sh"
   }
 }
