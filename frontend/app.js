@@ -97,6 +97,8 @@ function realizarLogin(event) {
     return;
   }
 
+  console.log("Tentando login com:", { email });
+
   fetch(api + "/login", {
     method: "POST",
     headers: {
@@ -107,15 +109,22 @@ function realizarLogin(event) {
     credentials: "omit",
     body: JSON.stringify({ email, senha }),
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta:", res.status);
+      if (!res.ok) {
+        console.error("Erro na resposta:", res.status, res.statusText);
+      }
+      return res.json();
+    })
     .then((data) => {
       console.log("Resposta do login:", data);
       if (data.status === "success" && data.token) {
         usuarioAtual = data.usuario;
-        // O token é o ID do usuário
-        authToken = data.token; // Não adicione "Bearer" aqui
-        localStorage.setItem("authToken", authToken);
+        // Salvamos o token sem o Bearer no localStorage
+        localStorage.setItem("authToken", data.token);
         localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
+        // Mas para uso imediato, já adicionamos o Bearer
+        authToken = "Bearer " + data.token;
         showMessage("Login realizado com sucesso!");
         mostrarPaginaPrincipal();
       } else {
@@ -139,6 +148,8 @@ function realizarCadastro(event) {
     return;
   }
 
+  console.log("Tentando cadastro com:", { email, nome });
+
   fetch(api + "/cadastro", {
     method: "POST",
     headers: {
@@ -149,14 +160,26 @@ function realizarCadastro(event) {
     credentials: "omit",
     body: JSON.stringify({ nome, email, senha }),
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta do cadastro:", res.status);
+      if (!res.ok) {
+        console.error(
+          "Erro na resposta do cadastro:",
+          res.status,
+          res.statusText
+        );
+      }
+      return res.json();
+    })
     .then((data) => {
       console.log("Resposta do cadastro:", data);
       if (data.status === "success" && data.token) {
         usuarioAtual = data.usuario;
-        authToken = data.token;
-        localStorage.setItem("authToken", authToken);
+        // Salvamos o token sem o Bearer no localStorage
+        localStorage.setItem("authToken", data.token);
         localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
+        // Mas para uso imediato, já adicionamos o Bearer
+        authToken = "Bearer " + data.token;
         showMessage("Cadastro realizado com sucesso!");
         mostrarPaginaPrincipal();
       } else {
@@ -569,8 +592,8 @@ function verificarLogin() {
   const usuario = localStorage.getItem("usuario");
 
   if (token && usuario) {
-    // Usando o token diretamente, sem adicionar "Bearer"
-    authToken = token;
+    // Adicionar "Bearer " na frente do token - isso é necessário para o backend
+    authToken = "Bearer " + token;
     usuarioAtual = JSON.parse(usuario);
     console.log("Usuário autenticado:", usuarioAtual);
     console.log("Token:", authToken);
