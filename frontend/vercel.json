@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": ".",
   "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
@@ -9,5 +10,7 @@
   ],
   "github": {
     "silent": true
-  }
+  },
+  "buildCommand": "echo \"No build required for static site\"",
+  "framework": null
 }
