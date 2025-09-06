@@ -1,37 +1,32 @@
 // API URL - detecção automática de ambiente
 let api;
 
-// Configuração de ambientes
+// Configuração de ambientes - VERSÃO CORRIGIDA COM URLs CERTAS
 const environments = {
-  local: "http://localhost:3001",
-  production: "https://controle-despesas-c7oj.onrender.com", // URL para produção no Render
-  render: "https://controle-despesas-c7oj.onrender.com", // URL explícita para o backend no Render
-  vercel: "https://trabalho-escola-black.vercel.app", // URL para produção na Vercel (antiga configuração)
+  local: "http://localhost:3001", // Backend local
+  render: "https://controle-despesas-c7oj.onrender.com", // URL do BACKEND no Render (para uso em produção)
+  vercel_backend_obsoleto: "https://trabalho-escola-black.vercel.app", // URL antiga que não deve mais ser usada
 };
 
-// Detectar ambiente
+// Detectar ambiente - VERSÃO SIMPLIFICADA
 function detectEnvironment() {
   const hostname = window.location.hostname;
 
-  // Verifica se é ambiente local
-  const isLocal =
+  // CONFIGURAÇÃO MUITO SIMPLES:
+  // Local: usa servidor local
+  // Qualquer outro lugar (Vercel, etc): usa backend no Render
+
+  if (
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
-    hostname.startsWith("192.168.");
-
-  if (isLocal) {
+    hostname.startsWith("192.168.")
+  ) {
+    console.log("🏠 Ambiente local detectado - usando API local");
     return environments.local;
-  }
-
-  // CONFIGURAÇÃO ATUAL: Frontend no Vercel conectando ao backend no Render
-  if (hostname.includes("vercel.app")) {
-    console.log("Detectado frontend no Vercel, usando backend no Render");
-    return environments.render; // Usar backend no Render quando frontend está no Vercel
-  } else if (hostname.includes("render.com")) {
-    return environments.production; // Backend e frontend no mesmo domínio Render
   } else {
-    // Padrão para outros ambientes
-    return environments.production;
+    // Em produção (Vercel, GitHub Pages, etc.), SEMPRE usar o backend do Render
+    console.log("🌐 Ambiente de produção detectado - usando API no Render");
+    return environments.render;
   }
 }
 
@@ -84,12 +79,12 @@ function verificarLogin() {
 
 // Função helper para requisições HTTP com configurações CORS robustas
 async function apiRequest(endpoint, options = {}) {
-  // Identificar o ambiente atual para logs
-  const env = window.location.hostname.includes("vercel.app")
-    ? "Vercel"
-    : window.location.hostname.includes("render.com")
-    ? "Render"
-    : "Local";
+  // Identificar o ambiente atual para logs de forma simples
+  const env =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+      ? "Local"
+      : "Produção";
 
   const defaultOptions = {
     mode: "cors",
@@ -137,18 +132,21 @@ async function apiRequest(endpoint, options = {}) {
   }
 }
 
-// Função para tentar o cadastro de diferentes formas - otimizada para Vercel -> Render
+// Função para tentar o cadastro com múltiplos métodos
 async function tentarCadastro(dados) {
-  // Detectar se estamos no Vercel para otimizar a requisição
-  const isVercel = window.location.hostname.includes("vercel.app");
+  // Usamos método simples: estamos em produção ou local?
+  const isProduction =
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1";
+
+  console.log(
+    `🔄 Cadastro: usando API ${api} em ambiente ${
+      isProduction ? "de produção" : "local"
+    }`
+  );
 
   try {
     // Primeira tentativa com apiRequest padrão
-    if (isVercel) {
-      console.log(
-        "📡 Ambiente Vercel detectado - usando configuração otimizada para Render"
-      );
-    }
 
     return await apiRequest("/cadastro", {
       method: "POST",
@@ -375,8 +373,22 @@ function realizarCadastro(event) {
     browserInfo: navigator.userAgent,
   });
 
-  // Primeira tentativa usando apiRequest com múltiplos fallbacks
-  tentarCadastro({ nome, email, senha })
+  // UTILIZA MÉTODO DIRETO PARA TESTES
+  fetch(api + "/cadastro", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+    },
+    mode: "cors",
+    credentials: "omit",
+    body: JSON.stringify({ nome, email, senha }),
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    })
     .then((data) => {
       console.log("Resposta do cadastro:", data);
       if (data.status === "success" && data.token) {
