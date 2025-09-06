@@ -208,14 +208,23 @@ const verificarAuth = (req, res, next) => {
   const authHeader = req.header("Authorization");
 
   if (!authHeader) {
-    return res.status(401).json({ message: "Token de autorização necessário" });
+    return res.status(401).json({
+      status: "error",
+      message: "Token de autorização necessário",
+    });
   }
 
+  // Aceita tanto formato "Bearer email@example.com" quanto somente "email@example.com"
   const userEmail = authHeader.replace("Bearer ", "");
+  console.log("Email extraído do token:", userEmail);
+
   const usuario = usuarios.find((u) => u.email === userEmail);
 
   if (!usuario) {
-    return res.status(401).json({ message: "Usuário não autorizado" });
+    return res.status(401).json({
+      status: "error",
+      message: "Usuário não autorizado",
+    });
   }
 
   req.usuario = usuario;
@@ -311,12 +320,23 @@ app.get("/despesas", verificarAuth, (req, res) => {
   // Ordenar por data (mais recente primeiro)
   despesasUsuario.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-  res.json(despesasUsuario);
+  res.json({
+    status: "success",
+    message: "Dados recuperados com sucesso",
+    data: despesasUsuario,
+  });
 });
 
 // Adicionar despesa/receita
 app.post("/despesas", verificarAuth, validarDespesa, (req, res) => {
   const { descricao, valor, categoria, data, tipo } = req.body;
+
+  console.log("Adicionando item:", {
+    usuario: req.usuario.email,
+    tipo,
+    valor,
+    categoria,
+  });
 
   const novaDespesa = {
     id: Date.now(),
@@ -332,10 +352,17 @@ app.post("/despesas", verificarAuth, validarDespesa, (req, res) => {
   despesas.push(novaDespesa);
 
   if (!saveData(EXPENSES_FILE, despesas)) {
-    return res.status(500).json({ message: "Erro ao salvar despesa" });
+    return res.status(500).json({
+      status: "error",
+      message: "Erro ao salvar despesa",
+    });
   }
 
-  res.status(201).json({ message: "Item adicionado!", despesa: novaDespesa });
+  res.status(201).json({
+    status: "success",
+    message: "Item adicionado!",
+    data: novaDespesa,
+  });
 });
 
 // Atualizar despesa/receita
@@ -370,21 +397,41 @@ app.put("/despesas/:id", verificarAuth, validarDespesa, (req, res) => {
 // Excluir despesa/receita
 app.delete("/despesas/:id", verificarAuth, (req, res) => {
   const id = parseInt(req.params.id);
+  console.log(
+    "Solicitação de exclusão - ID:",
+    id,
+    "Usuário:",
+    req.usuario.email
+  );
+
   const despesaIndex = despesas.findIndex(
     (d) => d.id === id && d.usuarioId === req.usuario.id
   );
 
   if (despesaIndex === -1) {
-    return res.status(404).json({ message: "Item não encontrado!" });
+    return res.status(404).json({
+      status: "error",
+      message: "Item não encontrado!",
+    });
   }
+
+  const itemExcluido = despesas[despesaIndex];
+  console.log("Excluindo item:", itemExcluido);
 
   despesas.splice(despesaIndex, 1);
 
   if (!saveData(EXPENSES_FILE, despesas)) {
-    return res.status(500).json({ message: "Erro ao salvar exclusão" });
+    return res.status(500).json({
+      status: "error",
+      message: "Erro ao salvar exclusão",
+    });
   }
 
-  res.json({ message: "Item excluído!" });
+  res.json({
+    status: "success",
+    message: "Item excluído!",
+    data: itemExcluido,
+  });
 });
 
 // Buscar com filtros
@@ -434,6 +481,8 @@ app.get("/categorias", verificarAuth, (req, res) => {
 
 // Resumo financeiro
 app.get("/resumo", verificarAuth, (req, res) => {
+  console.log("Usuário autenticado:", req.usuario.email);
+
   const despesasUsuario = despesas.filter(
     (d) => d.usuarioId === req.usuario.id
   );
@@ -457,10 +506,14 @@ app.get("/resumo", verificarAuth, (req, res) => {
     });
 
   res.json({
-    totalReceitas,
-    totalDespesas,
-    saldo,
-    despesasPorCategoria,
+    status: "success",
+    message: "Resumo recuperado com sucesso",
+    data: {
+      totalReceitas,
+      totalDespesas,
+      saldo,
+      despesasPorCategoria,
+    },
   });
 });
 

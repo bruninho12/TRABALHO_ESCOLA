@@ -82,9 +82,14 @@ async function executarTestes() {
     return;
   }
 
-  // Teste de requisição autenticada
-  const token = dadosLogin.token;
+  // Teste de requisição autenticada com Bearer
+  const token = "Bearer " + dadosLogin.token;
+  console.log("Token formatado para teste: ", token);
   await testarRequisicaoAutenticada(token);
+
+  // Teste também com o token simples para verificar o comportamento
+  console.log("Testando também com token simples (sem Bearer)...");
+  await testarRequisicaoAutenticada(dadosLogin.token);
 }
 
 // Executar os testes automaticamente

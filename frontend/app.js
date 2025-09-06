@@ -27,7 +27,22 @@ api = detectEnvironment();
 // Log para debug
 console.log(`🌐 Ambiente detectado: ${api}`);
 
-// Função helper para requisições HTTP com configurações CORS robustas
+// Fu// Função para verificar autenticação
+function verificarLogin() {
+  const token = localStorage.getItem("authToken");
+  const usuario = localStorage.getItem("usuario");
+
+  if (token && usuario) {
+    // Adicionar o prefixo "Bearer " ao token
+    authToken = "Bearer " + token;
+    usuarioAtual = JSON.parse(usuario);
+    console.log("Usuário autenticado:", usuarioAtual);
+    console.log("Token formatado para backend:", authToken);
+    mostrarPaginaPrincipal();
+  } else {
+    mostrarPaginaLogin();
+  }
+} requisições HTTP com configurações CORS robustas
 async function apiRequest(endpoint, options = {}) {
   const defaultOptions = {
     mode: "cors",
@@ -120,10 +135,10 @@ function realizarLogin(event) {
       console.log("Resposta do login:", data);
       if (data.status === "success" && data.token) {
         usuarioAtual = data.usuario;
-        // Salvamos o token sem o Bearer no localStorage
+        // Salvamos o token sem o prefixo no localStorage
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
-        // Mas para uso imediato, já adicionamos o Bearer
+        // Para uso imediato, adicionamos o prefixo "Bearer "
         authToken = "Bearer " + data.token;
         showMessage("Login realizado com sucesso!");
         mostrarPaginaPrincipal();
@@ -175,10 +190,10 @@ function realizarCadastro(event) {
       console.log("Resposta do cadastro:", data);
       if (data.status === "success" && data.token) {
         usuarioAtual = data.usuario;
-        // Salvamos o token sem o Bearer no localStorage
+        // Salvamos o token sem o prefixo no localStorage
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("usuario", JSON.stringify(usuarioAtual));
-        // Mas para uso imediato, já adicionamos o Bearer
+        // Para uso imediato, adicionamos o prefixo "Bearer "
         authToken = "Bearer " + data.token;
         showMessage("Cadastro realizado com sucesso!");
         mostrarPaginaPrincipal();
@@ -249,14 +264,35 @@ function carregarDados() {
 }
 
 function carregarResumo() {
+  console.log("Carregando resumo com token:", authToken);
   fetch(api + "/resumo", {
-    headers: { Authorization: authToken }, // Removido o prefixo Bearer
+    headers: { Authorization: authToken },
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta de resumo:", res.status);
+      if (!res.ok) {
+        console.error("Erro na resposta de resumo:", res.status, res.statusText);
+      }
+      return res.json();
+    })
     .then((response) => {
+      console.log("Resposta de resumo:", response);
+      
       // Verificar se a resposta tem a estrutura esperada
-      if (!response || !response.data) {
+      if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
+        return;
+      }
+      
+      // Se não tiver success no status, mostrar erro
+      if (response.status !== "success") {
+        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        return;
+      }
+      
+      // Verificar se os dados existem
+      if (!response.data) {
+        console.error("Dados inválidos na resposta:", response.data);
         return;
       }
 
@@ -330,22 +366,30 @@ function adicionarDespesa(event) {
     return;
   }
 
+  console.log("Adicionando despesa com token:", authToken);
   fetch(api + "/despesas", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: authToken, // Removido o prefixo Bearer
+      Authorization: authToken,
     },
     body: JSON.stringify({
       descricao,
-      valor,
+      valor: parseFloat(valor),
       categoria,
       data,
       tipo: "despesa",
     }),
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta de adicionar despesa:", res.status);
+      if (!res.ok) {
+        console.error("Erro na resposta de adicionar despesa:", res.status, res.statusText);
+      }
+      return res.json();
+    })
     .then((response) => {
+      console.log("Resposta de adicionar despesa:", response);
       if (response.status === "success") {
         showMessage("Despesa adicionada com sucesso!");
         document.getElementById("form-despesa").reset();
@@ -373,22 +417,30 @@ function adicionarReceita(event) {
     return;
   }
 
+  console.log("Adicionando receita com token:", authToken);
   fetch(api + "/despesas", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: authToken, // Removido o prefixo Bearer
+      Authorization: authToken,
     },
     body: JSON.stringify({
       descricao,
-      valor,
+      valor: parseFloat(valor),
       categoria,
       data,
       tipo: "receita",
     }),
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta de adicionar receita:", res.status);
+      if (!res.ok) {
+        console.error("Erro na resposta de adicionar receita:", res.status, res.statusText);
+      }
+      return res.json();
+    })
     .then((response) => {
+      console.log("Resposta de adicionar receita:", response);
       if (response.status === "success") {
         showMessage("Receita adicionada com sucesso!");
         document.getElementById("form-receita").reset();
@@ -405,14 +457,35 @@ function adicionarReceita(event) {
 }
 
 function carregarDespesas() {
+  console.log("Carregando despesas com token:", authToken);
   fetch(api + "/despesas", {
-    headers: { Authorization: authToken }, // Removido o prefixo Bearer
+    headers: { Authorization: authToken },
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta de despesas:", res.status);
+      if (!res.ok) {
+        console.error("Erro na resposta de despesas:", res.status, res.statusText);
+      }
+      return res.json();
+    })
     .then((response) => {
+      console.log("Resposta de despesas:", response);
+      
       // Verificar se a resposta tem a estrutura esperada
-      if (!response || !response.data || !Array.isArray(response.data)) {
+      if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
+        return;
+      }
+      
+      // Se não tiver success no status, mostrar erro
+      if (response.status !== "success") {
+        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        return;
+      }
+      
+      // Verificar se os dados existem e são um array
+      if (!response.data || !Array.isArray(response.data)) {
+        console.error("Dados inválidos na resposta:", response.data);
         return;
       }
 
@@ -455,14 +528,35 @@ function carregarDespesas() {
 }
 
 function carregarReceitas() {
+  console.log("Carregando receitas com token:", authToken);
   fetch(api + "/despesas", {
-    headers: { Authorization: authToken }, // Removido o prefixo Bearer
+    headers: { Authorization: authToken },
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta de receitas:", res.status);
+      if (!res.ok) {
+        console.error("Erro na resposta de receitas:", res.status, res.statusText);
+      }
+      return res.json();
+    })
     .then((response) => {
+      console.log("Resposta de receitas:", response);
+      
       // Verificar se a resposta tem a estrutura esperada
-      if (!response || !response.data || !Array.isArray(response.data)) {
+      if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
+        return;
+      }
+      
+      // Se não tiver success no status, mostrar erro
+      if (response.status !== "success") {
+        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        return;
+      }
+      
+      // Verificar se os dados existem e são um array
+      if (!response.data || !Array.isArray(response.data)) {
+        console.error("Dados inválidos na resposta:", response.data);
         return;
       }
 
@@ -505,14 +599,35 @@ function carregarReceitas() {
 }
 
 function carregarHistoricoCompleto() {
+  console.log("Carregando histórico com token:", authToken);
   fetch(api + "/despesas", {
-    headers: { Authorization: authToken }, // Removido o prefixo Bearer
+    headers: { Authorization: authToken },
   })
-    .then((res) => res.json())
+    .then((res) => {
+      console.log("Status da resposta de histórico:", res.status);
+      if (!res.ok) {
+        console.error("Erro na resposta de histórico:", res.status, res.statusText);
+      }
+      return res.json();
+    })
     .then((response) => {
+      console.log("Resposta de histórico:", response);
+      
       // Verificar se a resposta tem a estrutura esperada
-      if (!response || !response.data || !Array.isArray(response.data)) {
+      if (!response || !response.status) {
         console.error("Formato de resposta inválido:", response);
+        return;
+      }
+      
+      // Se não tiver success no status, mostrar erro
+      if (response.status !== "success") {
+        console.error("Erro na resposta:", response.message || "Erro desconhecido");
+        return;
+      }
+      
+      // Verificar se os dados existem e são um array
+      if (!response.data || !Array.isArray(response.data)) {
+        console.error("Dados inválidos na resposta:", response.data);
         return;
       }
 
@@ -558,12 +673,20 @@ function carregarHistoricoCompleto() {
 
 function excluirItem(id) {
   if (confirm("Tem certeza que deseja excluir este item?")) {
+    console.log("Excluindo item com ID:", id, "usando token:", authToken);
     fetch(api + `/despesas/${id}`, {
       method: "DELETE",
-      headers: { Authorization: authToken }, // Removido o prefixo Bearer
+      headers: { Authorization: authToken },
     })
-      .then((res) => res.json())
+      .then((res) => {
+        console.log("Status da resposta de exclusão:", res.status);
+        if (!res.ok) {
+          console.error("Erro na resposta de exclusão:", res.status, res.statusText);
+        }
+        return res.json();
+      })
       .then((response) => {
+        console.log("Resposta de exclusão:", response);
         if (response.status === "success") {
           showMessage("Item excluído com sucesso!");
           carregarDados();
@@ -592,11 +715,11 @@ function verificarLogin() {
   const usuario = localStorage.getItem("usuario");
 
   if (token && usuario) {
-    // Adicionar "Bearer " na frente do token - isso é necessário para o backend
+    // Adicionar o prefixo "Bearer " ao token
     authToken = "Bearer " + token;
     usuarioAtual = JSON.parse(usuario);
     console.log("Usuário autenticado:", usuarioAtual);
-    console.log("Token:", authToken);
+    console.log("Token formatado para backend:", authToken);
     mostrarPaginaPrincipal();
   } else {
     mostrarPaginaLogin();
