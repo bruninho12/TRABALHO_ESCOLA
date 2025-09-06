@@ -4,11 +4,11 @@ const path = require("path");
 // Caminhos
 const backendDir = path.join(__dirname, "backend");
 
-console.log("Iniciando aplicação no Render...");
+console.log("Iniciando aplicação...");
 console.log(`Diretório do backend: ${backendDir}`);
 
 // Iniciar o backend
-const backend = spawn("node", ["index_render.js"], {
+const backend = spawn("node", ["index.js"], {
   cwd: backendDir,
   stdio: "inherit",
 });

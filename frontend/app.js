@@ -1,11 +1,10 @@
-// API URL - detecção automática e robusta de ambiente
+// API URL - detecção automática de ambiente
 let api;
 
 // Configuração de ambientes
 const environments = {
   local: "http://localhost:3001",
-  railway: "https://trabalho-escola-production.up.railway.app", // URL para o Railway
-  render: "https://controle-despesas-backend.onrender.com", // URL para o Render
+  production: "https://api.controle-despesas.vercel.app", // URL para produção
 };
 
 // Detectar ambiente
@@ -16,13 +15,7 @@ function detectEnvironment() {
     hostname === "127.0.0.1" ||
     hostname.startsWith("192.168.");
 
-  if (isLocal) {
-    return environments.local;
-  } else {
-    // Você pode configurar aqui qual backend será usado em produção
-    // Atualmente configurado para usar o Render
-    return environments.render;
-  }
+  return isLocal ? environments.local : environments.production;
 }
 
 api = detectEnvironment();

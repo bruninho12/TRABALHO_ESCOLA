@@ -5,12 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index_railway.js",
-    "start:dev": "node index.js",
+    "start": "node index.js",
     "dev": "nodemon index.js",
-    "healthcheck": "curl --fail http://localhost:$PORT || exit 1",
-    "deploy:railway": "node index_railway.js",
-    "start:render": "node index_render.js"
+    "healthcheck": "curl --fail http://localhost:$PORT || exit 1"
   },
   "dependencies": {
     "cors": "^2.8.5",
