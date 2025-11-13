@@ -24,4 +24,7 @@ router.post("/reset-password", authController.resetPassword);
 // Verificar conta
 router.get("/verify/:token", authController.verifyAccount);
 
+// Obter perfil do usuário autenticado
+router.get("/me", authController.authenticate, authController.getProfile);
+
 module.exports = router;

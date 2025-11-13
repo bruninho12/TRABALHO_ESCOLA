@@ -6,6 +6,8 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 import { useState, useEffect } from "react";
 import { lightTheme, darkTheme } from "./styles/theme";
 import "./styles/animations.css";
+import "./App.css";
+import "./styles/components.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {

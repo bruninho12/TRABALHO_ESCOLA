@@ -829,6 +829,37 @@ const verifyAccount = (req, res) => {
   });
 };
 
+// Obter perfil do usuário autenticado
+const getProfile = async (req, res) => {
+  try {
+    const User = require("../models/User");
+
+    // O middleware authenticate já adicionou req.user
+    const userId = req.user.id || req.user._id;
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuário não encontrado",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    logger.error("Get profile error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao carregar perfil",
+      error: error.message,
+    });
+  }
+};
+
 // Middleware de autenticação
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
@@ -859,5 +890,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   verifyAccount,
+  getProfile,
   authenticate,
 };
