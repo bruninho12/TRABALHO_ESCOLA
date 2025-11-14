@@ -109,6 +109,22 @@ class TransactionController {
       // Update user stats
       await this.updateUserStats(req.user._id);
 
+      // INTEGRAÇÃO RPG: Ganhar XP/ouro ao registrar despesa
+      try {
+        const { Avatar } = require("../models");
+        const avatar = await Avatar.findOne({ userId: req.user._id });
+        if (avatar) {
+          // Regras: só ganha XP/ouro se for despesa
+          if (transaction.type === "expense") {
+            avatar.gainExperience(10); // XP fixo por despesa
+            avatar.addGold(5); // Ouro fixo por despesa
+            await avatar.save();
+          }
+        }
+      } catch (rpgErr) {
+        logger.warn("Falha ao integrar RPG na transação:", rpgErr);
+      }
+
       return res.status(201).json({
         success: true,
         data: transaction,
@@ -642,6 +658,7 @@ const deleteTransaction = async (req, res) => {
 };
 
 module.exports = {
+  TransactionController,
   getTransactions,
   getTransactionsSummary,
   getTransaction,

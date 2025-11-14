@@ -1,10 +1,16 @@
-const express = require('express');
-const RPGController = require('../api/rpgController');
+const express = require("express");
+const RPGController = require("../controllers/rpgController");
+const { authenticate } = require("../controllers/authController");
 
 const router = express.Router();
 
-// Middleware de autenticação será adicionado pelo app.js
-// ou pode ser aplicado via app.use('/api/rpg', authenticate, rpgRoutes)
+// Apply authentication middleware to all RPG routes
+router.use(authenticate);
+
+// Rota de teste
+router.get("/test", (req, res) => {
+  res.json({ message: "RPG router is working", user: req.user });
+});
 
 // ============================================
 // AVATAR ENDPOINTS
@@ -14,25 +20,25 @@ const router = express.Router();
  * POST /api/rpg/avatar
  * Criar novo avatar
  */
-router.post('/avatar', (req, res) => RPGController.createAvatar(req, res));
+router.post("/avatar", RPGController.createAvatar);
 
 /**
  * GET /api/rpg/avatar
  * Obter avatar do usuário
  */
-router.get('/avatar', (req, res) => RPGController.getAvatar(req, res));
+router.get("/avatar", RPGController.getAvatar);
 
 /**
  * PUT /api/rpg/avatar
  * Atualizar avatar
  */
-router.put('/avatar', (req, res) => RPGController.updateAvatar(req, res));
+router.put("/avatar", RPGController.updateAvatar);
 
 /**
  * DELETE /api/rpg/avatar
  * Deletar avatar
  */
-router.delete('/avatar', (req, res) => RPGController.deleteAvatar(req, res));
+router.delete("/avatar", RPGController.deleteAvatar);
 
 // ============================================
 // BATTLE ENDPOINTS
@@ -42,19 +48,19 @@ router.delete('/avatar', (req, res) => RPGController.deleteAvatar(req, res));
  * POST /api/rpg/battle/start
  * Iniciar nova batalha
  */
-router.post('/battle/start', (req, res) => RPGController.startBattle(req, res));
+router.post("/battle/start", RPGController.startBattle);
 
 /**
  * POST /api/rpg/battle/:battleId/action
  * Executar ação em uma batalha
  */
-router.post('/battle/:battleId/action', (req, res) => RPGController.performBattleAction(req, res));
+router.post("/battle/:battleId/action", RPGController.performBattleAction);
 
 /**
  * GET /api/rpg/battles
  * Obter histórico de batalhas
  */
-router.get('/battles', (req, res) => RPGController.getBattleHistory(req, res));
+router.get("/battles", RPGController.getBattleHistory);
 
 // ============================================
 // WORLD MAP ENDPOINTS
@@ -64,13 +70,13 @@ router.get('/battles', (req, res) => RPGController.getBattleHistory(req, res));
  * GET /api/rpg/world-map
  * Obter mapa do mundo
  */
-router.get('/world-map', (req, res) => RPGController.getWorldMap(req, res));
+router.get("/world-map", RPGController.getWorldMap);
 
 /**
  * POST /api/rpg/city/:cityNumber/unlock
  * Desbloquear uma cidade
  */
-router.post('/city/:cityNumber/unlock', (req, res) => RPGController.unlockCity(req, res));
+router.post("/city/:cityNumber/unlock", RPGController.unlockCity);
 
 // ============================================
 // ACHIEVEMENTS ENDPOINTS
@@ -80,7 +86,7 @@ router.post('/city/:cityNumber/unlock', (req, res) => RPGController.unlockCity(r
  * GET /api/rpg/achievements
  * Obter achievements do usuário
  */
-router.get('/achievements', (req, res) => RPGController.getAchievements(req, res));
+router.get("/achievements", RPGController.getAchievements);
 
 // ============================================
 // LEADERBOARD ENDPOINTS
@@ -90,6 +96,6 @@ router.get('/achievements', (req, res) => RPGController.getAchievements(req, res
  * GET /api/rpg/leaderboard
  * Obter leaderboard global
  */
-router.get('/leaderboard', (req, res) => RPGController.getLeaderboard(req, res));
+router.get("/leaderboard", RPGController.getLeaderboard);
 
 module.exports = router;

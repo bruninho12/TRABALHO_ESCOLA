@@ -31,6 +31,14 @@ export function TransactionForm({
     }
   );
 
+  // Debug: log das categorias
+  console.log("Categorias carregadas:", categories);
+  console.log("Tipo de transação selecionado:", formData.type);
+  console.log(
+    "Categorias filtradas:",
+    categories.filter((cat) => cat.type === formData.type)
+  );
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -101,8 +109,9 @@ export function TransactionForm({
           />
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Tipo</InputLabel>
+            <InputLabel id="type-label">Tipo</InputLabel>
             <Select
+              labelId="type-label"
               name="type"
               value={formData.type}
               onChange={handleChange}
@@ -113,27 +122,31 @@ export function TransactionForm({
             </Select>
           </FormControl>
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Categoria</InputLabel>
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="category-label">Categoria</InputLabel>
             <Select
+              labelId="category-label"
               name="category"
               value={formData.category}
               onChange={handleChange}
               label="Categoria"
-              required
             >
-              {categories && Array.isArray(categories)
-                ? categories
-                    .filter((cat) => cat.type === formData.type)
-                    .map((category) => (
-                      <MenuItem
-                        key={category.id || category._id}
-                        value={category.id || category._id}
-                      >
-                        {category.name}
-                      </MenuItem>
-                    ))
-                : null}
+              {categories &&
+              Array.isArray(categories) &&
+              categories.length > 0 ? (
+                categories
+                  .filter((cat) => cat.type === formData.type)
+                  .map((category) => (
+                    <MenuItem
+                      key={category.id || category._id}
+                      value={category.id || category._id}
+                    >
+                      {category.name}
+                    </MenuItem>
+                  ))
+              ) : (
+                <MenuItem disabled>Nenhuma categoria disponível</MenuItem>
+              )}
             </Select>
           </FormControl>
         </DialogContent>

@@ -458,6 +458,7 @@ class AuthController {
   }
 
   sanitizeUser(user) {
+    // eslint-disable-next-line no-unused-vars
     const { password, resetToken, resetTokenExpiry, ...sanitized } = user;
     return sanitized;
   }
@@ -883,6 +884,7 @@ const authenticate = (req, res, next) => {
 };
 
 module.exports = {
+  AuthController,
   login,
   register,
   logout,

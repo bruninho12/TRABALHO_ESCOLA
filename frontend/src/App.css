@@ -859,40 +859,6 @@ body {
   color: var(--color-primary-dark);
 }
 
-/* Modo escuro para auth */
-@media (prefers-color-scheme: dark) {
-  .auth-card {
-    background: #1f2937;
-    box-shadow: var(--shadow-xl), 0 20px 60px rgba(0, 0, 0, 0.6);
-  }
-
-  .form-input {
-    background: #111827;
-    border-color: #374151;
-    color: white;
-  }
-
-  .form-input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-  }
-
-  .form-label,
-  .auth-title,
-  .form-checkbox {
-    color: white;
-  }
-
-  .form-input::placeholder {
-    color: #9ca3af;
-  }
-
-  .auth-divider::before,
-  .auth-divider::after {
-    background: #374151;
-  }
-}
-
 /* ============================================
    RESPONSIVO
    ============================================ */

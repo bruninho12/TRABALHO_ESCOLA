@@ -63,23 +63,6 @@ export const lightTheme = createTheme({
     borderRadius: 12,
   },
   components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          padding: "8px 16px",
-          boxShadow: "none",
-          "&:hover": {
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          },
-        },
-        contained: {
-          "&:hover": {
-            transform: "translateY(-1px)",
-          },
-        },
-      },
-    },
     MuiPaper: {
       styleOverrides: {
         root: {
@@ -104,10 +87,22 @@ export const lightTheme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: "rgba(255, 255, 255, 0.95)",
+          background: "rgba(255, 255, 255, 0.98)",
           backdropFilter: "blur(10px)",
           boxShadow:
             "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+          color: "#1f2937",
+        },
+      },
+    },
+    // MuiButton duplicado removido
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          color: "#1f2937",
+          "&:hover": {
+            backgroundColor: "rgba(102, 126, 234, 0.1)",
+          },
         },
       },
     },

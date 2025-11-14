@@ -18,19 +18,9 @@ const mongoose = require("mongoose");
 const logger = require("../src/utils/logger");
 
 // Importar modelos
-const {
-  Avatar,
-  Battle,
-  Achievement,
-  Reward,
-  WorldMap,
-  Goal,
-  Budget,
-} = require("../src/models");
+const { WorldMap } = require("../src/models");
 
 const { CITIES_TEMPLATES } = require("../src/models/WorldMap");
-const { ACHIEVEMENT_TEMPLATES } = require("../src/models/Achievement");
-const { ACHIEVEMENT_TYPES } = require("../src/models/Reward");
 
 async function migrateDatabase() {
   try {
@@ -72,7 +62,7 @@ async function migrateDatabase() {
       mapa_mundo: "WorldMap",
     };
 
-    for (const [collectionName, modelName] of Object.entries(collections)) {
+    for (const [collectionName] of Object.entries(collections)) {
       try {
         const count = await mongoose.connection
           .collection(collectionName)

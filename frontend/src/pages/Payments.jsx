@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Paper,
@@ -34,12 +34,7 @@ const PaymentsPage = () => {
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
-  useEffect(() => {
-    loadPayments();
-    loadSubscription();
-  }, []);
-
-  const loadPayments = async () => {
+  const loadPayments = useCallback(async () => {
     try {
       const token = localStorage.getItem("finance_flow_token");
       const response = await axios.get(`${apiUrl}/payments`, {
@@ -49,19 +44,24 @@ const PaymentsPage = () => {
     } catch (error) {
       console.error("Erro ao carregar pagamentos:", error);
     }
-  };
+  }, [apiUrl]);
 
-  const loadSubscription = async () => {
+  const loadSubscription = useCallback(async () => {
     try {
       const token = localStorage.getItem("finance_flow_token");
       const response = await axios.get(`${apiUrl}/payments/subscription`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSubscription(response.data.data);
+      setSubscription(response.data.data || null);
     } catch (error) {
-      console.error("Erro ao carregar assinatura:", error);
+      console.error("Erro ao carregar subscrição:", error);
     }
-  };
+  }, [apiUrl]);
+
+  useEffect(() => {
+    loadPayments();
+    loadSubscription();
+  }, [loadPayments, loadSubscription]);
 
   const handleMakePayment = async () => {
     try {

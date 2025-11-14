@@ -3,7 +3,7 @@
  * Gerencia criação e edição de pagamentos com validação
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -20,7 +20,6 @@ import {
   CircularProgress,
   Divider,
 } from "@mui/material";
-import { useState as useStateCustom } from "react";
 
 const PaymentForm = ({
   payment = null,

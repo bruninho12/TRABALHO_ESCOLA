@@ -6,6 +6,7 @@ const User = require("../models/User");
 const Category = require("../models/Category");
 const Transaction = require("../models/Transaction");
 const Budget = require("../models/Budget");
+const Notification = require("../models/Notification");
 const logger = require("../utils/logger");
 
 // Importar dados de exemplo

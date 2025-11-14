@@ -1,7 +1,26 @@
 /**
- * @fileoverview Logger simples para o sistema
- * Pode ser expandido com Winston ou outro logger profissional
+ * @fileoverview Logger profissional para o sistema
+ * Integrado com Winston e Sentry
  */
+
+const winston = require("winston");
+const Sentry = require("@sentry/node");
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV,
+  });
+}
+
+const winstonLogger = winston.createLogger({
+  level: process.env.LOG_LEVEL || "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [new winston.transports.Console()],
+});
 
 const colors = {
   reset: "\x1b[0m",
@@ -20,6 +39,8 @@ const levels = {
   DEBUG: 3,
 };
 
+// Log level pode ser configurado via env, padrão é INFO
+// eslint-disable-next-line no-unused-vars
 const currentLogLevel =
   levels[process.env.LOG_LEVEL?.toUpperCase() || "INFO"] || 2;
 
@@ -30,6 +51,7 @@ const formatTimestamp = () => {
   });
 };
 
+// eslint-disable-next-line no-unused-vars
 const formatMessage = (level, message, data = null) => {
   const timestamp = formatTimestamp();
   let color = colors.reset;
@@ -64,46 +86,23 @@ const formatMessage = (level, message, data = null) => {
 
 const logger = {
   error: (message, data = null) => {
-    if (levels.ERROR <= currentLogLevel) {
-      console.error(formatMessage("ERROR", message, data));
-    }
+    winstonLogger.error(message, { data });
+    if (process.env.SENTRY_DSN) Sentry.captureException(message);
   },
-
   warn: (message, data = null) => {
-    if (levels.WARN <= currentLogLevel) {
-      console.warn(formatMessage("WARN", message, data));
-    }
+    winstonLogger.warn(message, { data });
   },
-
   info: (message, data = null) => {
-    if (levels.INFO <= currentLogLevel) {
-      console.log(formatMessage("INFO", message, data));
-    }
+    winstonLogger.info(message, { data });
   },
-
   debug: (message, data = null) => {
-    if (levels.DEBUG <= currentLogLevel) {
-      console.log(formatMessage("DEBUG", message, data));
-    }
+    winstonLogger.debug(message, { data });
   },
-
   success: (message, data = null) => {
-    const timestamp = formatTimestamp();
-    let output = `${colors.green}[${timestamp}] [✓ SUCCESS]${colors.reset} ${message}`;
-    if (data) {
-      output += `\n${JSON.stringify(data, null, 2)}`;
-    }
-    console.log(output);
+    winstonLogger.info(`[SUCCESS] ${message}`, { data });
   },
-
   section: (title) => {
-    console.log(`\n${colors.blue}${"=".repeat(60)}${colors.reset}`);
-    console.log(
-      `${colors.blue}${title.padStart(title.length + 15).padEnd(60)}${
-        colors.reset
-      }`
-    );
-    console.log(`${colors.blue}${"=".repeat(60)}${colors.reset}\n`);
+    winstonLogger.info(`[SECTION] ${title}`);
   },
 };
 

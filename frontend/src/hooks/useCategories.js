@@ -8,16 +8,19 @@ export function useCategories() {
     categoryService
       .getAll()
       .then((res) => {
-        // Garantir que sempre retorna um array
-        const data =
-          res.data?.data?.categories ||
-          res.data?.categories ||
-          res.data?.data ||
-          res.data ||
-          [];
-        return Array.isArray(data) ? data : [];
+        // categoryService.getAll() já retorna response.data
+        // Estrutura: { status: "success", data: { categories: [...] } }
+        console.log("Resposta completa do getAll:", res);
+
+        const categoryList = res?.data?.categories || [];
+        console.log("Categorias extraídas:", categoryList);
+
+        return Array.isArray(categoryList) ? categoryList : [];
       })
-      .catch(() => [])
+      .catch((err) => {
+        console.error("Erro ao carregar categorias:", err);
+        return [];
+      })
   );
 
   const createCategory = useMutation(

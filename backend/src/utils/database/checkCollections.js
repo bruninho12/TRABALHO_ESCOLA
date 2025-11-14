@@ -38,4 +38,4 @@ async function checkCollections() {
   }
 }
 
-checkCollections();
+module.exports = checkCollections;

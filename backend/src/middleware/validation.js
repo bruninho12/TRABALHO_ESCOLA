@@ -3,6 +3,7 @@
  * Usando Joi para validação robusta
  */
 
+const { body, param, query, validationResult } = require("express-validator");
 const logger = require("../utils/logger");
 
 class ValidationRules {

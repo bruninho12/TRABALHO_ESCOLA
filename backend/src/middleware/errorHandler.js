@@ -1,7 +1,7 @@
 /**
  * Middleware para tratamento de erros
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Erro padrão
   let statusCode = err.statusCode || 500;
   let message = err.message || "Erro interno no servidor";

@@ -38,4 +38,4 @@ async function checkDatabases() {
   }
 }
 
-checkDatabases();
+module.exports = checkDatabases;

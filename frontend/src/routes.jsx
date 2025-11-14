@@ -8,6 +8,7 @@ import Goals from "./pages/Goals";
 import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import RPG from "./pages/RPG";
 import { PrivateRoute } from "./components/PrivateRoute";
 
 export const router = createBrowserRouter([
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
       {
         path: "/reports",
         element: <Reports />,
+      },
+      {
+        path: "/rpg",
+        element: <RPG />,
       },
       {
         path: "/settings",

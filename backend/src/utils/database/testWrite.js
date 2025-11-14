@@ -2,24 +2,23 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 
-// Ler .env
-const envPath = path.join(__dirname, ".env");
-const envContent = fs.readFileSync(envPath, "utf-8");
-const mongoLine = envContent
-  .split("\n")
-  .find((l) => l.startsWith("MONGO_URI="));
-const mongoUri = mongoLine.replace("MONGO_URI=", "").trim();
-
-console.log("🔌 Conectando ao MongoDB...");
-console.log("   URI:", mongoUri.split("/")[3]);
-
 async function testWrite() {
   try {
+    const envPath = path.join(__dirname, "../../../.env");
+    const envContent = fs.readFileSync(envPath, "utf-8");
+    const mongoLine = envContent
+      .split("\n")
+      .find((l) => l.startsWith("MONGO_URI="));
+    const mongoUri = mongoLine.replace("MONGO_URI=", "").trim();
+
+    console.log("🔌 Conectando ao MongoDB...");
+    console.log("   URI:", mongoUri.split("/")[3]);
+
     const conn = await mongoose.connect(mongoUri);
     console.log("✅ Conectado!\n");
 
     // Importar User model
-    const User = require("./src/models/User");
+    const User = require("../../models/User");
 
     // Criar um usuário de teste
     const testUser = new User({
@@ -58,4 +57,4 @@ async function testWrite() {
   }
 }
 
-testWrite();
+module.exports = testWrite;

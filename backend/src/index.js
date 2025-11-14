@@ -68,17 +68,27 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Rate limiting para prevenir abusos
-const limiter = rateLimit({
-  windowMs: (process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000, // 15 minutos por padrão
-  max: process.env.RATE_LIMIT_MAX || 100, // limite de 100 requisições por janela
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    status: 429,
-    message: "Muitas requisições, por favor tente novamente mais tarde.",
-  },
-});
-app.use("/api/", limiter);
+let rateLimitEnabled = true;
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.RATE_LIMIT_DISABLE === "true"
+) {
+  rateLimitEnabled = false;
+}
+
+if (rateLimitEnabled) {
+  const limiter = rateLimit({
+    windowMs: (process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000, // 15 minutos por padrão
+    max: process.env.RATE_LIMIT_MAX || 1000, // limite maior para produção
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      status: 429,
+      message: "Muitas requisições, por favor tente novamente mais tarde.",
+    },
+  });
+  app.use("/api/", limiter);
+}
 
 // Configurar Swagger
 setupSwagger(app);

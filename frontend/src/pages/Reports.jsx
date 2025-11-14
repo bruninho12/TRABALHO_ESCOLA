@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Paper,
@@ -27,75 +27,14 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import axios from "axios";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 const ReportsPage = () => {
   const [tabValue, setTabValue] = useState(0);
-  const [cashFlowData, setCashFlowData] = useState([]);
-  const [expenseByCategoryData, setExpenseByCategoryData] = useState([]);
-  const [monthlyBalanceData, setMonthlyBalanceData] = useState([]);
-
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
-
-  useEffect(() => {
-    loadReportsData();
-  }, []);
-
-  const loadReportsData = async () => {
-    try {
-      const token = localStorage.getItem("finance_flow_token");
-      const headers = { Authorization: `Bearer ${token}` };
-
-      // Load cash flow
-      try {
-        const response = await axios.get(`${apiUrl}/reports/cash-flow`, {
-          headers,
-        });
-        setCashFlowData(response.data.data || []);
-      } catch (error) {
-        console.error("Erro ao carregar fluxo de caixa:", error);
-      }
-
-      // Load expenses by category
-      try {
-        const response = await axios.get(`${apiUrl}/reports/categories`, {
-          headers,
-        });
-        // Transformar dados de { labels, data } para { name, value }
-        const categoryData =
-          response.data.data.labels?.map((label, idx) => ({
-            name: label,
-            value: response.data.data.data[idx],
-          })) || [];
-        setExpenseByCategoryData(categoryData);
-      } catch (error) {
-        console.error("Erro ao carregar despesas por categoria:", error);
-      }
-
-      // Load monthly balance
-      try {
-        const response = await axios.get(`${apiUrl}/reports/monthly`, {
-          headers,
-        });
-        // Transformar dados de { labels, income, expenses } para { month, balance }
-        const monthlyData =
-          response.data.data.labels?.map((label, idx) => ({
-            month: label,
-            income: response.data.data.income[idx],
-            expenses: response.data.data.expenses[idx],
-            balance:
-              response.data.data.income[idx] - response.data.data.expenses[idx],
-          })) || [];
-        setMonthlyBalanceData(monthlyData);
-      } catch (error) {
-        console.error("Erro ao carregar saldo mensal:", error);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados de reports:", error);
-    }
-  };
+  const [cashFlowData] = useState([]);
+  const [expenseByCategoryData] = useState([]);
+  const [monthlyBalanceData] = useState([]);
 
   const handleExportPDF = () => {
     alert("Exportar para PDF não está implementado ainda");

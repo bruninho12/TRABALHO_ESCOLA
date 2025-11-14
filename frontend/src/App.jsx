@@ -1,9 +1,10 @@
 import { RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider as CustomThemeProvider } from "./contexts/ThemeContext";
 import { router } from "./routes";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ThemeProvider, CssBaseline } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useThemeContext } from "./contexts/ThemeContext";
 import { lightTheme, darkTheme } from "./styles/theme";
 import "./styles/animations.css";
 import "./App.css";
@@ -18,24 +19,8 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Verificar preferência salva ou preferência do sistema
-    const saved = localStorage.getItem("darkMode");
-    if (saved !== null) {
-      return JSON.parse(saved);
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
-
-  // Adicionar função de toggle ao window para uso em componentes
-  useEffect(() => {
-    window.toggleDarkMode = () => setIsDarkMode(!isDarkMode);
-  }, [isDarkMode]);
+function AppContent() {
+  const { isDarkMode } = useThemeContext();
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -46,6 +31,14 @@ function App() {
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
+  );
+}
+
+function App() {
+  return (
+    <CustomThemeProvider>
+      <AppContent />
+    </CustomThemeProvider>
   );
 }
 

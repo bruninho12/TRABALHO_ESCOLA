@@ -1,3 +1,4 @@
+import React from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 
 export function LoadingSpinner({ message = "Carregando..." }) {

@@ -7,6 +7,7 @@ const budgetRoutes = require("./budgetRoutes");
 const reportRoutes = require("./reportRoutes");
 const goalRoutes = require("./goalRoutes");
 const paymentRoutes = require("./paymentRoutes");
+const rpgRoutes = require("./rpg");
 
 const router = express.Router();
 
@@ -29,5 +30,6 @@ router.use("/budgets", budgetRoutes);
 router.use("/reports", reportRoutes);
 router.use("/goals", goalRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/rpg", rpgRoutes);
 
 module.exports = router;

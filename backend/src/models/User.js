@@ -224,7 +224,7 @@ userSchema.methods.addExperience = function addExperience(amount) {
 
 // Remover senha antes de serializar
 userSchema.methods.toJSON = function toJSON() {
-  // eslint-disable-next-line no-unused-vars
+  /* eslint-disable no-unused-vars */
   const {
     password,
     emailVerificationToken,

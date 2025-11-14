@@ -6,8 +6,8 @@ exports.getCategories = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    // Buscar categorias do usuário
-    const categories = await Category.find({ userId }).sort({
+    // Buscar categorias do usuário (usar 'user' conforme o schema)
+    const categories = await Category.find({ user: userId }).sort({
       type: 1,
       name: 1,
     });
@@ -31,7 +31,7 @@ exports.createCategory = async (req, res, next) => {
 
     // Verificar se já existe uma categoria com o mesmo nome e tipo
     const existingCategory = await Category.findOne({
-      userId,
+      user: userId,
       name,
       type,
     });
@@ -54,7 +54,7 @@ exports.createCategory = async (req, res, next) => {
       color: color || getRandomColor(),
       icon,
       isDefault: isDefault || false,
-      userId,
+      user: userId,
     });
 
     await category.save();
@@ -80,7 +80,7 @@ exports.updateCategory = async (req, res, next) => {
     // Verificar se a categoria existe e pertence ao usuário
     const category = await Category.findOne({
       _id: id,
-      userId,
+      user: userId,
     });
 
     if (!category) {
@@ -97,7 +97,7 @@ exports.updateCategory = async (req, res, next) => {
     // Verificar se já existe outra categoria com o mesmo nome e tipo
     if (name) {
       const existingCategory = await Category.findOne({
-        userId,
+        user: userId,
         name,
         type: category.type,
         _id: { $ne: id },
@@ -173,7 +173,7 @@ exports.deleteCategory = async (req, res, next) => {
     }
 
     // Excluir categoria
-    await Category.deleteOne({ _id: id, userId });
+    await Category.deleteOne({ _id: id, user: userId });
 
     res.status(200).json({
       status: "success",

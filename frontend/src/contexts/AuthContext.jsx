@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 import Swal from "sweetalert2";
 import api from "../services/api";
 
@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
 
   const register = async (name, email, password, confirmPassword) => {
     try {
-      const response = await api.post("/auth/register", {
+      await api.post("/auth/register", {
         name,
         email,
         password,
@@ -104,7 +104,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("O useAuth deve ser usado dentro de um AuthProvider.");
   }
   return context;
 }

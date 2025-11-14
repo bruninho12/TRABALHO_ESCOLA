@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   AppBar,
@@ -21,24 +21,21 @@ import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
   EmojiEvents as GoalsIcon,
+  SportsEsports as RPGIcon,
 } from "@mui/icons-material";
-import { useTheme } from "@mui/material/styles";
+import { useThemeContext } from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
 
 const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const theme = useTheme();
+  const { isDarkMode, toggleDarkMode } = useThemeContext();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
 
-  const isDarkMode = theme.palette.mode === "dark";
-
   const handleThemeToggle = () => {
-    if (window.toggleDarkMode) {
-      window.toggleDarkMode();
-    }
+    toggleDarkMode();
   };
 
   const handleMenu = (event) => {
@@ -73,13 +70,22 @@ const Layout = () => {
     { path: "/goals", label: "Metas", icon: <GoalsIcon /> },
     { path: "/payments", label: "Pagamentos", icon: <PaymentIcon /> },
     { path: "/reports", label: "Relatórios", icon: <ReportsIcon /> },
+    { path: "/rpg", label: "RPG", icon: <RPGIcon /> },
   ];
 
   return (
     <div
       style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
     >
-      <AppBar position="static">
+      <AppBar
+        position="static"
+        sx={{
+          background: isDarkMode
+            ? "rgba(31, 41, 55, 0.95)"
+            : "rgba(255, 255, 255, 0.98)",
+          color: isDarkMode ? "white" : "#1f2937",
+        }}
+      >
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             🎯 DespFinance v2.0
@@ -94,8 +100,16 @@ const Layout = () => {
                 onClick={() => navigate(item.path)}
                 sx={{
                   mx: 1,
+                  color: isDarkMode ? "white" : "#1f2937",
+                  "&:hover": {
+                    backgroundColor: isDarkMode
+                      ? "rgba(255, 255, 255, 0.1)"
+                      : "rgba(102, 126, 234, 0.1)",
+                  },
                   ...(location.pathname === item.path && {
-                    borderBottom: "2px solid white",
+                    borderBottom: isDarkMode
+                      ? "2px solid white"
+                      : "2px solid #667eea",
                   }),
                 }}
               >
@@ -104,17 +118,29 @@ const Layout = () => {
             ))}
           </div>
 
-          <IconButton color="inherit" onClick={handleThemeToggle}>
+          <IconButton
+            color="inherit"
+            onClick={handleThemeToggle}
+            sx={{ color: isDarkMode ? "white" : "#1f2937" }}
+          >
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
 
-          <IconButton color="inherit" onClick={handleNotificationMenu}>
+          <IconButton
+            color="inherit"
+            onClick={handleNotificationMenu}
+            sx={{ color: isDarkMode ? "white" : "#1f2937" }}
+          >
             <Badge badgeContent={4} color="error">
               <NotificationsIcon />
             </Badge>
           </IconButton>
 
-          <IconButton onClick={handleMenu} color="inherit">
+          <IconButton
+            onClick={handleMenu}
+            color="inherit"
+            sx={{ color: isDarkMode ? "white" : "#1f2937" }}
+          >
             <Avatar>{user?.name?.[0] || "U"}</Avatar>
           </IconButton>
 

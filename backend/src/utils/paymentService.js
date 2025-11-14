@@ -8,9 +8,13 @@
 class PaymentService {
   constructor() {
     // ⚙️ Configurações das chaves Stripe (usando variáveis de ambiente)
-    this.stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_your_stripe_secret_key";
-    this.stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || "pk_test_your_stripe_publishable_key";
-    this.webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_your_webhook_secret";
+    this.stripeSecretKey =
+      process.env.STRIPE_SECRET_KEY || "sk_test_your_stripe_secret_key";
+    this.stripePublishableKey =
+      process.env.STRIPE_PUBLISHABLE_KEY ||
+      "pk_test_your_stripe_publishable_key";
+    this.webhookSecret =
+      process.env.STRIPE_WEBHOOK_SECRET || "whsec_your_webhook_secret";
 
     // 💎 Planos Premium disponíveis
     this.plans = {
@@ -20,7 +24,11 @@ class PaymentService {
         price: 9.99,
         currency: "brl",
         interval: "month",
-        features: ["Análises Avançadas", "Categorias Personalizadas", "Exportar Relatórios"],
+        features: [
+          "Análises Avançadas",
+          "Categorias Personalizadas",
+          "Exportar Relatórios",
+        ],
         streamingReward: 1, // 1 mês de streaming grátis
       },
       silver: {
@@ -29,7 +37,11 @@ class PaymentService {
         price: 19.99,
         currency: "brl",
         interval: "month",
-        features: ["Todos os recursos do Bronze", "Modelos de Metas", "Suporte Prioritário"],
+        features: [
+          "Todos os recursos do Bronze",
+          "Modelos de Metas",
+          "Suporte Prioritário",
+        ],
         streamingReward: 2, // 2 meses grátis
       },
       gold: {
@@ -38,7 +50,11 @@ class PaymentService {
         price: 29.99,
         currency: "brl",
         interval: "month",
-        features: ["Todos os recursos do Silver", "Consultor Financeiro Pessoal", "Metas Ilimitadas"],
+        features: [
+          "Todos os recursos do Silver",
+          "Consultor Financeiro Pessoal",
+          "Metas Ilimitadas",
+        ],
         streamingReward: 3, // 3 meses grátis
       },
     };
@@ -46,8 +62,16 @@ class PaymentService {
     // 🎬 Serviços de streaming disponíveis para recompensa
     this.streamingServices = {
       netflix: { name: "Netflix", logo: "netflix-logo.png", available: true },
-      spotify: { name: "Spotify Premium", logo: "spotify-logo.png", available: true },
-      prime: { name: "Amazon Prime Video", logo: "prime-logo.png", available: true },
+      spotify: {
+        name: "Spotify Premium",
+        logo: "spotify-logo.png",
+        available: true,
+      },
+      prime: {
+        name: "Amazon Prime Video",
+        logo: "prime-logo.png",
+        available: true,
+      },
       disney: { name: "Disney+", logo: "disney-logo.png", available: true },
     };
   }
@@ -112,7 +136,10 @@ class PaymentService {
 
       await this.activatePremiumFeatures(userId, paymentIntent.metadata.planId);
 
-      return { success: true, data: { subscription, paymentIntent: confirmedPayment } };
+      return {
+        success: true,
+        data: { subscription, paymentIntent: confirmedPayment },
+      };
     } catch (error) {
       throw new Error(`Falha ao confirmar pagamento: ${error.message}`);
     }
@@ -122,6 +149,7 @@ class PaymentService {
   // 🔹 Criação de assinatura Premium
   // ============================================
   async createSubscription(userId, planId) {
+    // eslint-disable-next-line no-unused-vars
     const plan = this.plans[planId];
     const subscription = {
       id: `sub_${this.generateId()}`,
@@ -146,12 +174,15 @@ class PaymentService {
       const goal = await this.getGoalById(goalId);
       const user = await this.getUserById(userId);
 
-      if (!goal || goal.userId !== userId) throw new Error("Meta não encontrada ou não autorizada.");
-      if (!goal.completed) throw new Error("A meta precisa estar concluída para resgatar.");
+      if (!goal || goal.userId !== userId)
+        throw new Error("Meta não encontrada ou não autorizada.");
+      if (!goal.completed)
+        throw new Error("A meta precisa estar concluída para resgatar.");
       if (goal.rewardRedeemed) throw new Error("Recompensa já foi resgatada.");
 
       const rewardMonths = this.getRewardMonthsByLevel(user.level);
-      if (rewardMonths === 0) throw new Error("Nível de usuário sem direito a recompensas.");
+      if (rewardMonths === 0)
+        throw new Error("Nível de usuário sem direito a recompensas.");
 
       if (!this.streamingServices[streamingService]?.available)
         throw new Error("Serviço de streaming indisponível.");
@@ -165,13 +196,21 @@ class PaymentService {
         status: "pending",
         redemptionCode: this.generateRedemptionCode(),
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        expiresAt: new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       };
 
       await this.storeRedemption(redemption);
-      await this.updateGoal(goalId, { rewardRedeemed: true, redemptionId: redemption.id });
+      await this.updateGoal(goalId, {
+        rewardRedeemed: true,
+        redemptionId: redemption.id,
+      });
 
-      const giftCode = await this.generateStreamingGiftCode(streamingService, rewardMonths);
+      const giftCode = await this.generateStreamingGiftCode(
+        streamingService,
+        rewardMonths
+      );
 
       redemption.giftCode = giftCode;
       redemption.status = "completed";
@@ -262,25 +301,56 @@ class PaymentService {
   // ============================================
   // 🔄 Simulações de banco de dados / logs
   // ============================================
-  async storePaymentIntent(pi) { console.log(`💾 PaymentIntent salvo: ${pi.id}`); }
-  async getPaymentIntent(id) { console.log(`📦 Buscar PaymentIntent: ${id}`); return null; }
-  async updatePaymentIntent(id, data) { console.log(`🔄 Atualizar PaymentIntent: ${id}`); }
-
-  async storeSubscription(sub) { console.log(`💾 Assinatura salva: ${sub.id}`); }
-  async getSubscription(id) { console.log(`📦 Buscar assinatura: ${id}`); return null; }
-  async updateSubscription(id, data) { console.log(`🔄 Atualizar assinatura: ${id}`); }
-
-  async storeRedemption(red) { console.log(`💾 Resgate salvo: ${red.id}`); }
-  async updateRedemption(id, data) { console.log(`🔄 Atualizar resgate: ${id}`); }
-
-  async activatePremiumFeatures(userId, planId) {
-    console.log(`🚀 Ativando recursos premium para usuário ${userId} (plano ${planId})`);
+  async storePaymentIntent(pi) {
+    console.log(`💾 PaymentIntent salvo: ${pi.id}`);
+  }
+  async getPaymentIntent(id) {
+    console.log(`📦 Buscar PaymentIntent: ${id}`);
+    return null;
+  }
+  async updatePaymentIntent(id, _data) {
+    console.log(`🔄 Atualizar PaymentIntent: ${id}`);
   }
 
-  async getUserById(id) { console.log(`👤 Buscar usuário: ${id}`); return { id, level: "Bronze" }; }
-  async getGoalById(id) { console.log(`🎯 Buscar meta: ${id}`); return null; }
-  async updateGoal(id, data) { console.log(`🔄 Atualizar meta: ${id}`); }
-  async getCompletedGoalsByUser(userId) { console.log(`🏁 Buscar metas concluídas de: ${userId}`); return []; }
+  async storeSubscription(sub) {
+    console.log(`💾 Assinatura salva: ${sub.id}`);
+  }
+  async getSubscription(id) {
+    console.log(`📦 Buscar assinatura: ${id}`);
+    return null;
+  }
+  async updateSubscription(id, _data) {
+    console.log(`🔄 Atualizar assinatura: ${id}`);
+  }
+
+  async storeRedemption(red) {
+    console.log(`💾 Resgate salvo: ${red.id}`);
+  }
+  async updateRedemption(id, _data) {
+    console.log(`🔄 Atualizar resgate: ${id}`);
+  }
+
+  async activatePremiumFeatures(userId, planId) {
+    console.log(
+      `🚀 Ativando recursos premium para usuário ${userId} (plano ${planId})`
+    );
+  }
+
+  async getUserById(id) {
+    console.log(`👤 Buscar usuário: ${id}`);
+    return { id, level: "Bronze" };
+  }
+  async getGoalById(id) {
+    console.log(`🎯 Buscar meta: ${id}`);
+    return null;
+  }
+  async updateGoal(id, _data) {
+    console.log(`🔄 Atualizar meta: ${id}`);
+  }
+  async getCompletedGoalsByUser(userId) {
+    console.log(`🏁 Buscar metas concluídas de: ${userId}`);
+    return [];
+  }
 }
 
 // ✅ Exportação correta (resolve o erro “is not a constructor”)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Paper,
@@ -18,11 +18,13 @@ import {
 import SaveIcon from "@mui/icons-material/Save";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { useThemeContext } from "../contexts/ThemeContext";
 
 const SettingsPage = () => {
+  const { isDarkMode, toggleDarkMode } = useThemeContext();
   const [user, setUser] = useState(null);
   const [settings, setSettings] = useState({
-    theme: "light",
+    theme: isDarkMode ? "dark" : "light",
     language: "pt-BR",
     notifications: true,
     emailNotifications: true,
@@ -37,11 +39,7 @@ const SettingsPage = () => {
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
-  useEffect(() => {
-    loadUserProfile();
-  }, []);
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     try {
       const token = localStorage.getItem("finance_flow_token");
       const response = await axios.get(`${apiUrl}/auth/me`, {
@@ -51,10 +49,28 @@ const SettingsPage = () => {
     } catch (error) {
       console.error("Erro ao carregar perfil:", error);
     }
-  };
+  }, [apiUrl]);
+
+  useEffect(() => {
+    loadUserProfile();
+  }, [loadUserProfile]);
+
+  useEffect(() => {
+    // Sincronizar tema com contexto global
+    const currentTheme = isDarkMode ? "dark" : "light";
+    setSettings((prev) => ({ ...prev, theme: currentTheme }));
+  }, [isDarkMode]);
 
   const handleSettingChange = (key, value) => {
     setSettings({ ...settings, [key]: value });
+
+    // Se alterou o tema, aplicar mudança globalmente
+    if (key === "theme") {
+      const currentTheme = isDarkMode ? "dark" : "light";
+      if (value !== currentTheme) {
+        toggleDarkMode();
+      }
+    }
   };
 
   const handleSaveSettings = async () => {
@@ -78,7 +94,6 @@ const SettingsPage = () => {
       });
     }
   };
-
   const handleChangePassword = async () => {
     if (password.new !== password.confirm) {
       Swal.fire({
