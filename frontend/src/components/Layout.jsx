@@ -22,6 +22,7 @@ import {
   Brightness7 as LightModeIcon,
   EmojiEvents as GoalsIcon,
   SportsEsports as RPGIcon,
+  Lightbulb as InsightsIcon,
 } from "@mui/icons-material";
 import { useThemeContext } from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -68,6 +69,7 @@ const Layout = () => {
     { path: "/", label: "Dashboard", icon: <DashboardIcon /> },
     { path: "/transactions", label: "Transações", icon: <TransactionsIcon /> },
     { path: "/goals", label: "Metas", icon: <GoalsIcon /> },
+    { path: "/insights", label: "Insights", icon: <InsightsIcon /> },
     { path: "/payments", label: "Pagamentos", icon: <PaymentIcon /> },
     { path: "/reports", label: "Relatórios", icon: <ReportsIcon /> },
     { path: "/rpg", label: "RPG", icon: <RPGIcon /> },

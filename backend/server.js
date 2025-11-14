@@ -1,6 +1,13 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
+// Mostrar erros antes de carregar o app
+process.on("uncaughtException", (error) => {
+  console.error("❌ Uncaught Exception:");
+  console.error(error);
+  process.exit(1);
+});
+
 const app = require("./src/index");
 const fs = require("fs");
 const https = require("https");
@@ -26,13 +33,5 @@ if (
   app.listen(PORT, () => {
     console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
     console.log(`📚 Documentação API: http://localhost:${PORT}/api-docs`);
-  });
-}
-
-// Auto-restart handling
-if (process.env.AUTO_RESTART === "true") {
-  process.on("uncaughtException", (error) => {
-    console.error("Uncaught Exception:", error);
-    process.exit(1);
   });
 }

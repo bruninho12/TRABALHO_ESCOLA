@@ -355,6 +355,8 @@ const GamificationPanel = ({ userStats = {} }) => {
         onClose={() => setOpenAchievements(false)}
         maxWidth="sm"
         fullWidth
+        disableEnforceFocus
+        disableRestoreFocus
       >
         <DialogTitle>Conquistas</DialogTitle>
         <DialogContent>
@@ -402,6 +404,8 @@ const GamificationPanel = ({ userStats = {} }) => {
         onClose={() => setOpenRewards(false)}
         maxWidth="sm"
         fullWidth
+        disableEnforceFocus
+        disableRestoreFocus
       >
         <DialogTitle>Recompensas Disponíveis</DialogTitle>
         <DialogContent>

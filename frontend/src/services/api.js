@@ -9,6 +9,17 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Desabilitar cache para requisições GET
+  if (config.method === "get") {
+    config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    config.headers["Pragma"] = "no-cache";
+    config.headers["Expires"] = "0";
+    // Adicionar timestamp para força requisição fresh
+    config.params = config.params || {};
+    config.params.t = new Date().getTime();
+  }
+
   return config;
 });
 

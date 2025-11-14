@@ -15,6 +15,8 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, message }) {
       onClose={onClose}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
+      disableEnforceFocus
+      disableRestoreFocus
     >
       <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
       <DialogContent>
@@ -26,7 +28,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, message }) {
         <Button onClick={onClose} color="inherit">
           Cancelar
         </Button>
-        <Button onClick={onConfirm} variant="contained" color="error" autoFocus>
+        <Button onClick={onConfirm} variant="contained" color="error">
           Confirmar
         </Button>
       </DialogActions>

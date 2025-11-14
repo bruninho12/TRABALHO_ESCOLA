@@ -162,6 +162,8 @@ const PaymentsPage = () => {
         onClose={() => setOpenDialog(false)}
         maxWidth="sm"
         fullWidth
+        disableEnforceFocus
+        disableRestoreFocus
       >
         <DialogTitle>Fazer Pagamento</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>

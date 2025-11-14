@@ -27,20 +27,20 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Lista de origens permitidas
     const allowedOrigins = [
+      "http://localhost:5173", // Vite dev server
+      "http://127.0.0.1:5173", // Vite dev server
       "http://localhost:8080",
       "http://127.0.0.1:5500",
       "http://localhost:5500",
-      "http://127.0.0.1:1500", // Adicionando possíveis origens do frontend
+      "http://127.0.0.1:1500",
       "http://localhost:1500",
+      "http://localhost:3000", // React dev server alternativo
     ];
 
     // Em modo de desenvolvimento, aceitar todas as origens
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development" || !origin) {
       return callback(null, true);
     }
-
-    // Permite requisições sem origin (como mobile apps ou curl)
-    if (!origin) return callback(null, true);
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -50,8 +50,15 @@ const corsOptions = {
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cache-Control",
+    "Pragma",
+    "Expires",
+  ],
   credentials: true,
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));

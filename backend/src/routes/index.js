@@ -8,6 +8,9 @@ const reportRoutes = require("./reportRoutes");
 const goalRoutes = require("./goalRoutes");
 const paymentRoutes = require("./paymentRoutes");
 const rpgRoutes = require("./rpg");
+const recurringTransactionRoutes = require("./recurringTransactionRoutes");
+const exportRoutes = require("./exportRoutes");
+const insightsRoutes = require("./insightsRoutes");
 
 const router = express.Router();
 
@@ -31,5 +34,8 @@ router.use("/reports", reportRoutes);
 router.use("/goals", goalRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/rpg", rpgRoutes);
+router.use("/recurring-transactions", recurringTransactionRoutes);
+router.use("/export", exportRoutes);
+router.use("/insights", insightsRoutes);
 
 module.exports = router;

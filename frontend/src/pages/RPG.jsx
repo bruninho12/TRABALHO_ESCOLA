@@ -503,6 +503,8 @@ function RPGPage() {
       <Dialog
         open={avatarDialogOpen}
         onClose={() => setAvatarDialogOpen(false)}
+        disableEnforceFocus
+        disableRestoreFocus
       >
         <DialogTitle>Criar Avatar</DialogTitle>
         <DialogContent sx={{ minWidth: 400, py: 2 }}>
@@ -560,6 +562,8 @@ function RPGPage() {
       <Dialog
         open={battleDialogOpen}
         onClose={() => setBattleDialogOpen(false)}
+        disableEnforceFocus
+        disableRestoreFocus
       >
         <DialogTitle>🗡️ Batalha</DialogTitle>
         <DialogContent sx={{ minWidth: 400 }}>

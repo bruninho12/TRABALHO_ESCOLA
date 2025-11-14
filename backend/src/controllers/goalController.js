@@ -1,6 +1,7 @@
 const logger = require("../utils/logger");
 const Utils = require("../utils/utils");
 const { Goal } = require("../models");
+const MongoDataManager = require("../utils/mongoDataManager");
 
 // API Controller for Goals
 class GoalController {
@@ -24,14 +25,20 @@ class GoalController {
       let filters = {};
       let userId = null;
 
-      if (req.user && req.user._id) {
+      console.log(
+        "🔍 DEBUG getAll - req.user:",
+        req.user ? { id: req.user.id, email: req.user.email } : "null"
+      );
+
+      if (req.user && req.user.id) {
         // Authenticated user - return their goals
-        userId = req.user._id;
+        userId = req.user.id;
         filters = {
           userId,
           ...(status && { status }),
           ...(category && { category }),
         };
+        console.log("✅ Filtros de goal:", filters);
       } else {
         // Unauthenticated - return only public goals
         filters = {
@@ -41,10 +48,15 @@ class GoalController {
         };
       }
 
+      console.log("🔍 DEBUG - Buscando goals com filtros:", filters);
       const result = await this.dataManager.getGoals(filters, {
         page: parseInt(page),
         limit: parseInt(limit),
         sort: { [sortBy]: sortOrder === "desc" ? -1 : 1 },
+      });
+      console.log("🔍 DEBUG - Resultado:", {
+        total: result.totalCount,
+        goals: result.goals.length,
       });
 
       const summary = userId ? await this.getGoalsSummary(userId) : null;
@@ -72,7 +84,7 @@ class GoalController {
   async getById(req, res) {
     try {
       const { id } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const goal = await this.dataManager.getGoalById(id, userId);
 
@@ -108,11 +120,21 @@ class GoalController {
   // POST /api/goals
   async create(req, res) {
     try {
-      const goalData = { ...req.body, userId: req.user._id };
+      console.log(
+        "📝 DEBUG CREATE - req.user:",
+        req.user ? { id: req.user.id, email: req.user.email } : "null"
+      );
+      const goalData = { ...req.body, userId: req.user.id };
+      console.log(
+        "📝 DEBUG - goalData antes da validação:",
+        JSON.stringify(goalData, null, 2)
+      );
 
       // Validate goal data
       const validation = this.validator.validate(goalData);
+      console.log("📝 DEBUG - Resultado validação:", validation);
       if (!validation.isValid) {
+        console.error("❌ Validação falhou:", validation.errors);
         return res.status(400).json({
           success: false,
           error: "Validation failed",
@@ -121,10 +143,15 @@ class GoalController {
       }
 
       const goal = await this.dataManager.createGoal(goalData);
+      console.log("✅ Goal criado:", {
+        _id: goal._id,
+        title: goal.title,
+        userId: goal.userId,
+      });
 
       // Update user level if goal is completed
       if (goal.status === "completed") {
-        await this.updateUserLevel(req.user._id);
+        await this.updateUserLevel(req.user.id);
       }
 
       return res.status(201).json({
@@ -133,6 +160,7 @@ class GoalController {
         message: "Goal created successfully",
       });
     } catch (error) {
+      console.error("❌ Erro ao criar goal:", error.message);
       return res.status(500).json({
         success: false,
         error: "Failed to create goal",
@@ -145,7 +173,7 @@ class GoalController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
       const updateData = req.body;
 
       // Check if goal exists and belongs to user
@@ -199,7 +227,7 @@ class GoalController {
   async delete(req, res) {
     try {
       const { id } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const deleted = await this.dataManager.deleteGoal(id, userId);
 
@@ -329,7 +357,7 @@ class GoalController {
   // GET /api/goals/summary
   async getSummary(req, res) {
     try {
-      const userId = req.user._id;
+      const userId = req.user.id;
       const summary = await this.getGoalsSummary(userId);
 
       return res.status(200).json({
@@ -348,7 +376,7 @@ class GoalController {
   // GET /api/goals/upcoming-deadlines
   async getUpcomingDeadlines(req, res) {
     try {
-      const userId = req.user._id;
+      const userId = req.user.id;
       const { days = 30 } = req.query;
 
       const deadlines = await this.dataManager.getUpcomingGoalDeadlines(
@@ -477,20 +505,38 @@ class GoalValidator {
       errors.push("Valid deadline date is required");
     }
 
-    if (data.deadline && new Date(data.deadline) <= new Date()) {
-      errors.push("Deadline must be in the future");
+    // Validar que a deadline é no futuro (comparar apenas a data, não a hora)
+    if (data.deadline) {
+      const deadlineDate = new Date(data.deadline);
+      const today = new Date();
+      // Zerar horas para comparação apenas de data
+      today.setHours(0, 0, 0, 0);
+      deadlineDate.setHours(0, 0, 0, 0);
+
+      if (deadlineDate < today) {
+        errors.push("Deadline must be in the future");
+      }
     }
 
     if (
       data.category &&
-      !Goal.getCategories().find((c) => c.id === data.category)
+      ![
+        "emergency",
+        "savings",
+        "investment",
+        "purchase",
+        "travel",
+        "education",
+        "home",
+        "other",
+      ].includes(data.category)
     ) {
       errors.push("Invalid category");
     }
 
     if (
       data.priority &&
-      !Goal.getPriorities().find((p) => p.id === data.priority)
+      !["low", "medium", "high", "critical"].includes(data.priority)
     ) {
       errors.push("Invalid priority");
     }
@@ -547,20 +593,38 @@ class GoalValidator {
       errors.push("Valid deadline date is required");
     }
 
-    if (data.deadline && new Date(data.deadline) <= new Date()) {
-      errors.push("Deadline must be in the future");
+    // Validar que a deadline é no futuro (comparar apenas a data, não a hora)
+    if (data.deadline) {
+      const deadlineDate = new Date(data.deadline);
+      const today = new Date();
+      // Zerar horas para comparação apenas de data
+      today.setHours(0, 0, 0, 0);
+      deadlineDate.setHours(0, 0, 0, 0);
+
+      if (deadlineDate < today) {
+        errors.push("Deadline must be in the future");
+      }
     }
 
     if (
       data.category &&
-      !Goal.getCategories().find((c) => c.id === data.category)
+      ![
+        "emergency",
+        "savings",
+        "investment",
+        "purchase",
+        "travel",
+        "education",
+        "home",
+        "other",
+      ].includes(data.category)
     ) {
       errors.push("Invalid category");
     }
 
     if (
       data.priority &&
-      !Goal.getPriorities().find((p) => p.id === data.priority)
+      !["low", "medium", "high", "critical"].includes(data.priority)
     ) {
       errors.push("Invalid priority");
     }
@@ -598,40 +662,24 @@ class GoalValidator {
 
 // Export
 if (typeof module !== "undefined" && module.exports) {
-  const getAll = (req, res) => {
-    res.json({
-      success: true,
-      data: [],
-      pagination: { current: 1, pages: 1, total: 0 },
-    });
-  };
+  // Criar instância do dataManager
+  const dataManager = new MongoDataManager();
 
-  const getById = (req, res) => {
-    res.json({ success: true, data: null });
-  };
+  // Criar instância do controller
+  const goalControllerInstance = new GoalController(dataManager);
 
-  const create = (req, res) => {
-    res.status(201).json({
-      success: true,
-      message: "Meta criada com sucesso",
-      data: { id: "goal_" + Date.now() },
-    });
-  };
-
-  const update = (req, res) => {
-    res.json({ success: true, message: "Meta atualizada com sucesso" });
-  };
-
-  const _delete = (req, res) => {
-    res.json({ success: true, message: "Meta deletada com sucesso" });
-  };
-
+  // Exportar métodos do controller como funções para compatibilidade com as rotas
   module.exports = {
+    getAll: goalControllerInstance.getAll.bind(goalControllerInstance),
+    getById: goalControllerInstance.getById.bind(goalControllerInstance),
+    create: goalControllerInstance.create.bind(goalControllerInstance),
+    update: goalControllerInstance.update.bind(goalControllerInstance),
+    delete: goalControllerInstance.delete.bind(goalControllerInstance),
+    addValue: goalControllerInstance.addValue.bind(goalControllerInstance),
+    getSummary: goalControllerInstance.getSummary.bind(goalControllerInstance),
+    getUpcomingDeadlines: goalControllerInstance.getUpcomingDeadlines.bind(
+      goalControllerInstance
+    ),
     GoalController,
-    getAll,
-    getById,
-    create,
-    update,
-    delete: _delete,
   };
 }

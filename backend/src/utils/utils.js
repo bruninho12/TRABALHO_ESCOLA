@@ -59,6 +59,19 @@ const getPaginationInfo = (page = 1, limit = 10, total = 0) => {
   };
 };
 
+// Validar data
+const isValidDate = (date) => {
+  if (date instanceof Date) {
+    return !isNaN(date.getTime());
+  }
+  // Se for string, tentar converter
+  if (typeof date === "string") {
+    const parsed = new Date(date);
+    return !isNaN(parsed.getTime());
+  }
+  return false;
+};
+
 module.exports = {
   validateEmail,
   validatePassword,
@@ -66,4 +79,5 @@ module.exports = {
   generateToken,
   formatCurrency,
   getPaginationInfo,
+  isValidDate,
 };

@@ -64,7 +64,14 @@ export function TransactionForm({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      disableEnforceFocus
+      disableRestoreFocus
+    >
       <form onSubmit={handleSubmit}>
         <DialogTitle>
           {initialData ? "Editar Transação" : "Nova Transação"}

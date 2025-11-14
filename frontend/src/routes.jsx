@@ -9,11 +9,17 @@ import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import RPG from "./pages/RPG";
+import Insights from "./pages/Insights";
+import Landing from "./pages/Landing";
 import { PrivateRoute } from "./components/PrivateRoute";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/home",
+    element: <Landing />,
+  },
+  {
+    path: "/dashboard",
     element: (
       <PrivateRoute>
         <Layout />
@@ -21,31 +27,35 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/",
+        index: true,
         element: <Dashboard />,
       },
       {
-        path: "/transactions",
+        path: "transactions",
         element: <Transactions />,
       },
       {
-        path: "/goals",
+        path: "goals",
         element: <Goals />,
       },
       {
-        path: "/payments",
+        path: "payments",
         element: <Payments />,
       },
       {
-        path: "/reports",
+        path: "reports",
         element: <Reports />,
       },
       {
-        path: "/rpg",
+        path: "insights",
+        element: <Insights />,
+      },
+      {
+        path: "rpg",
         element: <RPG />,
       },
       {
-        path: "/settings",
+        path: "settings",
         element: <Settings />,
       },
     ],
@@ -60,6 +70,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Navigate to="/" replace />,
+    element: <Navigate to="/home" replace />,
   },
 ]);
