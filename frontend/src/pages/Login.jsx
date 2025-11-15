@@ -35,7 +35,7 @@ const Login = () => {
       );
 
       if (success) {
-        navigate("/");
+        navigate("/dashboard");
       } else {
         setError("Credenciais inválidas. Tente novamente.");
       }
