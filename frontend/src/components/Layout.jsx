@@ -62,17 +62,21 @@ const Layout = () => {
 
   const handleSettings = () => {
     handleClose();
-    navigate("/settings");
+    navigate("/dashboard/settings");
   };
 
   const menuItems = [
-    { path: "/", label: "Dashboard", icon: <DashboardIcon /> },
-    { path: "/transactions", label: "Transações", icon: <TransactionsIcon /> },
-    { path: "/goals", label: "Metas", icon: <GoalsIcon /> },
-    { path: "/insights", label: "Insights", icon: <InsightsIcon /> },
-    { path: "/payments", label: "Pagamentos", icon: <PaymentIcon /> },
-    { path: "/reports", label: "Relatórios", icon: <ReportsIcon /> },
-    { path: "/rpg", label: "RPG", icon: <RPGIcon /> },
+    { path: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+    {
+      path: "/dashboard/transactions",
+      label: "Transações",
+      icon: <TransactionsIcon />,
+    },
+    { path: "/dashboard/goals", label: "Metas", icon: <GoalsIcon /> },
+    { path: "/dashboard/insights", label: "Insights", icon: <InsightsIcon /> },
+    { path: "/dashboard/payments", label: "Pagamentos", icon: <PaymentIcon /> },
+    { path: "/dashboard/reports", label: "Relatórios", icon: <ReportsIcon /> },
+    { path: "/dashboard/rpg", label: "RPG", icon: <RPGIcon /> },
   ];
 
   return (
