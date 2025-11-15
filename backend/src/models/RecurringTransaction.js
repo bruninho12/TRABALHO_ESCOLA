@@ -11,7 +11,6 @@ const recurringTransactionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
 
     // Dados da transação base
@@ -97,7 +96,6 @@ const recurringTransactionSchema = new mongoose.Schema(
     nextExecutionDate: {
       type: Date,
       required: true,
-      index: true,
     },
 
     // Última execução
@@ -110,7 +108,6 @@ const recurringTransactionSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "paused", "completed", "cancelled"],
       default: "active",
-      index: true,
     },
 
     // Contador de execuções

@@ -4,8 +4,10 @@ import { router } from "./routes";
 
 // Contextos principais
 import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider } from "@mui/material/styles";
-import { theme } from "./styles/theme";
+import {
+  ThemeProvider as CustomThemeProvider,
+  useThemeContext,
+} from "./contexts/ThemeContext";
 
 // React Query
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -34,25 +36,22 @@ function AppContent() {
   const { isDarkMode } = useThemeContext();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-        <CssBaseline />
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+      <CssBaseline />
+      <RouterProvider router={router} />
+    </ThemeProvider>
   );
 }
 
-// Provider global de tema + AppContent
+// App principal
 export default function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppContent />
-        <FloatingFeedbackButton />
+        <CustomThemeProvider>
+          <AppContent />
+        </CustomThemeProvider>
       </AuthProvider>
-    </ThemeProvider>
+    </QueryClientProvider>
   );
 }

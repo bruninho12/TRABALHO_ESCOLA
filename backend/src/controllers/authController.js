@@ -10,13 +10,24 @@ const Utils = require("../utils/utils");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const logger = require("../utils/logger");
+const TokenManager = require("../utils/tokenManager");
+const { authSchemas } = require("../utils/validationSchemas");
 
 // Classe principal de controle de autenticação
 class AuthController {
   constructor(dataManager) {
     this.dataManager = dataManager;
     this.tokenManager = new TokenManager();
-    this.validator = new AuthValidator();
+  }
+
+  // Método auxiliar para validação
+  validateRequest(schema, data) {
+    const { error, value } = schema.validate(data);
+    return {
+      isValid: !error,
+      errors: error?.details?.map((detail) => detail.message) || [],
+      data: value,
+    };
   }
 
   // ===============================
@@ -27,11 +38,10 @@ class AuthController {
       const { name, email, password, confirmPassword } = req.body;
 
       // Validação dos campos de cadastro
-      const validation = this.validator.validateRegistration({
+      const validation = this.validateRequest(authSchemas.register, {
         name,
         email,
         password,
-        confirmPassword,
       });
 
       if (!validation.isValid) {
@@ -65,7 +75,7 @@ class AuthController {
       const user = await this.dataManager.createUser(userData);
 
       // Gera tokens de autenticação
-      const tokens = await this.tokenManager.generateTokens({
+      const tokens = await this.tokenManager.generateTokenPair({
         id: user._id,
         email: user.email,
         name: user.name,
@@ -99,7 +109,11 @@ class AuthController {
       const { email, password, rememberMe } = req.body;
 
       // Valida dados de login
-      const validation = this.validator.validateLogin({ email, password });
+      const validation = this.validateRequest(authSchemas.login, {
+        email,
+        password,
+        rememberMe,
+      });
       if (!validation.isValid) {
         return res.status(400).json({
           success: false,
@@ -128,7 +142,7 @@ class AuthController {
       }
 
       // Gera novos tokens
-      const tokens = await this.tokenManager.generateTokens(
+      const tokens = await this.tokenManager.generateTokenPair(
         {
           id: user._id,
           email: user.email,
@@ -206,7 +220,7 @@ class AuthController {
           .json({ success: false, message: "Token de atualização inválido." });
       }
 
-      const newTokens = await this.tokenManager.generateTokens(tokenData);
+      const newTokens = await this.tokenManager.generateTokenPair(tokenData);
       await this.tokenManager.blacklistToken(refreshToken);
 
       return res.status(200).json({
@@ -275,10 +289,9 @@ class AuthController {
     try {
       const { token, password, confirmPassword } = req.body;
 
-      const validation = this.validator.validatePasswordReset({
+      const validation = this.validateRequest(authSchemas.resetPassword, {
         token,
-        password,
-        confirmPassword,
+        newPassword: password,
       });
 
       if (!validation.isValid) {
@@ -328,7 +341,7 @@ class AuthController {
       const { currentPassword, newPassword, confirmPassword } = req.body;
       const userId = req.user._id;
 
-      const validation = this.validator.validatePasswordChange({
+      const validation = this.validateRequest(authSchemas.changePassword, {
         currentPassword,
         newPassword,
         confirmPassword,
@@ -540,74 +553,6 @@ class AuthValidator {
     if (data.newPassword !== data.confirmPassword)
       errors.push("As senhas não coincidem.");
     return { isValid: errors.length === 0, errors };
-  }
-}
-
-// ===========================================
-// 🔑 Gerenciador de Tokens (JWT Real)
-// ===========================================
-class TokenManager {
-  constructor() {
-    this.accessTokenSecret =
-      process.env.JWT_SECRET || "your-secret-key-change-in-production";
-    this.refreshTokenSecret =
-      process.env.JWT_REFRESH_SECRET ||
-      "your-refresh-secret-key-change-in-production";
-    this.blacklist = new Set(); // Em produção, usar Redis
-  }
-
-  async generateTokens(payload, options = {}) {
-    const accessTokenExpiry = options.longLived ? "7d" : "1h";
-    const refreshTokenExpiry = "30d";
-
-    const accessToken = jwt.sign(payload, this.accessTokenSecret, {
-      expiresIn: accessTokenExpiry,
-      algorithm: "HS256",
-    });
-
-    const refreshToken = jwt.sign(payload, this.refreshTokenSecret, {
-      expiresIn: refreshTokenExpiry,
-      algorithm: "HS256",
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-      expiresIn: accessTokenExpiry,
-    };
-  }
-
-  async verifyToken(token) {
-    try {
-      if (this.blacklist.has(token)) {
-        return null;
-      }
-      return jwt.verify(token, this.accessTokenSecret);
-    } catch (error) {
-      logger.warn("Token verification failed:", error.message);
-      return null;
-    }
-  }
-
-  async verifyRefreshToken(token) {
-    try {
-      if (this.blacklist.has(token)) {
-        return null;
-      }
-      return jwt.verify(token, this.refreshTokenSecret);
-    } catch (error) {
-      logger.warn("Refresh token verification failed:", error.message);
-      return null;
-    }
-  }
-
-  generateResetToken() {
-    return Utils.generateRandomString(32);
-  }
-
-  async blacklistToken(token) {
-    this.blacklist.add(token);
-    logger.info(`Token blacklisted: ${token.slice(0, 20)}...`);
   }
 }
 
@@ -885,6 +830,7 @@ const authenticate = (req, res, next) => {
 
 module.exports = {
   AuthController,
+  authenticate,
   login,
   register,
   logout,
@@ -893,5 +839,4 @@ module.exports = {
   resetPassword,
   verifyAccount,
   getProfile,
-  authenticate,
 };

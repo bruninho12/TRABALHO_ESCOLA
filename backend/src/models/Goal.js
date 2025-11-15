@@ -6,13 +6,11 @@ const goalSchema = new mongoose.Schema(
       type: String,
       default: () => new mongoose.Types.ObjectId().toString(),
       unique: true,
-      index: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     title: {
       type: String,
@@ -62,7 +60,6 @@ const goalSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "paused", "completed", "cancelled"],
       default: "active",
-      index: true,
     },
     deadline: {
       type: Date,

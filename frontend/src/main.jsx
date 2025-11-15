@@ -32,6 +32,9 @@ function initializeApp() {
   // Adicionar meta tags de segurança se não existirem
   addSecurityMetaTags();
 
+  // Registrar Service Worker para PWA
+  registerServiceWorker();
+
   // Inicializar aplicação React
   createRoot(rootElement).render(
     <StrictMode>
@@ -64,13 +67,8 @@ function addSecurityMetaTags() {
     head.appendChild(cspMeta);
   }
 
-  // X-Frame-Options
-  if (!document.querySelector('meta[http-equiv="X-Frame-Options"]')) {
-    const frameMeta = document.createElement("meta");
-    frameMeta.setAttribute("http-equiv", "X-Frame-Options");
-    frameMeta.setAttribute("content", "DENY");
-    head.appendChild(frameMeta);
-  }
+  // X-Frame-Options (deve ser definido pelo servidor, não via meta tag)
+  // Removido pois só funciona via HTTP header
 
   // X-Content-Type-Options
   if (!document.querySelector('meta[http-equiv="X-Content-Type-Options"]')) {
@@ -78,5 +76,54 @@ function addSecurityMetaTags() {
     contentTypeMeta.setAttribute("http-equiv", "X-Content-Type-Options");
     contentTypeMeta.setAttribute("content", "nosniff");
     head.appendChild(contentTypeMeta);
+  }
+}
+
+/**
+ * Registra o Service Worker para funcionalidades PWA
+ */
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator && import.meta.env.PROD) {
+    window.addEventListener("load", async () => {
+      try {
+        const registration = await navigator.serviceWorker.register("/sw.js");
+        console.log("✅ Service Worker registrado:", registration.scope);
+
+        // Atualizar Service Worker quando disponível
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+
+          newWorker.addEventListener("statechange", () => {
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              // Nova versão disponível
+              if (confirm("Nova versão disponível! Deseja atualizar?")) {
+                newWorker.postMessage({ type: "SKIP_WAITING" });
+                window.location.reload();
+              }
+            }
+          });
+        });
+
+        // Solicitar permissão para notificações
+        if ("Notification" in window && Notification.permission === "default") {
+          // Não solicitar automaticamente, deixar para quando o usuário acessar configurações
+          console.log("💡 Notificações disponíveis. Configure em Ajustes.");
+        }
+      } catch (error) {
+        console.error("❌ Erro ao registrar Service Worker:", error);
+      }
+    });
+
+    // Detectar quando o Service Worker é controlado
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
   }
 }

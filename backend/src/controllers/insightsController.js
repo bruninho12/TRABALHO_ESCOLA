@@ -3,8 +3,8 @@
  * Fornece análises e sugestões personalizadas para o usuário
  */
 
-const insightsEngine = require("../utils/insightsEngine");
-const logger = require("../utils/logger");
+const insightsEngine = require("../services/insightsEngine");
+const { logger } = require("../utils/logger");
 
 class InsightsController {
   /**
@@ -13,7 +13,17 @@ class InsightsController {
    */
   async getInsights(req, res) {
     try {
+      console.log("🔍 [DEBUG] getInsights - req.user:", req.user);
+
+      if (!req.user || !req.user._id) {
+        return res.status(401).json({
+          success: false,
+          message: "Usuário não autenticado",
+        });
+      }
+
       const userId = req.user._id;
+      console.log("🔍 [DEBUG] userId:", userId);
 
       const insights = await insightsEngine.generateInsights(userId);
 
@@ -23,6 +33,7 @@ class InsightsController {
         data: insights,
       });
     } catch (error) {
+      console.error("❌ [ERROR] getInsights:", error);
       logger.error(`Error getting insights: ${error.message}`);
       res.status(500).json({
         success: false,

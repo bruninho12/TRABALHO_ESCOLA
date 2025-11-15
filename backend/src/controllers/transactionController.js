@@ -557,19 +557,56 @@ const getTransaction = async (req, res) => {
 
 const createTransaction = async (req, res) => {
   try {
+    console.log("🔍 [DEBUG] createTransaction - req.body:", req.body);
+    console.log("🔍 [DEBUG] createTransaction - req.user:", req.user);
+
     const userId = req.user.id;
     const { description, amount, date, category, type } = req.body;
 
-    const transaction = new Transaction({
+    // Validações básicas
+    if (!description || !amount || !date || !category || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "Campos obrigatórios faltando",
+        details: {
+          description: !description ? "Descrição é obrigatória" : null,
+          amount: !amount ? "Valor é obrigatório" : null,
+          date: !date ? "Data é obrigatória" : null,
+          category: !category ? "Categoria é obrigatória" : null,
+          type: !type ? "Tipo é obrigatório" : null,
+        },
+      });
+    }
+
+    // Validar tipo
+    if (!["income", "expense"].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Tipo de transação inválido. Use 'income' ou 'expense'",
+      });
+    }
+
+    console.log("🔍 [DEBUG] Criando transação com dados:", {
       description,
       amount,
       date,
-      categoryId: category,
+      category: category,
+      type,
+      userId,
+    });
+
+    const transaction = new Transaction({
+      description,
+      amount: parseFloat(amount),
+      date: new Date(date),
+      category: category,
       type,
       userId,
     });
 
     await transaction.save();
+
+    console.log("✅ [DEBUG] Transação criada com sucesso:", transaction._id);
 
     return res.status(201).json({
       success: true,
@@ -577,6 +614,7 @@ const createTransaction = async (req, res) => {
       data: transaction,
     });
   } catch (error) {
+    console.error("❌ [ERROR] createTransaction:", error);
     return res.status(500).json({
       success: false,
       message: "Erro ao criar transação",

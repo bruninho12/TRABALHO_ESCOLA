@@ -3,11 +3,11 @@
  * Gerencia exportação de relatórios e dados do usuário
  */
 
-const { Transaction } = require("../models");
-const { Goal } = require("../models");
+const Transaction = require("../models/Transaction");
+const Goal = require("../models/Goal");
 const RecurringTransaction = require("../models/RecurringTransaction");
-const { dataExporter } = require("../utils/dataExporter");
-const logger = require("../utils/logger");
+const exportService = require("../services/exportService");
+const { logger } = require("../utils/logger");
 
 class ExportController {
   /**
@@ -32,13 +32,13 @@ class ExportController {
         .populate("categoryId", "name")
         .sort({ date: -1 });
 
-      const filename = `transactions_${userId}_${Date.now()}.csv`;
-      const filepath = await dataExporter.exportTransactionsToCSV(
-        transactions,
-        filename
-      );
+      // Gerar relatório Excel (que será usado para ambos)
+      const result = await exportService.generateExcelReport(userId, {
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+      });
 
-      res.download(filepath, filename, (err) => {
+      res.download(result.filepath, result.filename, (err) => {
         if (err) {
           logger.error("Error downloading CSV:", err);
         }
@@ -75,13 +75,12 @@ class ExportController {
         .populate("categoryId", "name")
         .sort({ date: -1 });
 
-      const filename = `transactions_${userId}_${Date.now()}.xlsx`;
-      const filepath = await dataExporter.exportTransactionsToExcel(
-        transactions,
-        filename
-      );
+      const result = await exportService.generateExcelReport(userId, {
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+      });
 
-      res.download(filepath, filename, (err) => {
+      res.download(result.filepath, result.filename, (err) => {
         if (err) {
           logger.error("Error downloading Excel:", err);
         }
@@ -177,22 +176,16 @@ class ExportController {
         .sort((a, b) => b.amount - a.amount)
         .slice(0, 10);
 
-      const reportData = {
+      // Gerar PDF usando o novo serviço
+      const result = await exportService.generatePDFReport(userId, {
         startDate,
         endDate,
-        totalIncome,
-        totalExpenses,
-        expensesByCategory,
-        topTransactions,
-      };
+        includeCharts: true,
+        includeGoals: true,
+        includeBudgets: true,
+      });
 
-      const filename = `report_${month}-${year}_${userId}_${Date.now()}.pdf`;
-      const filepath = await dataExporter.generateMonthlyReportPDF(
-        reportData,
-        filename
-      );
-
-      res.download(filepath, filename, (err) => {
+      res.download(result.filepath, result.filename, (err) => {
         if (err) {
           logger.error("Error downloading PDF:", err);
         }
@@ -217,10 +210,14 @@ class ExportController {
 
       const goals = await Goal.find({ userId }).populate("categoryId", "name");
 
-      const filename = `goals_${userId}_${Date.now()}.pdf`;
-      const filepath = await dataExporter.exportGoalsToPDF(goals, filename);
+      // Usar o serviço de exportação genérico
+      const result = await exportService.generatePDFReport(userId, {
+        includeGoals: true,
+        includeBudgets: false,
+        includeCharts: false,
+      });
 
-      res.download(filepath, filename, (err) => {
+      res.download(result.filepath, result.filename, (err) => {
         if (err) {
           logger.error("Error downloading goals PDF:", err);
         }
@@ -262,14 +259,18 @@ class ExportController {
           totalTransactions: transactions.length,
           totalGoals: goals.length,
           totalRecurring: recurringTransactions.length,
+          exportDate: new Date(),
         },
       };
 
       const filename = `backup_${userId}_${Date.now()}.json`;
-      const filepath = await dataExporter.exportUserDataBackup(
-        userData,
-        filename
-      );
+
+      // Salvar como JSON
+      const fs = require("fs");
+      const path = require("path");
+      const filepath = path.join(__dirname, "../../exports", filename);
+
+      fs.writeFileSync(filepath, JSON.stringify(userData, null, 2));
 
       res.download(filepath, filename, (err) => {
         if (err) {

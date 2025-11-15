@@ -1,0 +1,183 @@
+{
+  "name": "DespFinancee - Controle Financeiro Inteligente",
+  "short_name": "DespFinancee",
+  "description": "Gerenciador de finanças pessoais com gamificação, insights inteligentes e controle completo de despesas",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#6366F1",
+  "categories": ["finance", "productivity", "lifestyle"],
+  "lang": "pt-BR",
+  "dir": "ltr",
+
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard com visão geral das finanças"
+    },
+    {
+      "src": "/screenshots/transactions.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Gerenciamento de transações"
+    },
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "App mobile"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Nova Transação",
+      "short_name": "Transação",
+      "description": "Adicionar nova receita ou despesa",
+      "url": "/transactions?action=new",
+      "icons": [
+        {
+          "src": "/icons/shortcut-transaction.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Início",
+      "description": "Visualizar resumo financeiro",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icons/shortcut-dashboard.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Metas",
+      "short_name": "Metas",
+      "description": "Ver progresso das metas",
+      "url": "/goals",
+      "icons": [
+        {
+          "src": "/icons/shortcut-goals.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Insights",
+      "short_name": "Insights",
+      "description": "Ver análises inteligentes",
+      "url": "/insights",
+      "icons": [
+        {
+          "src": "/icons/shortcut-insights.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "image",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  },
+
+  "protocol_handlers": [
+    {
+      "protocol": "web+despfinancee",
+      "url": "/handle?action=%s"
+    }
+  ],
+
+  "related_applications": [],
+  "prefer_related_applications": false,
+
+  "iarc_rating_id": "",
+
+  "features": [
+    "push-notifications",
+    "background-sync",
+    "offline-support",
+    "export-pdf",
+    "export-excel",
+    "insights-ai",
+    "gamification"
+  ]
+}

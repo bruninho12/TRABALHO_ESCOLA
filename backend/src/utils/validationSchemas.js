@@ -26,6 +26,12 @@ const authSchemas = {
   refresh: Joi.object({
     refreshToken: Joi.string().required(),
   }),
+
+  changePassword: Joi.object({
+    currentPassword: Joi.string().required(),
+    newPassword: Joi.string().min(6).max(30).required(),
+    confirmPassword: Joi.string().valid(Joi.ref("newPassword")).required(),
+  }),
 };
 
 // Esquemas de validação para transações

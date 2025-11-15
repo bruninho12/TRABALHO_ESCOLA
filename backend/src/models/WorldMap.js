@@ -128,7 +128,7 @@ const WorldMapSchema = new mongoose.Schema(
 );
 
 // Índices
-WorldMapSchema.index({ cityNumber: 1 });
+
 WorldMapSchema.index({ difficulty: 1 });
 WorldMapSchema.index({ levelRequirement: 1 });
 

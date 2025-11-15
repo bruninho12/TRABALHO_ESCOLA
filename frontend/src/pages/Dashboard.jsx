@@ -35,7 +35,9 @@ import { useNavigate } from "react-router-dom";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { formatCurrency } from "../utils/format";
 import GlassCard from "../components/common/GlassCard";
+import InsightsPanel from "../components/InsightsPanel";
 import { colors, gradients } from "../styles/designSystem";
+import { useAuth } from "../contexts/AuthContext";
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -52,6 +54,7 @@ ChartJS.register(
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     summary,
     monthlyData,
@@ -65,7 +68,7 @@ const Dashboard = () => {
   if (isLoading) {
     return (
       <Box sx={{ width: "100%", mt: 4 }}>
-        <LinearProgress />
+        <LinearProgress variant="indeterminate" />
       </Box>
     );
   }
@@ -138,7 +141,7 @@ const Dashboard = () => {
             variant="contained"
             startIcon={<InsightsIcon />}
             endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate("/insights")}
+            onClick={() => navigate("./insights")}
             sx={{
               background: gradients.purpleBlue,
               color: "white",
@@ -158,6 +161,9 @@ const Dashboard = () => {
           </Button>
         </motion.div>
       </Box>
+
+      {/* Painel de Insights Inteligentes */}
+      {user && <InsightsPanel userId={user._id || user.id} />}
 
       <Grid container spacing={3}>
         {/* Cartões de resumo com GlassCard Premium */}

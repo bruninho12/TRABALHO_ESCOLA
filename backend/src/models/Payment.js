@@ -6,13 +6,11 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: () => new mongoose.Types.ObjectId().toString(),
       unique: true,
-      index: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     type: {
       type: String,
@@ -23,7 +21,6 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "completed", "failed", "cancelled", "refunded"],
       default: "pending",
-      index: true,
     },
     amount: {
       type: Number,
@@ -105,7 +102,7 @@ const paymentSchema = new mongoose.Schema(
 // Índices para performance
 paymentSchema.index({ userId: 1, createdAt: -1 });
 paymentSchema.index({ userId: 1, status: 1 });
-paymentSchema.index({ externalId: 1 });
+
 paymentSchema.index({ status: 1, updatedAt: -1 });
 
 // Método para marcar como bem-sucedido

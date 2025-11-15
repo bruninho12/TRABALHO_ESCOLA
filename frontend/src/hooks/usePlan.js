@@ -12,7 +12,9 @@ export function usePlan() {
   const setPlan = useCallback((next) => {
     try {
       localStorage.setItem("user_plan", next);
-    } catch {}
+    } catch {
+      // Ignora erro de localStorage em ambientes restritos
+    }
     setPlanState(next);
   }, []);
 

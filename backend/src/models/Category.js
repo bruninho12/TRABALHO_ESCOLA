@@ -27,14 +27,14 @@ const categorySchema = new mongoose.Schema(
     },
   },
   {
-    collection: "cupons",
+    collection: "categories", // Corrigir nome da collection
     timestamps: true,
   }
 );
 
 // Índices para melhorar a performance das consultas
 categorySchema.index({ user: 1, type: 1 });
-categorySchema.index({ name: 1, user: 1 }, { unique: true });
+categorySchema.index({ name: 1, user: 1, type: 1 }, { unique: true }); // Permitir mesmo nome para tipos diferentes
 
 module.exports =
   mongoose.models.Category || mongoose.model("Category", categorySchema);

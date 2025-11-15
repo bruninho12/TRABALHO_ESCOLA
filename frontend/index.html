@@ -5,6 +5,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+                   font-src 'self' https://fonts.gstatic.com;
+                   connect-src 'self' ws://localhost:* http://localhost:* https://*.vercel.app https://*.netlify.app https://*.railway.app;
+                   img-src 'self' data: https:;
+                   script-src 'self' 'unsafe-eval' 'unsafe-inline';">
     <title>DespFinancee — Controle financeiro com IA e gamificação</title>
     <meta name="description"
       content="DespFinancee: gestão financeira inteligente e divertida. IA, gamificação, score financeiro, exportação total e segurança — 100% gratuito e open source." />

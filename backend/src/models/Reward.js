@@ -6,13 +6,11 @@ const rewardSchema = new mongoose.Schema(
       type: String,
       default: () => new mongoose.Types.ObjectId().toString(),
       unique: true,
-      index: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     type: {
       type: String,
@@ -51,7 +49,6 @@ const rewardSchema = new mongoose.Schema(
     unlockedAt: {
       type: Date,
       default: Date.now,
-      index: true,
     },
     progress: {
       current: {

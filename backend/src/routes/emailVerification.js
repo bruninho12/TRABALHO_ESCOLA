@@ -3,14 +3,14 @@
  * Rotas para gerenciamento de verificação de email
  */
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const EmailVerificationController = require('../api/emailVerificationController');
+const EmailVerificationController = require("../controllers/emailVerificationController");
 const {
   emailVerificationValidations,
-  handleValidationErrors
-} = require('../middleware/emailVerificationValidation');
+  handleValidationErrors,
+} = require("../middleware/emailVerificationValidation");
 
 /**
  * @route   POST /api/auth/send-verification-email
@@ -18,7 +18,7 @@ const {
  * @access  Private
  */
 router.post(
-  '/send-verification-email',
+  "/send-verification-email",
   emailVerificationValidations.sendVerificationEmail,
   handleValidationErrors,
   EmailVerificationController.sendVerificationEmail
@@ -30,7 +30,7 @@ router.post(
  * @access  Public
  */
 router.post(
-  '/verify-email-code',
+  "/verify-email-code",
   emailVerificationValidations.verifyEmailCode,
   handleValidationErrors,
   EmailVerificationController.verifyEmailCode
@@ -42,7 +42,7 @@ router.post(
  * @access  Public
  */
 router.post(
-  '/verify-email-token',
+  "/verify-email-token",
   emailVerificationValidations.verifyEmailToken,
   handleValidationErrors,
   EmailVerificationController.verifyEmailToken
@@ -54,7 +54,7 @@ router.post(
  * @access  Public
  */
 router.post(
-  '/resend-verification-email',
+  "/resend-verification-email",
   emailVerificationValidations.resendVerificationEmail,
   handleValidationErrors,
   EmailVerificationController.resendVerificationEmail
@@ -66,7 +66,7 @@ router.post(
  * @access  Private
  */
 router.get(
-  '/verification-status',
+  "/verification-status",
   EmailVerificationController.getVerificationStatus
 );
 
@@ -76,7 +76,7 @@ router.get(
  * @access  Private (Admin)
  */
 router.post(
-  '/cleanup-verifications',
+  "/cleanup-verifications",
   EmailVerificationController.cleanupExpiredVerifications
 );
 

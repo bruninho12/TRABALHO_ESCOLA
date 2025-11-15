@@ -8,9 +8,22 @@ process.on("uncaughtException", (error) => {
   process.exit(1);
 });
 
+// Tratar promessas rejeitadas não capturadas
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ Unhandled Promise Rejection at:", promise);
+  console.error("Reason:", reason);
+  // Em desenvolvimento, não encerrar o processo
+  if (process.env.NODE_ENV === "production") {
+    process.exit(1);
+  }
+});
+
 const app = require("./src/index");
 const fs = require("fs");
 const https = require("https");
+
+// Importar novos serviços
+const recurringProcessor = require("./src/services/recurringTransactionProcessor");
 
 const PORT = process.env.PORT || 3001;
 
@@ -33,5 +46,13 @@ if (
   app.listen(PORT, () => {
     console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
     console.log(`📚 Documentação API: http://localhost:${PORT}/api-docs`);
+
+    // Iniciar serviços em background
+    try {
+      recurringProcessor.start();
+      console.log(`🔄 Processador de transações recorrentes iniciado`);
+    } catch (error) {
+      console.error(`❌ Erro ao iniciar processador de recorrências:`, error);
+    }
   });
 }

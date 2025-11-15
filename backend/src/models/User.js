@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: () => new mongoose.Types.ObjectId().toString(),
       unique: true,
-      index: true,
     },
     email: {
       type: String,
@@ -15,7 +14,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
       match: [
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         "Por favor, forneça um email válido",
@@ -199,7 +197,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // Índices para performance
-userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ level: -1, score: -1 }); // Para leaderboards

@@ -5,12 +5,21 @@ const { AppError } = require("../middleware/errorHandler");
 exports.getCategories = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    console.log("🔍 [DEBUG] getCategories - userId:", userId);
 
-    // Buscar categorias do usuário (usar 'user' conforme o schema)
-    const categories = await Category.find({ user: userId }).sort({
+    // Buscar categorias do usuário
+    let categories = await Category.find({ user: userId }).sort({
       type: 1,
       name: 1,
     });
+
+    console.log("📋 [DEBUG] Categorias encontradas:", categories.length);
+
+    // Se não há categorias, criar categorias padrão
+    if (categories.length === 0) {
+      console.log("🌱 Criando categorias padrão para o usuário...");
+      categories = await createDefaultCategories(userId);
+    }
 
     res.status(200).json({
       status: "success",
@@ -19,6 +28,7 @@ exports.getCategories = async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error("❌ [ERROR] getCategories:", error);
     next(error);
   }
 };
@@ -181,6 +191,111 @@ exports.deleteCategory = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// Função para criar categorias padrão para um usuário
+const createDefaultCategories = async (userId) => {
+  console.log("🌱 Criando categorias padrão para usuário:", userId);
+
+  const defaultCategories = [
+    // Categorias de receita
+    { name: "Salário", type: "income", color: "#10B981", isDefault: true },
+    {
+      name: "Investimentos",
+      type: "income",
+      color: "#3B82F6",
+      isDefault: true,
+    },
+    { name: "Freelance", type: "income", color: "#6366F1", isDefault: true },
+    { name: "Presentes", type: "income", color: "#EC4899", isDefault: true },
+    {
+      name: "Outros Receitas",
+      type: "income",
+      color: "#8B5CF6",
+      isDefault: true,
+    },
+
+    // Categorias de despesa
+    { name: "Alimentação", type: "expense", color: "#EF4444", isDefault: true },
+    { name: "Moradia", type: "expense", color: "#F59E0B", isDefault: true },
+    { name: "Transporte", type: "expense", color: "#10B981", isDefault: true },
+    {
+      name: "Entretenimento",
+      type: "expense",
+      color: "#3B82F6",
+      isDefault: true,
+    },
+    { name: "Saúde", type: "expense", color: "#EC4899", isDefault: true },
+    { name: "Educação", type: "expense", color: "#8B5CF6", isDefault: true },
+    { name: "Contas", type: "expense", color: "#F97316", isDefault: true },
+    { name: "Compras", type: "expense", color: "#06B6D4", isDefault: true },
+    {
+      name: "Outros Gastos",
+      type: "expense",
+      color: "#6B7280",
+      isDefault: true,
+    },
+  ];
+
+  try {
+    // Criar categorias uma por uma para evitar conflitos
+    const createdCategories = [];
+
+    for (const category of defaultCategories) {
+      try {
+        // Verificar se já existe
+        const existing = await Category.findOne({
+          name: category.name,
+          type: category.type,
+          user: userId,
+        });
+
+        if (!existing) {
+          const newCategory = await Category.create({
+            ...category,
+            user: userId,
+          });
+          createdCategories.push(newCategory);
+          console.log(
+            `✅ Categoria criada: ${category.name} (${category.type})`
+          );
+        } else {
+          console.log(
+            `⏭️ Categoria já existe: ${category.name} (${category.type})`
+          );
+        }
+      } catch (error) {
+        console.warn(
+          `⚠️ Erro ao criar categoria ${category.name}: ${error.message}`
+        );
+      }
+    }
+
+    // Buscar todas as categorias do usuário após criação/verificação
+    const allCategories = await Category.find({ user: userId }).sort({
+      type: 1,
+      name: 1,
+    });
+
+    console.log(
+      `✅ Verificação concluída: ${allCategories.length} categorias disponíveis`
+    );
+    return allCategories;
+  } catch (error) {
+    console.error("❌ Erro ao criar categorias padrão:", error);
+
+    // Em caso de erro, tentar buscar categorias existentes
+    try {
+      const existingCategories = await Category.find({ user: userId });
+      console.log(
+        `⚠️ Retornando ${existingCategories.length} categorias existentes`
+      );
+      return existingCategories;
+    } catch (fallbackError) {
+      console.error("❌ Erro crítico ao buscar categorias:", fallbackError);
+      throw error;
+    }
   }
 };
 

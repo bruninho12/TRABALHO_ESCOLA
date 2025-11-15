@@ -248,11 +248,7 @@ function RPGPage() {
                     </Typography>
                     <LinearProgress
                       variant="determinate"
-                      value={
-                        ((avatar.stats?.health || 0) /
-                          (avatar.stats?.maxHealth || 1)) *
-                        100
-                      }
+                      value={xpPercentage}
                       sx={{ mb: 2 }}
                     />
                   </Box>

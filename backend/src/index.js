@@ -100,6 +100,9 @@ if (rateLimitEnabled) {
 // Configurar Swagger
 setupSwagger(app);
 
+// Servir arquivos exportados
+app.use("/exports", express.static(path.join(__dirname, "../exports")));
+
 // Registro das rotas da API
 app.use("/api", routes);
 

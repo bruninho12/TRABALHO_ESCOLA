@@ -6,34 +6,21 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       default: () => new mongoose.Types.ObjectId().toString(),
       unique: true,
-      index: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     type: {
       type: String,
       enum: ["income", "expense", "transfer"],
       required: true,
-      index: true,
     },
     category: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
       required: true,
-      enum: [
-        "Alimentação",
-        "Transporte",
-        "Saúde",
-        "Educação",
-        "Entretenimento",
-        "Moradia",
-        "Utilidades",
-        "Investimento",
-        "Outro",
-      ],
     },
     amount: {
       type: Number,
@@ -52,13 +39,11 @@ const transactionSchema = new mongoose.Schema(
     date: {
       type: Date,
       default: Date.now,
-      index: true,
     },
     status: {
       type: String,
       enum: ["pending", "completed", "failed", "cancelled"],
       default: "completed",
-      index: true,
     },
     tags: [
       {

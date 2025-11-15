@@ -58,7 +58,7 @@ export async function showPricingDialog(onSelectPlan, options = {}) {
 /**
  * Confirma sucesso de upgrade
  */
-export async function showPlanSuccessDialog(planName) {
+export async function showPlanSuccessDialog() {
   await Swal.fire({
     icon: "success",
     title: "Plano ativado! 🎉",

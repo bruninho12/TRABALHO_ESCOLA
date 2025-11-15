@@ -9,6 +9,8 @@ const Battle = require("./Battle");
 const Achievement = require("./Achievement");
 const Reward = require("./Reward");
 const WorldMap = require("./WorldMap");
+const Notification = require("./Notification");
+const RecurringTransaction = require("./RecurringTransaction");
 
 module.exports = {
   User,
@@ -22,4 +24,6 @@ module.exports = {
   Achievement,
   Reward,
   WorldMap,
+  Notification,
+  RecurringTransaction,
 };

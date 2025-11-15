@@ -16,7 +16,15 @@
     "security:fix": "npm audit fix",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist node_modules/.cache",
-    "serve": "vite preview --port 3000"
+    "serve": "vite preview --port 3000",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:watch": "vitest --watch",
+    "docker:dev": "docker build --target development -t despfinancee-frontend:dev .",
+    "docker:prod": "docker build --target production -t despfinancee-frontend:prod .",
+    "docker:run:dev": "docker run -p 5173:5173 despfinancee-frontend:dev",
+    "docker:run:prod": "docker run -p 3000:80 despfinancee-frontend:prod"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -40,13 +48,21 @@
     "sweetalert2": "^11.10.5"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
     "@types/react": "^18.2.25",
     "@types/react-dom": "^18.2.11",
     "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/coverage-v8": "^1.0.4",
+    "@vitest/ui": "^1.0.4",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
-    "vite": "^7.2.2"
+    "jsdom": "^23.0.1",
+    "msw": "^2.0.11",
+    "vite": "^7.2.2",
+    "vitest": "^1.0.4"
   }
 }

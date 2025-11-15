@@ -7,12 +7,12 @@ const budgetRoutes = require("./budgetRoutes");
 const goalRoutes = require("./goalRoutes");
 const reportRoutes = require("./reportRoutes");
 const insightsRoutes = require("./insightsRoutes");
-const rpgRoutes = require("./rpgRoutes");
+const rpgRoutes = require("./rpg");
 const exportRoutes = require("./exportRoutes");
 const paymentRoutes = require("./paymentRoutes");
 const notificationRoutes = require("./notificationRoutes");
 const recurringTransactionRoutes = require("./recurringTransactionRoutes");
-const emailVerificationRoutes = require("./emailVerificationRoutes");
+// const emailVerificationRoutes = require("./emailVerification");
 const feedbackRoutes = require("./feedbackRoutes"); // Importa a nova rota
 
 const router = express.Router();
@@ -41,7 +41,7 @@ router.use("/export", exportRoutes);
 router.use("/payment", paymentRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/recurring", recurringTransactionRoutes);
-router.use("/email", emailVerificationRoutes);
+// router.use("/email", emailVerificationRoutes);
 router.use("/feedback", feedbackRoutes); // Usa a nova rota
 
 module.exports = router;
