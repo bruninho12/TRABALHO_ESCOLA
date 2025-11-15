@@ -24,7 +24,8 @@ export default defineConfig({
     outDir: "dist",
     assetsDir: "assets",
     sourcemap: false, // Desabilitar sourcemaps em produção por segurança
-    minify: "terser",
+    // Usar minificação padrão do esbuild para evitar dependência do terser
+    minify: "esbuild",
     target: "es2015",
     rollupOptions: {
       output: {

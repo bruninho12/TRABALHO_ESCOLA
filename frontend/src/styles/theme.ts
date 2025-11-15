@@ -46,10 +46,23 @@ export const lightTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Segoe UI", "Helvetica Neue", Arial, sans-serif',
-    h1: { fontSize: "2.5rem", fontWeight: 600 },
-    h2: { fontSize: "2rem", fontWeight: 600 },
-    h3: { fontSize: "1.75rem", fontWeight: 600 },
+    fontFamily:
+      '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    h1: {
+      fontFamily: '"Poppins", "Inter", sans-serif',
+      fontSize: "2.5rem",
+      fontWeight: 700,
+    },
+    h2: {
+      fontFamily: '"Poppins", "Inter", sans-serif',
+      fontSize: "2rem",
+      fontWeight: 700,
+    },
+    h3: {
+      fontFamily: '"Poppins", "Inter", sans-serif',
+      fontSize: "1.75rem",
+      fontWeight: 700,
+    },
     h4: { fontSize: "1.5rem", fontWeight: 600 },
     h5: { fontSize: "1.25rem", fontWeight: 600 },
     h6: { fontSize: "1rem", fontWeight: 600 },
@@ -171,10 +184,23 @@ export const darkTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Segoe UI", "Helvetica Neue", Arial, sans-serif',
-    h1: { fontSize: "2.5rem", fontWeight: 600 },
-    h2: { fontSize: "2rem", fontWeight: 600 },
-    h3: { fontSize: "1.75rem", fontWeight: 600 },
+    fontFamily:
+      '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+    h1: {
+      fontFamily: '"Poppins", "Inter", sans-serif',
+      fontSize: "2.5rem",
+      fontWeight: 700,
+    },
+    h2: {
+      fontFamily: '"Poppins", "Inter", sans-serif',
+      fontSize: "2rem",
+      fontWeight: 700,
+    },
+    h3: {
+      fontFamily: '"Poppins", "Inter", sans-serif',
+      fontSize: "1.75rem",
+      fontWeight: 700,
+    },
     h4: { fontSize: "1.5rem", fontWeight: 600 },
     h5: { fontSize: "1.25rem", fontWeight: 600 },
     h6: { fontSize: "1rem", fontWeight: 600 },

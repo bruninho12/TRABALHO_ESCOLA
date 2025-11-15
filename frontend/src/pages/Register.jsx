@@ -1,10 +1,16 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import usePlan from "../hooks/usePlan";
+import Swal from "sweetalert2";
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { setPlan } = usePlan();
+  const [searchParams] = useSearchParams();
+  const planParam = searchParams.get("plan");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,6 +20,26 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Se houver plano na URL, seta e mostra notificação
+  useEffect(() => {
+    if (planParam && ["premium", "anual", "vitalicio"].includes(planParam)) {
+      setPlan(planParam);
+      Swal.fire({
+        icon: "info",
+        title: "Plano selecionado",
+        text: `Você será registrado com o plano ${
+          planParam === "premium"
+            ? "Premium"
+            : planParam === "anual"
+            ? "Anual"
+            : "Vitalício"
+        }.`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+  }, [planParam, setPlan]);
 
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
@@ -72,6 +98,23 @@ const Register = () => {
             <span className="auth-logo">💰</span>
             <h1 className="auth-title">Finance Flow</h1>
             <p className="auth-subtitle">Crie sua conta e comece agora</p>
+            {planParam && (
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6366F1",
+                  marginTop: "0.5rem",
+                  fontWeight: 600,
+                }}
+              >
+                Plano selecionado:{" "}
+                {planParam === "premium"
+                  ? "Premium 💎"
+                  : planParam === "anual"
+                  ? "Anual 📅"
+                  : "Vitalício ⭐"}
+              </p>
+            )}
           </div>
 
           {error && (

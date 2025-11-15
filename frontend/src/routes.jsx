@@ -15,7 +15,7 @@ import { PrivateRoute } from "./components/PrivateRoute";
 
 export const router = createBrowserRouter([
   {
-    path: "/home",
+    path: "/",
     element: <Landing />,
   },
   {
@@ -70,6 +70,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Navigate to="/home" replace />,
+    element: <Navigate to="/" replace />,
   },
 ]);

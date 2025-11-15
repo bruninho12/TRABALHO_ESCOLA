@@ -163,6 +163,25 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    subscription: {
+      plan: {
+        type: String,
+        enum: ["free", "premium", "anual", "vitalicio"],
+        default: "free",
+      },
+      startDate: {
+        type: Date,
+        default: null,
+      },
+      expiresAt: {
+        type: Date,
+        default: null,
+      },
+      isActive: {
+        type: Boolean,
+        default: true,
+      },
+    },
   },
   {
     collection: "usuários",

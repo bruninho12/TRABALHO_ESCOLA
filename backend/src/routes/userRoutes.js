@@ -29,4 +29,7 @@ router.put(
   userController.updateUserSettings
 );
 
+// Atualizar plano de assinatura
+router.put("/subscription/plan", userController.updateSubscriptionPlan);
+
 module.exports = router;

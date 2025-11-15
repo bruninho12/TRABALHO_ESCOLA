@@ -141,3 +141,69 @@ exports.updateUserSettings = async (req, res, next) => {
     next(error);
   }
 };
+
+// Atualizar plano de assinatura do usuário
+exports.updateSubscriptionPlan = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { plan } = req.body;
+
+    // Validar plano
+    const validPlans = ["free", "premium", "anual", "vitalicio"];
+    if (!plan || !validPlans.includes(plan)) {
+      return next(
+        new AppError(`Plano inválido. Opções: ${validPlans.join(", ")}`, 400)
+      );
+    }
+
+    // Buscar usuário
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new AppError("Usuário não encontrado", 404));
+    }
+
+    // Calcular datas de expiração conforme o plano
+    const now = new Date();
+    let expiresAt = null;
+
+    switch (plan) {
+      case "premium":
+        // Premium mensal - 30 dias
+        expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        break;
+      case "anual":
+        // Anual - 365 dias
+        expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+        break;
+      case "vitalicio":
+        // Vitalício - sem expiração (100 anos no futuro)
+        expiresAt = new Date(now.getTime() + 100 * 365 * 24 * 60 * 60 * 1000);
+        break;
+      case "free":
+      default:
+        // Free - sem expiração
+        expiresAt = null;
+    }
+
+    // Atualizar plano
+    user.subscription = {
+      plan,
+      startDate: now,
+      expiresAt,
+      isActive: true,
+    };
+
+    // Salvar alterações
+    await user.save();
+
+    res.status(200).json({
+      status: "success",
+      message: `Plano atualizado para ${plan}`,
+      data: {
+        subscription: user.subscription,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -5,6 +5,13 @@
 
 // ============= PALETA DE CORES PREMIUM =============
 export const colors = {
+  // Marca (paleta curada)
+  brand: {
+    petrol: "#0F2D3D", // Azul petróleo escuro
+    mint: "#2DD4BF", // Verde menta
+    ice: "#F1F5F9", // Branco gelo
+    neon: "#22D3EE", // Acento neon suave (cyan)
+  },
   // Cores Principais
   primary: {
     main: "#6366F1", // Índigo vibrante
@@ -99,6 +106,8 @@ export const colors = {
 
 // ============= GRADIENTES PREMIUM =============
 export const gradients = {
+  purpleBlue: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
+  petrolMint: "linear-gradient(135deg, #0F2D3D 0%, #2DD4BF 100%)",
   primary: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
   success: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
   warning: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",

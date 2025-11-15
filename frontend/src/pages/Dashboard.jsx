@@ -245,7 +245,7 @@ const Dashboard = () => {
               elevation={0}
               sx={{
                 p: 3,
-                background: gradients.redOrange,
+                background: gradients.sunset,
                 color: "white",
                 borderRadius: 2,
                 boxShadow: "0 8px 20px rgba(239, 68, 68, 0.3)",

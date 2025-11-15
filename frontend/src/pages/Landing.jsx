@@ -180,7 +180,7 @@ const Landing = () => {
                 transition={{ duration: 0.8 }}
               >
                 <Chip
-                  label="🚀 Lançamento 2025"
+                  label="🚀 Lançamento 2026"
                   sx={{
                     bgcolor: "rgba(255,255,255,0.2)",
                     color: "white",
@@ -192,22 +192,20 @@ const Landing = () => {
                   variant="h1"
                   fontWeight={800}
                   gutterBottom
-                  sx={{ fontSize: { xs: "2.5rem", md: "4rem" } }}
+                  sx={{ fontSize: { xs: "2.4rem", md: "3.6rem" } }}
                 >
-                  DespFinancee
+                  Controle financeiro gamificado
                 </Typography>
                 <Typography variant="h5" sx={{ mb: 3, opacity: 0.95 }}>
-                  Controle financeiro com{" "}
-                  <strong>Inteligência Artificial</strong> e{" "}
-                  <strong>Gamificação</strong>
+                  que torna economizar <strong>divertido</strong> e{" "}
+                  <strong>consistente</strong>
                 </Typography>
                 <Typography
                   variant="body1"
                   sx={{ mb: 4, opacity: 0.9, fontSize: "1.1rem" }}
                 >
-                  A primeira plataforma brasileira que transforma gestão
-                  financeira em uma experiência divertida, inteligente e
-                  completamente gratuita.
+                  IA que trabalha por você, gamificação que engaja e um painel
+                  claro para decidir melhor. 100% open source e gratuito.
                 </Typography>
                 <Stack direction="row" spacing={2}>
                   <Button
@@ -436,6 +434,320 @@ const Landing = () => {
                     </CardContent>
                   </Card>
                 </motion.div>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Gamificação Explicada */}
+      <Box sx={{ py: 10 }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Box>
+                <Typography
+                  variant="overline"
+                  color="primary"
+                  fontWeight={700}
+                  fontSize="1rem"
+                >
+                  GAMIFICAÇÃO
+                </Typography>
+                <Typography variant="h3" fontWeight={800} gutterBottom>
+                  Controle financeiro que vira jogo
+                </Typography>
+                <Typography variant="body1" color="text.secondary" mb={3}>
+                  Economizar deixa de ser um peso: você progride, ganha
+                  recompensas e sobe de nível.
+                </Typography>
+                <Stack spacing={1.5}>
+                  {[
+                    "Complete missões semanais e ganhe XP",
+                    "Derrote o Boss mensal controlando gastos",
+                    "Desbloqueie avatares, conquistas e cartas",
+                    "Ranking entre amigos para competir",
+                    "Temporadas com objetivos e recompensas",
+                  ].map((t, i) => (
+                    <Stack
+                      key={i}
+                      direction="row"
+                      spacing={1.5}
+                      alignItems="center"
+                    >
+                      <CheckCircle sx={{ color: colors.success.main }} />
+                      <Typography>{t}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card
+                sx={{
+                  p: 2,
+                  border: `1px solid ${colors.gray[200]}`,
+                  boxShadow: "0 12px 32px rgba(15,45,61,0.08)",
+                }}
+              >
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Prévia do painel
+                  </Typography>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      height: 220,
+                      borderRadius: 2,
+                      background: gradients.petrolMint,
+                    }}
+                  />
+                  <Stack direction="row" spacing={2} mt={2}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        height: 90,
+                        borderRadius: 2,
+                        bgcolor: colors.background.paper,
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        flex: 1,
+                        height: 90,
+                        borderRadius: 2,
+                        bgcolor: colors.background.paper,
+                      }}
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Comparação com Concorrentes */}
+      <Box sx={{ bgcolor: "background.paper", py: 10 }}>
+        <Container maxWidth="lg">
+          <Box textAlign="center" mb={6}>
+            <Typography
+              variant="overline"
+              color="primary"
+              fontWeight={700}
+              fontSize="1rem"
+            >
+              COMPARAÇÃO
+            </Typography>
+            <Typography variant="h3" fontWeight={800} gutterBottom>
+              Por que escolher o DespFinancee
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Recursos essenciais de verdade — sem paywall escondido
+            </Typography>
+          </Box>
+
+          <Grid container spacing={3}>
+            {[
+              "IA de sugestões",
+              "Gamificação completa",
+              "Exportar PDF/Excel",
+              "Dados 100% seus",
+              "Plano vitalício",
+            ].map((feature, i) => (
+              <Grid item xs={12} key={i}>
+                <Card
+                  sx={{
+                    borderRadius: 2,
+                    border: `1px solid ${colors.gray[200]}`,
+                  }}
+                >
+                  <CardContent>
+                    <Grid container alignItems="center">
+                      <Grid item xs={12} md={4}>
+                        <Typography fontWeight={700}>{feature}</Typography>
+                      </Grid>
+                      <Grid item xs={4} md={2} textAlign="center">
+                        <Chip
+                          label="DespFinancee"
+                          color="primary"
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={4} md={3} textAlign="center">
+                        <Stack
+                          direction="row"
+                          justifyContent="center"
+                          spacing={1}
+                        >
+                          <CheckCircle sx={{ color: colors.success.main }} />
+                          <Typography>Sim</Typography>
+                        </Stack>
+                      </Grid>
+                      <Grid item xs={4} md={3} textAlign="center">
+                        <Stack
+                          direction="row"
+                          justifyContent="center"
+                          spacing={1}
+                        >
+                          {i === 4 ? (
+                            <Typography color="text.secondary">Raro</Typography>
+                          ) : (
+                            <Typography color="text.secondary">
+                              Parcial
+                            </Typography>
+                          )}
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            display="block"
+            mt={2}
+          >
+            Observação: comparação baseada em funcionalidades comuns de mercado,
+            sem citar marcas.
+          </Typography>
+        </Container>
+      </Box>
+
+      {/* Pricing Section */}
+      <Box sx={{ bgcolor: "background.paper", py: 10 }}>
+        <Container maxWidth="lg">
+          <Box textAlign="center" mb={6}>
+            <Typography
+              variant="overline"
+              color="primary"
+              fontWeight={700}
+              fontSize="1rem"
+            >
+              PLANOS
+            </Typography>
+            <Typography variant="h2" fontWeight={700} gutterBottom>
+              Escolha como quer começar
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Grátis para sempre. Premium acessível para recursos avançados.
+            </Typography>
+          </Box>
+
+          <Grid container spacing={3}>
+            {[
+              {
+                name: "Gratuito",
+                price: "R$ 0",
+                period: "",
+                highlight: false,
+                features: [
+                  "Até 50 transações/mês",
+                  "Categorias básicas",
+                  "Score financeiro",
+                  "Exportações CSV",
+                ],
+              },
+              {
+                name: "Anual",
+                price: "R$ 39,90",
+                period: "/ano",
+                highlight: false,
+                features: [
+                  "Tudo do Premium",
+                  "Economia de 32%",
+                  "Acesso contínuo",
+                  "Suporte padrão",
+                ],
+              },
+              {
+                name: "Premium",
+                price: "R$ 4,90",
+                period: "/mês",
+                highlight: true,
+                features: [
+                  "Transações ilimitadas",
+                  "Metas avançadas + automações",
+                  "Exportações PDF/Excel",
+                  "Avatares e níveis avançados",
+                ],
+              },
+              {
+                name: "Vitalício",
+                price: "R$ 79,90",
+                period: "único",
+                highlight: false,
+                features: [
+                  "Tudo do Premium",
+                  "Sem mensalidade",
+                  "Suporte prioritário",
+                  "Futuras melhorias inclusas",
+                ],
+              },
+            ].map((p, i) => (
+              <Grid item xs={12} md={4} key={i}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    borderRadius: 3,
+                    border: p.highlight
+                      ? `2px solid ${colors.brand.mint}`
+                      : `1px solid ${colors.gray[200]}`,
+                    boxShadow: p.highlight
+                      ? "0 16px 48px rgba(34,211,238,0.25)"
+                      : "0 8px 24px rgba(15,45,61,0.08)",
+                  }}
+                >
+                  <CardContent sx={{ p: 4 }}>
+                    <Stack spacing={1} alignItems="flex-start">
+                      <Chip
+                        label={p.highlight ? "Mais popular" : p.name}
+                        color={p.highlight ? "primary" : "default"}
+                        sx={{ mb: 1 }}
+                      />
+                      <Typography variant="h4" fontWeight={800}>
+                        {p.price}{" "}
+                        <Typography
+                          component="span"
+                          variant="subtitle2"
+                          color="text.secondary"
+                        >
+                          {p.period}
+                        </Typography>
+                      </Typography>
+                      <Divider sx={{ width: "100%", my: 2 }} />
+                      <Stack spacing={1.2} sx={{ mb: 2 }}>
+                        {p.features.map((f, k) => (
+                          <Stack
+                            key={k}
+                            direction="row"
+                            spacing={1.2}
+                            alignItems="center"
+                          >
+                            <CheckCircle sx={{ color: colors.success.main }} />
+                            <Typography variant="body2" color="text.secondary">
+                              {f}
+                            </Typography>
+                          </Stack>
+                        ))}
+                      </Stack>
+                      <Button
+                        fullWidth
+                        size="large"
+                        variant={p.highlight ? "contained" : "outlined"}
+                        onClick={() =>
+                          navigate(`/register?plan=${p.name.toLowerCase()}`)
+                        }
+                      >
+                        Começar {p.name}
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
               </Grid>
             ))}
           </Grid>

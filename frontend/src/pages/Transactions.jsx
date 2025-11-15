@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Typography,
   Paper,
@@ -12,6 +12,9 @@ import {
   Box,
   IconButton,
   Tooltip,
+  Chip,
+  Stack,
+  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -20,6 +23,11 @@ import { useTransactions } from "../hooks/useTransactions";
 import { TransactionForm } from "../components/TransactionForm";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { LoadingSpinner as Loading } from "../components/Loading";
+import {
+  showPricingDialog,
+  showPlanSuccessDialog,
+} from "../components/PricingDialog";
+import useSubscription from "../hooks/useSubscription";
 
 export default function Transactions() {
   // Hooks
@@ -31,12 +39,36 @@ export default function Transactions() {
     updateTransaction,
     deleteTransaction,
   } = useTransactions();
+  const { plan, updatePlan, isUpdating } = useSubscription();
 
   // Estados
   const [openForm, setOpenForm] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
+
+  const monthlyCount = useMemo(() => {
+    if (!transactions || !Array.isArray(transactions)) return 0;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    return transactions.filter((t) => {
+      const d = new Date(t.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    }).length;
+  }, [transactions]);
+
+  const isFree = plan === "free";
+
+  const handleUpgrade = async () => {
+    const selected = await showPricingDialog(async (selectedPlan) => {
+      const success = await updatePlan(selectedPlan);
+      if (success) {
+        await showPlanSuccessDialog(selectedPlan);
+      }
+    });
+    return selected;
+  };
 
   if (isLoading) {
     return <Loading />;
@@ -50,7 +82,12 @@ export default function Transactions() {
     );
   }
 
-  const handleCreate = (data) => {
+  const handleCreate = async (data) => {
+    // Revalida o limite no envio (defesa extra)
+    if (isFree && monthlyCount >= 50) {
+      const upgraded = await handleUpgrade();
+      if (!upgraded) return; // Mantém bloqueado no Free
+    }
     createTransaction(data);
     setOpenForm(false);
   };
@@ -88,20 +125,76 @@ export default function Transactions() {
 
   return (
     <>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
-        <Typography variant="h4">Transações</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenForm(true)}
+      {/* Header com Plano e Contador */}
+      <Box mb={3}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
         >
-          Nova Transação
-        </Button>
+          <Typography variant="h4">Transações</Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={async () => {
+              if (isFree && monthlyCount >= 50) {
+                const upgraded = await handleUpgrade();
+                if (!upgraded) return;
+              }
+              setOpenForm(true);
+            }}
+          >
+            Nova Transação
+          </Button>
+        </Box>
+
+        {/* Status do Plano + Contador */}
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          flexWrap="wrap"
+        >
+          <Chip
+            label={`Plano: ${
+              plan === "free"
+                ? "Gratuito"
+                : plan.charAt(0).toUpperCase() + plan.slice(1)
+            }`}
+            color={plan === "free" ? "default" : "primary"}
+            variant={plan === "free" ? "outlined" : "filled"}
+            size="small"
+          />
+          {isFree && (
+            <>
+              <Chip
+                label={`${monthlyCount}/50 transações neste mês`}
+                color={monthlyCount >= 40 ? "warning" : "default"}
+                size="small"
+              />
+              {monthlyCount >= 40 && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="warning"
+                  onClick={handleUpgrade}
+                  disabled={isUpdating}
+                >
+                  Fazer Upgrade
+                </Button>
+              )}
+            </>
+          )}
+        </Stack>
+
+        {/* Alerta se chegou perto do limite */}
+        {isFree && monthlyCount >= 40 && monthlyCount < 50 && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Você está usando {monthlyCount} de 50 transações neste mês. Atualize
+            para plano Premium para transações ilimitadas!
+          </Alert>
+        )}
       </Box>
 
       <TableContainer component={Paper}>
