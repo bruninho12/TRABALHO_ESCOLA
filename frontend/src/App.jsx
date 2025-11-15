@@ -4,10 +4,8 @@ import { router } from "./routes";
 
 // Contextos principais
 import { AuthProvider } from "./contexts/AuthContext";
-import {
-  ThemeProvider as CustomThemeProvider,
-  useThemeContext,
-} from "./contexts/ThemeContext";
+import { ThemeProvider } from "@mui/material/styles";
+import { theme } from "./styles/theme";
 
 // React Query
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -50,8 +48,11 @@ function AppContent() {
 // Provider global de tema + AppContent
 export default function App() {
   return (
-    <CustomThemeProvider>
-      <AppContent />
-    </CustomThemeProvider>
+    <ThemeProvider theme={theme}>
+      <AuthProvider>
+        <AppContent />
+        <FloatingFeedbackButton />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

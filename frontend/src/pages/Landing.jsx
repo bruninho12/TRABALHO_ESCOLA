@@ -143,7 +143,8 @@ const Landing = () => {
                 onClick={() =>
                   window.open(
                     "https://github.com/bruninho12/despfinancee",
-                    "_blank"
+                    "_blank",
+                    "noopener,noreferrer"
                   )
                 }
               >
@@ -152,7 +153,9 @@ const Landing = () => {
               <Button
                 size="small"
                 variant="text"
-                onClick={() => window.open("/api-docs", "_blank")}
+                onClick={() =>
+                  window.open("/api-docs", "_blank", "noopener,noreferrer")
+                }
               >
                 Swagger
               </Button>

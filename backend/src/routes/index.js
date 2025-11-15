@@ -4,13 +4,16 @@ const userRoutes = require("./userRoutes");
 const transactionRoutes = require("./transactionRoutes");
 const categoryRoutes = require("./categoryRoutes");
 const budgetRoutes = require("./budgetRoutes");
-const reportRoutes = require("./reportRoutes");
 const goalRoutes = require("./goalRoutes");
-const paymentRoutes = require("./paymentRoutes");
-const rpgRoutes = require("./rpg");
-const recurringTransactionRoutes = require("./recurringTransactionRoutes");
-const exportRoutes = require("./exportRoutes");
+const reportRoutes = require("./reportRoutes");
 const insightsRoutes = require("./insightsRoutes");
+const rpgRoutes = require("./rpgRoutes");
+const exportRoutes = require("./exportRoutes");
+const paymentRoutes = require("./paymentRoutes");
+const notificationRoutes = require("./notificationRoutes");
+const recurringTransactionRoutes = require("./recurringTransactionRoutes");
+const emailVerificationRoutes = require("./emailVerificationRoutes");
+const feedbackRoutes = require("./feedbackRoutes"); // Importa a nova rota
 
 const router = express.Router();
 
@@ -30,12 +33,15 @@ router.use("/users", userRoutes);
 router.use("/transactions", transactionRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/budgets", budgetRoutes);
-router.use("/reports", reportRoutes);
 router.use("/goals", goalRoutes);
-router.use("/payments", paymentRoutes);
-router.use("/rpg", rpgRoutes);
-router.use("/recurring-transactions", recurringTransactionRoutes);
-router.use("/export", exportRoutes);
+router.use("/reports", reportRoutes);
 router.use("/insights", insightsRoutes);
+router.use("/rpg", rpgRoutes);
+router.use("/export", exportRoutes);
+router.use("/payment", paymentRoutes);
+router.use("/notifications", notificationRoutes);
+router.use("/recurring", recurringTransactionRoutes);
+router.use("/email", emailVerificationRoutes);
+router.use("/feedback", feedbackRoutes); // Usa a nova rota
 
 module.exports = router;
