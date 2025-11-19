@@ -2,6 +2,16 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 // Tema Claro
 export const lightTheme = createTheme({
+  // Breakpoints customizados para melhor responsividade
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+    },
+  },
   palette: {
     mode: "light",
     primary: {
@@ -45,42 +55,122 @@ export const lightTheme = createTheme({
       secondary: "#4b5563",
     },
   },
+  // Tipografia responsiva
   typography: {
     fontFamily:
       '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
     h1: {
       fontFamily: '"Poppins", "Inter", sans-serif',
-      fontSize: "2.5rem",
       fontWeight: 700,
+      fontSize: "2.5rem",
+      "@media (max-width:640px)": {
+        fontSize: "1.75rem",
+      },
+      "@media (max-width:480px)": {
+        fontSize: "1.5rem",
+      },
     },
     h2: {
       fontFamily: '"Poppins", "Inter", sans-serif',
-      fontSize: "2rem",
       fontWeight: 700,
+      fontSize: "2rem",
+      "@media (max-width:640px)": {
+        fontSize: "1.5rem",
+      },
+      "@media (max-width:480px)": {
+        fontSize: "1.25rem",
+      },
     },
     h3: {
       fontFamily: '"Poppins", "Inter", sans-serif',
-      fontSize: "1.75rem",
       fontWeight: 700,
+      fontSize: "1.75rem",
+      "@media (max-width:640px)": {
+        fontSize: "1.25rem",
+      },
+      "@media (max-width:480px)": {
+        fontSize: "1.125rem",
+      },
     },
-    h4: { fontSize: "1.5rem", fontWeight: 600 },
-    h5: { fontSize: "1.25rem", fontWeight: 600 },
-    h6: { fontSize: "1rem", fontWeight: 600 },
-    subtitle1: { fontSize: "1rem", fontWeight: 400 },
-    subtitle2: { fontSize: "0.875rem", fontWeight: 500 },
-    body1: { fontSize: "1rem" },
-    body2: { fontSize: "0.875rem" },
-    button: { textTransform: "none", fontWeight: 500 },
+    h4: {
+      fontSize: "1.5rem",
+      fontWeight: 600,
+      "@media (max-width:640px)": {
+        fontSize: "1.125rem",
+      },
+    },
+    h5: {
+      fontSize: "1.25rem",
+      fontWeight: 600,
+      "@media (max-width:640px)": {
+        fontSize: "1rem",
+      },
+    },
+    h6: {
+      fontSize: "1rem",
+      fontWeight: 600,
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
+    subtitle1: {
+      fontSize: "1rem",
+      fontWeight: 400,
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
+    subtitle2: {
+      fontSize: "0.875rem",
+      fontWeight: 500,
+      "@media (max-width:640px)": {
+        fontSize: "0.8125rem",
+      },
+    },
+    body1: {
+      fontSize: "1rem",
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
+    body2: {
+      fontSize: "0.875rem",
+      "@media (max-width:640px)": {
+        fontSize: "0.8125rem",
+      },
+    },
+    button: {
+      textTransform: "none",
+      fontWeight: 500,
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
   },
   shape: {
     borderRadius: 12,
   },
   components: {
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          paddingLeft: "16px !important",
+          paddingRight: "16px !important",
+          "@media (max-width:640px)": {
+            paddingLeft: "12px !important",
+            paddingRight: "12px !important",
+          },
+        },
+      },
+    },
     MuiPaper: {
       styleOverrides: {
         root: {
           boxShadow:
             "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+          "@media (max-width:640px)": {
+            borderRadius: "8px",
+          },
         },
       },
     },
@@ -94,6 +184,36 @@ export const lightTheme = createTheme({
             boxShadow:
               "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)",
           },
+          "@media (max-width:640px)": {
+            borderRadius: "12px",
+            "&:hover": {
+              transform: "translateY(-2px)",
+            },
+          },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          padding: "8px 16px",
+          boxShadow: "none",
+          minHeight: "44px", // Melhor para touch devices
+          "&:hover": {
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          },
+          "@media (max-width:640px)": {
+            padding: "12px 16px",
+            minHeight: "48px",
+            fontSize: "0.875rem",
+          },
+        },
+        sizeLarge: {
+          "@media (max-width:640px)": {
+            padding: "16px 24px",
+            minHeight: "56px",
+          },
         },
       },
     },
@@ -105,16 +225,23 @@ export const lightTheme = createTheme({
           boxShadow:
             "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
           color: "#1f2937",
+          "@media (max-width:640px)": {
+            background: "rgba(255, 255, 255, 0.95)",
+          },
         },
       },
     },
-    // MuiButton duplicado removido
     MuiIconButton: {
       styleOverrides: {
         root: {
           color: "#1f2937",
           "&:hover": {
             backgroundColor: "rgba(102, 126, 234, 0.1)",
+          },
+          "@media (max-width:640px)": {
+            padding: "12px",
+            minHeight: "48px",
+            minWidth: "48px",
           },
         },
       },
@@ -124,6 +251,9 @@ export const lightTheme = createTheme({
         root: {
           "& .MuiOutlinedInput-root": {
             borderRadius: 8,
+            "@media (max-width:640px)": {
+              minHeight: "48px",
+            },
           },
         },
       },
@@ -132,6 +262,19 @@ export const lightTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
+          "@media (max-width:640px)": {
+            fontSize: "0.8125rem",
+            height: "28px",
+          },
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          "@media (max-width:640px)": {
+            lineHeight: 1.5,
+          },
         },
       },
     },
@@ -140,6 +283,16 @@ export const lightTheme = createTheme({
 
 // Tema Escuro
 export const darkTheme = createTheme({
+  // Breakpoints customizados para melhor responsividade
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+    },
+  },
   palette: {
     mode: "dark",
     primary: {
@@ -183,45 +336,134 @@ export const darkTheme = createTheme({
       secondary: "#d1d5db",
     },
   },
+  // Tipografia responsiva
   typography: {
     fontFamily:
       '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
     h1: {
       fontFamily: '"Poppins", "Inter", sans-serif',
-      fontSize: "2.5rem",
       fontWeight: 700,
+      fontSize: "2.5rem",
+      "@media (max-width:640px)": {
+        fontSize: "1.75rem",
+      },
+      "@media (max-width:480px)": {
+        fontSize: "1.5rem",
+      },
     },
     h2: {
       fontFamily: '"Poppins", "Inter", sans-serif',
-      fontSize: "2rem",
       fontWeight: 700,
+      fontSize: "2rem",
+      "@media (max-width:640px)": {
+        fontSize: "1.5rem",
+      },
+      "@media (max-width:480px)": {
+        fontSize: "1.25rem",
+      },
     },
     h3: {
       fontFamily: '"Poppins", "Inter", sans-serif',
-      fontSize: "1.75rem",
       fontWeight: 700,
+      fontSize: "1.75rem",
+      "@media (max-width:640px)": {
+        fontSize: "1.25rem",
+      },
+      "@media (max-width:480px)": {
+        fontSize: "1.125rem",
+      },
     },
-    h4: { fontSize: "1.5rem", fontWeight: 600 },
-    h5: { fontSize: "1.25rem", fontWeight: 600 },
-    h6: { fontSize: "1rem", fontWeight: 600 },
-    subtitle1: { fontSize: "1rem", fontWeight: 400 },
-    subtitle2: { fontSize: "0.875rem", fontWeight: 500 },
-    body1: { fontSize: "1rem" },
-    body2: { fontSize: "0.875rem" },
-    button: { textTransform: "none", fontWeight: 500 },
+    h4: {
+      fontSize: "1.5rem",
+      fontWeight: 600,
+      "@media (max-width:640px)": {
+        fontSize: "1.125rem",
+      },
+    },
+    h5: {
+      fontSize: "1.25rem",
+      fontWeight: 600,
+      "@media (max-width:640px)": {
+        fontSize: "1rem",
+      },
+    },
+    h6: {
+      fontSize: "1rem",
+      fontWeight: 600,
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
+    subtitle1: {
+      fontSize: "1rem",
+      fontWeight: 400,
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
+    subtitle2: {
+      fontSize: "0.875rem",
+      fontWeight: 500,
+      "@media (max-width:640px)": {
+        fontSize: "0.8125rem",
+      },
+    },
+    body1: {
+      fontSize: "1rem",
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
+    body2: {
+      fontSize: "0.875rem",
+      "@media (max-width:640px)": {
+        fontSize: "0.8125rem",
+      },
+    },
+    button: {
+      textTransform: "none",
+      fontWeight: 500,
+      "@media (max-width:640px)": {
+        fontSize: "0.875rem",
+      },
+    },
   },
   shape: {
     borderRadius: 12,
   },
   components: {
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          paddingLeft: "16px !important",
+          paddingRight: "16px !important",
+          "@media (max-width:640px)": {
+            paddingLeft: "12px !important",
+            paddingRight: "12px !important",
+          },
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
           borderRadius: 8,
           padding: "8px 16px",
           boxShadow: "none",
+          minHeight: "44px", // Melhor para touch devices
           "&:hover": {
             boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+          },
+          "@media (max-width:640px)": {
+            padding: "12px 16px",
+            minHeight: "48px",
+            fontSize: "0.875rem",
+          },
+        },
+        sizeLarge: {
+          "@media (max-width:640px)": {
+            padding: "16px 24px",
+            minHeight: "56px",
           },
         },
       },
@@ -230,6 +472,9 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: "0 4px 6px -1px rgba(0,0,0,0.2)",
+          "@media (max-width:640px)": {
+            borderRadius: "8px",
+          },
         },
       },
     },
@@ -242,6 +487,12 @@ export const darkTheme = createTheme({
             transform: "translateY(-5px)",
             boxShadow: "0 20px 25px -5px rgba(0,0,0,0.3)",
           },
+          "@media (max-width:640px)": {
+            borderRadius: "12px",
+            "&:hover": {
+              transform: "translateY(-2px)",
+            },
+          },
         },
       },
     },
@@ -251,6 +502,55 @@ export const darkTheme = createTheme({
           background: "rgba(31, 41, 55, 0.95)",
           backdropFilter: "blur(10px)",
           boxShadow: "0 4px 6px -1px rgba(0,0,0,0.2)",
+          "@media (max-width:640px)": {
+            background: "rgba(31, 41, 55, 0.98)",
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          "&:hover": {
+            backgroundColor: "rgba(134, 155, 255, 0.1)",
+          },
+          "@media (max-width:640px)": {
+            padding: "12px",
+            minHeight: "48px",
+            minWidth: "48px",
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 8,
+            "@media (max-width:640px)": {
+              minHeight: "48px",
+            },
+          },
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          "@media (max-width:640px)": {
+            fontSize: "0.8125rem",
+            height: "28px",
+          },
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          "@media (max-width:640px)": {
+            lineHeight: 1.5,
+          },
         },
       },
     },

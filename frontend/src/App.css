@@ -863,22 +863,28 @@ body {
    RESPONSIVO
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .container {
-    padding: 1rem;
+    padding: 0.75rem;
+    max-width: 100%;
   }
 
   .card {
     padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
   }
 
   .btn {
-    padding: 0.625rem 1rem;
+    padding: 0.75rem 1rem;
     font-size: 0.875rem;
+    min-height: 44px;
+    width: 100%;
   }
 
-  .modal {
-    width: 95%;
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .grid-2,
@@ -887,24 +893,130 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .auth-card {
+  /* Formulários móveis */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-control {
+    width: 100%;
+    min-height: 44px;
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+
+  /* Tabelas responsivas */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+
+  /* Stack em mobile */
+  .flex-between {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  /* Textos menores em mobile */
+  .stat-card-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-card-label {
+    font-size: 0.75rem;
+  }
+
+  /* Navegação mobile */
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+
+  /* Modal mobile */
+  .modal {
+    width: 95%;
+    margin: 0.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .container {
     padding: 1.5rem;
   }
 
-  .auth-logo {
-    font-size: 2rem;
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .auth-title {
+  .btn {
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding: 2rem 1.5rem;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .btn {
+    font-size: 0.8125rem;
+    min-height: 48px;
+  }
+
+  h1 {
     font-size: 1.5rem;
   }
 
-  .auth-links {
-    flex-direction: column;
-    align-items: stretch;
+  h2 {
+    font-size: 1.25rem;
   }
 
-  .auth-link {
-    text-align: center;
+  h3 {
+    font-size: 1.125rem;
+  }
+}
+
+/* Landscape mobile specific */
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal {
+    max-height: 85vh;
+  }
+
+  .container {
+    padding: 0.75rem;
   }
 }
