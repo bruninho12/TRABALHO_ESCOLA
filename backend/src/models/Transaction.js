@@ -25,7 +25,13 @@ const transactionSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
-      min: [0, "Valor deve ser maior que 0"],
+      validate: {
+        validator: function (value) {
+          // Permitir valores positivos e negativos, mas não zero
+          return value !== 0;
+        },
+        message: "Valor não pode ser zero",
+      },
     },
     currency: {
       type: String,

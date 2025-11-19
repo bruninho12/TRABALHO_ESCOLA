@@ -38,7 +38,7 @@ router.use("/reports", reportRoutes);
 router.use("/insights", insightsRoutes);
 router.use("/rpg", rpgRoutes);
 router.use("/export", exportRoutes);
-router.use("/payment", paymentRoutes);
+router.use("/payments", paymentRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/recurring", recurringTransactionRoutes);
 // router.use("/email", emailVerificationRoutes);

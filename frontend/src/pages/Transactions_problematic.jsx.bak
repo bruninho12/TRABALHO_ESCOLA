@@ -1,0 +1,833 @@
+import React, { useMemo, useState, useCallback, useEffect } from "react";
+import {
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Box,
+  IconButton,
+  Tooltip,
+  Chip,
+  Stack,
+  Alert,
+  TextField,
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Fab,
+  Checkbox,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  Card,
+  CardContent,
+  Grid,
+  Autocomplete,
+} from "@mui/material";
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  FileDownload as ExportIcon,
+  FileUpload as ImportIcon,
+  Clear as ClearIcon,
+  TrendingUp,
+  TrendingDown,
+  Category as CategoryIcon,
+  DateRange as DateRangeIcon,
+} from "@mui/icons-material";
+import { motion, AnimatePresence } from "framer-motion";
+// import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+// import dayjs from "dayjs";
+// import "dayjs/locale/pt-br";
+import { useTransactions } from "../hooks/useTransactions";
+import { TransactionForm } from "../components/TransactionForm";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { LoadingSpinner as Loading } from "../components/Loading";
+import {
+  showPricingDialog,
+  showPlanSuccessDialog,
+} from "../components/PricingDialog";
+import useSubscription from "../hooks/useSubscription";
+import { colors, gradients } from "../styles/designSystem";
+import GlassCard from "../components/common/GlassCard";
+
+export default function Transactions() {
+  // Hooks
+  const {
+    transactions,
+    isLoading,
+    error,
+    createTransaction,
+    updateTransaction,
+    deleteTransaction,
+    categories,
+  } = useTransactions();
+  const { plan, updatePlan, isUpdating } = useSubscription();
+
+  // Estados
+  const [openForm, setOpenForm] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [selectedTransactions, setSelectedTransactions] = useState(new Set());
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Estados de filtros
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "",
+    type: "",
+    dateFrom: null,
+    dateTo: null,
+    amountMin: "",
+    amountMax: "",
+  });
+
+  // Estados de ordenação
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  // Transações filtradas e ordenadas
+  const filteredTransactions = useMemo(() => {
+    if (!transactions || !Array.isArray(transactions)) return [];
+
+    let filtered = transactions.filter((transaction) => {
+      // Filtro de busca
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const matchesDescription = transaction.description
+          ?.toLowerCase()
+          .includes(searchTerm);
+        const matchesCategory = transaction.category?.name
+          ?.toLowerCase()
+          .includes(searchTerm);
+        const matchesAmount = transaction.amount
+          ?.toString()
+          .includes(searchTerm);
+        if (!matchesDescription && !matchesCategory && !matchesAmount)
+          return false;
+      }
+
+      // Filtro por categoria
+      if (filters.category && transaction.category?.name !== filters.category) {
+        return false;
+      }
+
+      // Filtro por tipo
+      if (filters.type && transaction.type !== filters.type) {
+        return false;
+      }
+
+      // Filtro por data
+      if (filters.dateFrom && new Date(transaction.date) < filters.dateFrom) {
+        return false;
+      }
+      if (filters.dateTo && new Date(transaction.date) > filters.dateTo) {
+        return false;
+      }
+
+      // Filtro por valor
+      if (
+        filters.amountMin &&
+        Math.abs(transaction.amount) < parseFloat(filters.amountMin)
+      ) {
+        return false;
+      }
+      if (
+        filters.amountMax &&
+        Math.abs(transaction.amount) > parseFloat(filters.amountMax)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    // Ordenação
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case "date":
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case "amount":
+          aValue = Math.abs(a.amount);
+          bValue = Math.abs(b.amount);
+          break;
+        case "description":
+          aValue = a.description?.toLowerCase() || "";
+          bValue = b.description?.toLowerCase() || "";
+          break;
+        case "category":
+          aValue = a.category?.name?.toLowerCase() || "";
+          bValue = b.category?.name?.toLowerCase() || "";
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [transactions, filters, sortBy, sortOrder]);
+
+  // Função para limpar filtros
+  const clearFilters = () => {
+    setFilters({
+      search: "",
+      category: "",
+      type: "",
+      dateFrom: null,
+      dateTo: null,
+      amountMin: "",
+      amountMax: "",
+    });
+  };
+
+  // Função para exportar transações
+  const handleExport = () => {
+    const csvContent = [
+      ["Data", "Descrição", "Categoria", "Tipo", "Valor"].join(","),
+      ...filteredTransactions.map((t) =>
+        [
+          new Date(t.date).toLocaleDateString("pt-BR"),
+          `"${t.description}"`,
+          `"${t.category?.name || ""}"`,
+          t.type === "income" ? "Receita" : "Despesa",
+          t.amount.toFixed(2),
+        ].join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `transacoes_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  };
+
+  // Funções de seleção múltipla
+  const handleSelectTransaction = (transactionId) => {
+    const newSelected = new Set(selectedTransactions);
+    if (newSelected.has(transactionId)) {
+      newSelected.delete(transactionId);
+    } else {
+      newSelected.add(transactionId);
+    }
+    setSelectedTransactions(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTransactions.size === filteredTransactions.length) {
+      setSelectedTransactions(new Set());
+    } else {
+      setSelectedTransactions(
+        new Set(filteredTransactions.map((t) => t.id || t._id))
+      );
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (
+      window.confirm(
+        `Deseja excluir ${selectedTransactions.size} transações selecionadas?`
+      )
+    ) {
+      selectedTransactions.forEach((id) => {
+        deleteTransaction(id);
+      });
+      setSelectedTransactions(new Set());
+    }
+  };
+
+  const isFree = plan === "free";
+
+  const handleUpgrade = async () => {
+    const selected = await showPricingDialog(async (selectedPlan) => {
+      const success = await updatePlan(selectedPlan);
+      if (success) {
+        await showPlanSuccessDialog(selectedPlan);
+      }
+    });
+    return selected;
+  };
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return (
+      <Typography color="error">
+        Erro ao carregar transações: {error.message}
+      </Typography>
+    );
+  }
+
+  const handleCreate = async (data) => {
+    // Revalida o limite no envio (defesa extra)
+    if (isFree && monthlyCount >= 50) {
+      const upgraded = await handleUpgrade();
+      if (!upgraded) return; // Mantém bloqueado no Free
+    }
+    createTransaction(data);
+    setOpenForm(false);
+  };
+
+  const handleUpdate = (data) => {
+    if (selectedTransaction) {
+      updateTransaction({ id: selectedTransaction.id, transaction: data });
+      setOpenForm(false);
+      setSelectedTransaction(null);
+    }
+  };
+
+  const handleDeleteClick = (transaction) => {
+    setTransactionToDelete(transaction);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (transactionToDelete) {
+      deleteTransaction(transactionToDelete.id);
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
+    }
+  };
+
+  const handleEdit = (transaction) => {
+    setSelectedTransaction(transaction);
+    setOpenForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setSelectedTransaction(null);
+    setOpenForm(false);
+  };
+
+  return (
+    <Box sx={{ p: 3 }}>
+        {/* Header com Ferramentas Avançadas */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Box mb={3}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+              <Box>
+                <Typography variant="h4" fontWeight={700} mb={1}>
+                  💳 Transações
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {filteredTransactions.length} de {transactions?.length || 0} transações
+                  {selectedTransactions.size > 0 && ` • ${selectedTransactions.size} selecionadas`}
+                </Typography>
+              </Box>
+              
+              <Stack direction="row" spacing={1}>
+                <Tooltip title="Filtros avançados">
+                  <IconButton 
+                    onClick={() => setShowFilters(!showFilters)}
+                    color={showFilters ? "primary" : "default"}
+                    sx={{
+                      background: showFilters ? gradients.purpleBlue : "transparent",
+                      color: showFilters ? "white" : "inherit",
+                      "&:hover": {
+                        background: showFilters ? gradients.purpleBlue : "rgba(99, 102, 241, 0.1)",
+                      },
+                    }}
+                  >
+                    <FilterIcon />
+                  </IconButton>
+                </Tooltip>
+                
+                <Tooltip title="Exportar CSV">
+                  <IconButton onClick={handleExport} color="success">
+                    <ExportIcon />
+                  </IconButton>
+                </Tooltip>
+
+                {selectedTransactions.size > 0 && (
+                  <Tooltip title="Excluir selecionadas">
+                    <IconButton onClick={handleBulkDelete} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
+
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={async () => {
+                    if (isFree && monthlyCount >= 50) {
+                      const upgraded = await handleUpgrade();
+                      if (!upgraded) return;
+                    }
+                    setOpenForm(true);
+                  }}
+                  sx={{
+                    background: gradients.purpleBlue,
+                    "&:hover": {
+                      background: gradients.purpleBlue,
+                      transform: "translateY(-2px)",
+                    },
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  Nova Transação
+                </Button>
+              </Stack>
+            </Box>
+
+            {/* Filtros Expandidos */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <GlassCard blur={10} opacity={0.05} padding={3} sx={{ mb: 3 }}>
+                    <Typography variant="h6" mb={2} sx={{ display: "flex", alignItems: "center" }}>
+                      <FilterIcon sx={{ mr: 1, color: colors.primary.main }} />
+                      Filtros Avançados
+                    </Typography>
+                    
+                    <Grid container spacing={2}>
+                      {/* Busca Inteligente */}
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label="Buscar transações"
+                          value={filters.search}
+                          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <SearchIcon color="action" />
+                              </InputAdornment>
+                            ),
+                            endAdornment: filters.search && (
+                              <InputAdornment position="end">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => setFilters({ ...filters, search: "" })}
+                                >
+                                  <ClearIcon />
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
+                          placeholder="Descrição, categoria ou valor..."
+                        />
+                      </Grid>
+
+                      {/* Filtro por Categoria */}
+                      <Grid item xs={12} md={2}>
+                        <FormControl fullWidth>
+                          <InputLabel>Categoria</InputLabel>
+                          <Select
+                            value={filters.category}
+                            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                            label="Categoria"
+                          >
+                            <MenuItem value="">Todas</MenuItem>
+                            {categories?.map((cat) => (
+                              <MenuItem key={cat.name} value={cat.name}>
+                                {cat.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+
+                      {/* Filtro por Tipo */}
+                      <Grid item xs={12} md={2}>
+                        <FormControl fullWidth>
+                          <InputLabel>Tipo</InputLabel>
+                          <Select
+                            value={filters.type}
+                            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                            label="Tipo"
+                          >
+                            <MenuItem value="">Todos</MenuItem>
+                            <MenuItem value="income">Receita</MenuItem>
+                            <MenuItem value="expense">Despesa</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+
+                      {/* Data Início */}
+                      <Grid item xs={12} md={2}>
+                        <TextField
+                          type="date"
+                          label="Data início"
+                          value={filters.dateFrom ? filters.dateFrom.toISOString().split('T')[0] : ''}
+                          onChange={(e) => setFilters({ 
+                            ...filters, 
+                            dateFrom: e.target.value ? new Date(e.target.value) : null 
+                          })}
+                          fullWidth
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
+
+                      {/* Data Fim */}
+                      <Grid item xs={12} md={2}>
+                        <TextField
+                          type="date"
+                          label="Data fim"
+                          value={filters.dateTo ? filters.dateTo.toISOString().split('T')[0] : ''}
+                          onChange={(e) => setFilters({ 
+                            ...filters, 
+                            dateTo: e.target.value ? new Date(e.target.value) : null 
+                          })}
+                          fullWidth
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
+
+                      {/* Valor Mínimo */}
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          type="number"
+                          label="Valor mínimo"
+                          value={filters.amountMin}
+                          onChange={(e) => setFilters({ ...filters, amountMin: e.target.value })}
+                          InputProps={{
+                            startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                          }}
+                        />
+                      </Grid>
+
+                      {/* Valor Máximo */}
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          type="number"
+                          label="Valor máximo"
+                          value={filters.amountMax}
+                          onChange={(e) => setFilters({ ...filters, amountMax: e.target.value })}
+                          InputProps={{
+                            startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                          }}
+                        />
+                      </Grid>
+
+                      {/* Ordenação */}
+                      <Grid item xs={12} md={3}>
+                        <FormControl fullWidth>
+                          <InputLabel>Ordenar por</InputLabel>
+                          <Select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            label="Ordenar por"
+                          >
+                            <MenuItem value="date">Data</MenuItem>
+                            <MenuItem value="amount">Valor</MenuItem>
+                            <MenuItem value="description">Descrição</MenuItem>
+                            <MenuItem value="category">Categoria</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+
+                      {/* Ordem */}
+                      <Grid item xs={12} md={3}>
+                        <FormControl fullWidth>
+                          <InputLabel>Ordem</InputLabel>
+                          <Select
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            label="Ordem"
+                          >
+                            <MenuItem value="desc">Decrescente</MenuItem>
+                            <MenuItem value="asc">Crescente</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+
+                    <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
+                      <Typography variant="body2" color="text.secondary">
+                        {filteredTransactions.length} transação(ões) encontrada(s)
+                      </Typography>
+                      <Button 
+                        startIcon={<ClearIcon />} 
+                        onClick={clearFilters}
+                        size="small"
+                      >
+                        Limpar Filtros
+                      </Button>
+                    </Box>
+                  </GlassCard>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Box>
+        </motion.div>
+
+        {/* Tabela de Transações Melhorada */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              overflow: "hidden",
+              border: "1px solid rgba(0, 0, 0, 0.08)",
+              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+            }}
+          >
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ bgcolor: "rgba(99, 102, 241, 0.05)" }}>
+                  <TableRow>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={filteredTransactions.length > 0 && selectedTransactions.size === filteredTransactions.length}
+                        indeterminate={selectedTransactions.size > 0 && selectedTransactions.size < filteredTransactions.length}
+                        onChange={handleSelectAll}
+                        sx={{ color: colors.primary.main }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        Data
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        Descrição
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        Categoria
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        Valor
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        Ações
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <AnimatePresence>
+                    {isLoading ? (
+                      [...Array(5)].map((_, index) => (
+                        <TableRow key={`loading-${index}`}>
+                          <TableCell padding="checkbox">
+                            <Skeleton variant="rectangular" width={24} height={24} />
+                          </TableCell>
+                          <TableCell><Skeleton width="80%" /></TableCell>
+                          <TableCell><Skeleton width="60%" /></TableCell>
+                          <TableCell><Skeleton width="50%" /></TableCell>
+                          <TableCell><Skeleton width="40%" /></TableCell>
+                          <TableCell><Skeleton width="60%" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : filteredTransactions.length > 0 ? (
+                      filteredTransactions.map((transaction, index) => {
+                        const transactionId = transaction.id || transaction._id;
+                        const isSelected = selectedTransactions.has(transactionId);
+                        
+                        return (
+                          <motion.tr
+                            key={transactionId}
+                            component={TableRow}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ delay: index * 0.05 }}
+                            sx={{
+                              "&:hover": {
+                                bgcolor: "rgba(99, 102, 241, 0.05)",
+                                transform: "scale(1.01)",
+                              },
+                              transition: "all 0.2s ease",
+                              bgcolor: isSelected ? "rgba(99, 102, 241, 0.08)" : "transparent",
+                              borderLeft: isSelected ? `3px solid ${colors.primary.main}` : "3px solid transparent",
+                            }}
+                          >
+                            <TableCell padding="checkbox">
+                              <Checkbox
+                                checked={isSelected}
+                                onChange={() => handleSelectTransaction(transactionId)}
+                                sx={{ color: colors.primary.main }}
+                              />
+                            </TableCell>
+                            
+                            <TableCell>
+                              <Box display="flex" alignItems="center">
+                                <DateRangeIcon sx={{ mr: 1, color: "text.secondary", fontSize: 18 }} />
+                                <Typography variant="body2" fontWeight={500}>
+                                  {new Date(transaction.date).toLocaleDateString("pt-BR")}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            
+                            <TableCell>
+                              <Typography variant="body1" fontWeight={500}>
+                                {transaction.description}
+                              </Typography>
+                            </TableCell>
+                            
+                            <TableCell>
+                              <Chip
+                                icon={<CategoryIcon sx={{ fontSize: 16 }} />}
+                                label={transaction.category?.name || transaction.category || "Sem categoria"}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  borderColor: colors.primary.main,
+                                  color: colors.primary.main,
+                                  "&:hover": {
+                                    bgcolor: "rgba(99, 102, 241, 0.1)",
+                                  },
+                                }}
+                              />
+                            </TableCell>
+                            
+                            <TableCell align="right">
+                              <Box display="flex" alignItems="center" justifyContent="flex-end">
+                                {transaction.type === "income" ? (
+                                  <TrendingUp sx={{ color: colors.success.main, mr: 0.5, fontSize: 18 }} />
+                                ) : (
+                                  <TrendingDown sx={{ color: colors.error.main, mr: 0.5, fontSize: 18 }} />
+                                )}
+                                <Typography
+                                  variant="h6"
+                                  fontWeight={600}
+                                  sx={{
+                                    color: transaction.type === "income" ? colors.success.main : colors.error.main,
+                                  }}
+                                >
+                                  {transaction.type === "income" ? "+" : "-"}
+                                  {Math.abs(transaction.amount).toLocaleString("pt-BR", {
+                                    style: "currency",
+                                    currency: "BRL",
+                                  })}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            
+                            <TableCell align="center">
+                              <Stack direction="row" spacing={1} justifyContent="center">
+                                <Tooltip title="Editar">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleEdit(transaction)}
+                                    sx={{
+                                      color: colors.primary.main,
+                                      "&:hover": {
+                                        bgcolor: "rgba(99, 102, 241, 0.1)",
+                                        transform: "scale(1.1)",
+                                      },
+                                    }}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Excluir">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDeleteClick(transaction)}
+                                    sx={{
+                                      color: colors.error.main,
+                                      "&:hover": {
+                                        bgcolor: "rgba(239, 68, 68, 0.1)",
+                                        transform: "scale(1.1)",
+                                      },
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </TableCell>
+                          </motion.tr>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
+                          <Box textAlign="center">
+                            <Typography variant="h6" color="text.secondary" mb={1}>
+                              Nenhuma transação encontrada
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" mb={2}>
+                              {filters.search || filters.category || filters.type 
+                                ? "Tente ajustar os filtros para encontrar suas transações"
+                                : "Comece adicionando sua primeira transação"
+                              }
+                            </Typography>
+                            <Button
+                              variant="contained"
+                              startIcon={<AddIcon />}
+                              onClick={() => setOpenForm(true)}
+                              sx={{ background: gradients.purpleBlue }}
+                            >
+                              Adicionar Transação
+                            </Button>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </AnimatePresence>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </motion.div>
+        </motion.div>
+
+        {/* Formulário de Transação */}
+        <TransactionForm
+          open={openForm}
+          onClose={handleCloseForm}
+          onSubmit={selectedTransaction ? handleUpdate : handleCreate}
+          initialData={selectedTransaction}
+        />
+
+        {/* Diálogo de Confirmação */}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          onConfirm={handleDeleteConfirm}
+          title="Excluir Transação"
+          message="Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita."
+        />
+      </Box>
+  );
+}

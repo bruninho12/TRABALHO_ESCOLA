@@ -3,6 +3,36 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import usePlan from "../hooks/usePlan";
 import Swal from "sweetalert2";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  InputAdornment,
+  IconButton,
+  Divider,
+  Checkbox,
+  FormControlLabel,
+  Tooltip,
+  Fade,
+  LinearProgress,
+  Chip,
+} from "@mui/material";
+import {
+  Visibility,
+  VisibilityOff,
+  Email,
+  Lock,
+  Person,
+  Security,
+  CheckCircle,
+  Cancel,
+} from "@mui/icons-material";
+import { motion } from "framer-motion";
+import { gradients, colors } from "../styles/designSystem";
+import GlassCard from "../components/common/GlassCard";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -20,8 +50,71 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
-  // Se houver plano na URL, seta e mostra notificação
+  // Função para calcular força da senha
+  const calculatePasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength += 1;
+    if (/[a-z]/.test(password)) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    return strength;
+  };
+
+  // Validação de campos em tempo real
+  const validateField = (name, value) => {
+    const errors = { ...validationErrors };
+
+    switch (name) {
+      case "name":
+        if (!value.trim()) {
+          errors.name = "Nome é obrigatório";
+        } else if (value.trim().length < 2) {
+          errors.name = "Nome deve ter pelo menos 2 caracteres";
+        } else {
+          delete errors.name;
+        }
+        break;
+      case "email":
+        if (!value) {
+          errors.email = "E-mail é obrigatório";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          errors.email = "E-mail inválido";
+        } else {
+          delete errors.email;
+        }
+        break;
+      case "password":
+        if (!value) {
+          errors.password = "Senha é obrigatória";
+        } else if (value.length < 6) {
+          errors.password = "Senha deve ter no mínimo 6 caracteres";
+        } else {
+          delete errors.password;
+        }
+        setPasswordStrength(calculatePasswordStrength(value));
+        break;
+      case "confirmPassword":
+        if (!value) {
+          errors.confirmPassword = "Confirmação de senha é obrigatória";
+        } else if (value !== formData.password) {
+          errors.confirmPassword = "Senhas não coincidem";
+        } else {
+          delete errors.confirmPassword;
+        }
+        break;
+      default:
+        break;
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
   useEffect(() => {
     if (planParam && ["premium", "anual", "vitalicio"].includes(planParam)) {
       setPlan(planParam);

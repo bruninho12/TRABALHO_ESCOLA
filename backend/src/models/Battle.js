@@ -18,12 +18,53 @@ const BattleSchema = new mongoose.Schema(
     enemy: {
       type: {
         type: String,
-        enum: ["Pizza", "Dívida", "Juro", "Imposto", "Emergência"],
+        enum: [
+          "Pizza",
+          "Dívida",
+          "Juro",
+          "Imposto",
+          "Emergência",
+          "Conformismo",
+          "Limitação",
+          "Medo",
+          "Preguiça",
+          "Ganância",
+          "Luxúria",
+          "Inveja",
+          "Ira",
+          "Apocalipse",
+          "Destino",
+          "Eternidade",
+          "Void",
+        ],
         required: true,
       },
-      name: String,
-      healthMax: Number,
-      health: Number,
+      name: {
+        type: String,
+        required: true,
+      },
+      healthMax: {
+        type: Number,
+        required: true,
+        min: 1,
+        validate: {
+          validator: function (v) {
+            return !isNaN(v) && isFinite(v) && v > 0;
+          },
+          message: "HealthMax deve ser um número positivo válido",
+        },
+      },
+      health: {
+        type: Number,
+        required: true,
+        min: 0,
+        validate: {
+          validator: function (v) {
+            return !isNaN(v) && isFinite(v) && v >= 0;
+          },
+          message: "Health deve ser um número positivo válido",
+        },
+      },
       difficulty: {
         type: String,
         enum: ["Fácil", "Médio", "Difícil", "Épico"],

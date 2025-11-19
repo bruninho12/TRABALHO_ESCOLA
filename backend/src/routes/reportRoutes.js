@@ -138,11 +138,11 @@ router.get("/categories", async (req, res) => {
     const transactions = await Transaction.find({
       userId,
       date: { $gte: startDate, $lte: endDate },
-    }).populate("categoryId", "name");
+    }).populate("category", "name");
 
     const categoryTotals = {};
     transactions.forEach((t) => {
-      const categoryName = t.categoryId?.name || "Sem categoria";
+      const categoryName = t.category?.name || "Sem categoria";
       if (!categoryTotals[categoryName]) {
         categoryTotals[categoryName] = 0;
       }
@@ -153,7 +153,7 @@ router.get("/categories", async (req, res) => {
       success: true,
       data: {
         labels: Object.keys(categoryTotals),
-        data: Object.values(categoryTotals),
+        values: Object.values(categoryTotals),
       },
     });
   } catch (error) {

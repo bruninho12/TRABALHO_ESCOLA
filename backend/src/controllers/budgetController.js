@@ -26,11 +26,8 @@ exports.getBudgets = async (req, res) => {
 // Obter progresso dos orçamentos
 exports.getBudgetProgress = async (req, res) => {
   try {
-    const { month, year } = req.query;
-
-    if (!month || !year) {
-      return res.status(400).json({ message: "Mês e ano são obrigatórios" });
-    }
+    const now = new Date();
+    const { month = now.getMonth() + 1, year = now.getFullYear() } = req.query;
 
     // Buscar orçamentos
     const budgets = await Budget.find({
@@ -39,6 +36,14 @@ exports.getBudgetProgress = async (req, res) => {
       year: parseInt(year),
     }).populate("category", "name type");
 
+    if (budgets.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        message: "Nenhum orçamento encontrado para este período",
+      });
+    }
+
     // Calcular gastos reais para cada categoria
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59);
@@ -46,14 +51,15 @@ exports.getBudgetProgress = async (req, res) => {
     const transactions = await Transaction.aggregate([
       {
         $match: {
-          user: req.user.id,
+          userId: req.user.id,
           date: { $gte: startDate, $lte: endDate },
+          type: "expense",
         },
       },
       {
         $group: {
           _id: "$category",
-          total: { $sum: "$amount" },
+          total: { $sum: { $abs: "$amount" } },
         },
       },
     ]);
@@ -61,17 +67,24 @@ exports.getBudgetProgress = async (req, res) => {
     // Mapear resultados
     const progress = budgets.map((budget) => {
       const spent = transactions.find(
-        (t) => t._id.toString() === budget.category._id.toString()
+        (t) => t._id && t._id.toString() === budget.category._id.toString()
       );
+      const spentAmount = spent?.total || 0;
+
       return {
-        budget: budget.toObject(),
-        spent: Math.abs(spent?.total || 0),
-        remaining: budget.amount - Math.abs(spent?.total || 0),
-        percentage: ((spent?.total || 0) / budget.amount) * 100,
+        _id: budget._id,
+        category: budget.category,
+        limit: budget.amount,
+        spent: spentAmount,
+        remaining: budget.amount - spentAmount,
+        percentage: budget.amount > 0 ? (spentAmount / budget.amount) * 100 : 0,
       };
     });
 
-    res.json(progress);
+    res.json({
+      success: true,
+      data: progress,
+    });
   } catch (error) {
     res
       .status(500)

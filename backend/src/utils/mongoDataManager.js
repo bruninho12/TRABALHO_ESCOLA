@@ -117,7 +117,7 @@ class MongoDataManager {
 
   async getTransactionsByUserId(userId, limit = 20, skip = 0, filters = {}) {
     try {
-      const query = { userId };
+      const query = { userId: this.toObjectId(userId) };
       if (filters.type) query.type = filters.type;
       if (filters.category) query.category = filters.category;
       if (filters.status) query.status = filters.status;
@@ -127,12 +127,18 @@ class MongoDataManager {
         if (filters.endDate) query.date.$lte = new Date(filters.endDate);
       }
 
+      // Configurar ordenação
+      const sortField = filters.sortField || "date";
+      const sortDirection = filters.sortDirection === "asc" ? 1 : -1;
+      const sortObj = { [sortField]: sortDirection };
+
       const transactions = await Transaction.find(query)
-        .sort({ date: -1 })
+        .sort(sortObj)
         .limit(limit)
         .skip(skip);
       const total = await Transaction.countDocuments(query);
-      return { data: transactions, total };
+      const pages = Math.ceil(total / limit);
+      return { data: transactions, total, pages };
     } catch (err) {
       logger.error("Erro ao buscar transações:", err);
       throw err;

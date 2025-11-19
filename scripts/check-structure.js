@@ -14,11 +14,20 @@ const projectRoot = path.resolve(__dirname, "..");
 const expectedStructure = {
   "README.md": "file",
   ".gitignore": "file",
+  "config/": "directory",
+  "config/.env.backend.example": "file",
+  "config/.env.frontend.example": "file",
   "docs/": "directory",
   "docs/README.md": "file",
   "docs/guides/": "directory",
   "docs/security/": "directory",
   "docs/checklists/": "directory",
+  "docs/development/": "directory",
+  "deployment/": "directory",
+  "deployment/docker/": "directory",
+  "deployment/platforms/": "directory",
+  "scripts/": "directory",
+  "scripts/deploy/": "directory",
   "backend/": "directory",
   "backend/package.json": "file",
   "backend/server.js": "file",
@@ -35,6 +44,7 @@ const expectedStructure = {
   "frontend/src/assets/": "directory",
   "frontend/src/assets/icons/": "directory",
   "frontend/src/assets/images/": "directory",
+  "frontend/src/tests/": "directory",
 };
 
 function checkStructure() {
@@ -69,7 +79,10 @@ function checkStructure() {
   const allowedRootItems = [
     "README.md",
     ".gitignore",
+    "config",
     "docs",
+    "deployment",
+    "scripts",
     "backend",
     "frontend",
     ".git",

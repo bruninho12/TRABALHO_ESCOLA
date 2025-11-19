@@ -182,8 +182,8 @@ const AvatarSchema = new mongoose.Schema(
   }
 );
 
-// Índices para performance
-AvatarSchema.index({ userId: 1 });
+// Índices para performance (evitando duplicados)
+// AvatarSchema.index({ userId: 1 }); // Já é unique no schema
 AvatarSchema.index({ level: 1 });
 AvatarSchema.index({ currentCity: 1 });
 AvatarSchema.index({ createdAt: -1 });

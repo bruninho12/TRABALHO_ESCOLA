@@ -196,8 +196,8 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Índices para performance
-userSchema.index({ username: 1 });
+// Índices para performance (removidos duplicados de campos unique)
+// userSchema.index({ username: 1 }); // Já é unique no schema
 userSchema.index({ createdAt: -1 });
 userSchema.index({ level: -1, score: -1 }); // Para leaderboards
 

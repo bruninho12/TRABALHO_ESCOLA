@@ -147,17 +147,34 @@ WorldMapSchema.methods.getRandomEnemy = function () {
   for (const enemy of this.enemies) {
     random -= enemy.spawnRate;
     if (random <= 0) {
+      // Garantir que healthMax seja um número inteiro válido
+      const healthRange = enemy.healthMax - enemy.healthMin;
+      const randomHealth = Math.round(
+        enemy.healthMin + Math.random() * healthRange
+      );
+
       return {
         type: enemy.type,
         name: enemy.name,
-        healthMax:
-          enemy.healthMin + Math.random() * (enemy.healthMax - enemy.healthMin),
+        healthMax: Math.max(1, randomHealth), // Garantir que seja pelo menos 1
         difficulty: this.difficulty,
       };
     }
   }
 
-  return this.enemies[0];
+  // Fallback com saúde válida
+  const fallbackEnemy = this.enemies[0];
+  const healthRange = fallbackEnemy.healthMax - fallbackEnemy.healthMin;
+  const randomHealth = Math.round(
+    fallbackEnemy.healthMin + Math.random() * healthRange
+  );
+
+  return {
+    type: fallbackEnemy.type,
+    name: fallbackEnemy.name,
+    healthMax: Math.max(1, randomHealth),
+    difficulty: this.difficulty,
+  };
 };
 
 WorldMapSchema.methods.markBossDefeated = function () {
@@ -203,6 +220,29 @@ const CITIES_TEMPLATES = {
     position: { x: 50, y: 50 },
     difficulty: "Fácil",
     levelRequirement: 1,
+    enemies: [
+      {
+        type: "Pizza",
+        name: "Tentação da Pizza",
+        healthMin: 20,
+        healthMax: 40,
+        spawnRate: 0.4,
+      },
+      {
+        type: "Dívida",
+        name: "Pequena Dívida",
+        healthMin: 15,
+        healthMax: 30,
+        spawnRate: 0.3,
+      },
+      {
+        type: "Juro",
+        name: "Juro Simples",
+        healthMin: 10,
+        healthMax: 25,
+        spawnRate: 0.3,
+      },
+    ],
     boss: {
       name: "O Pequeno Desperdício",
       health: 50,
@@ -223,6 +263,29 @@ const CITIES_TEMPLATES = {
     position: { x: 100, y: 50 },
     difficulty: "Médio",
     levelRequirement: 5,
+    enemies: [
+      {
+        type: "Dívida",
+        name: "Dívida Crescente",
+        healthMin: 40,
+        healthMax: 70,
+        spawnRate: 0.3,
+      },
+      {
+        type: "Juro",
+        name: "Juro Composto",
+        healthMin: 35,
+        healthMax: 60,
+        spawnRate: 0.4,
+      },
+      {
+        type: "Imposto",
+        name: "Taxa Inesperada",
+        healthMin: 30,
+        healthMax: 50,
+        spawnRate: 0.3,
+      },
+    ],
     boss: {
       name: "O Dragão da Ganância",
       health: 150,
@@ -243,6 +306,36 @@ const CITIES_TEMPLATES = {
     position: { x: 150, y: 100 },
     difficulty: "Médio",
     levelRequirement: 10,
+    enemies: [
+      {
+        type: "Dívida",
+        name: "Dívida Estudantil",
+        healthMin: 60,
+        healthMax: 90,
+        spawnRate: 0.25,
+      },
+      {
+        type: "Juro",
+        name: "Juro Complexo",
+        healthMin: 50,
+        healthMax: 80,
+        spawnRate: 0.35,
+      },
+      {
+        type: "Imposto",
+        name: "IR Complexo",
+        healthMin: 45,
+        healthMax: 75,
+        spawnRate: 0.25,
+      },
+      {
+        type: "Emergência",
+        name: "Gasto Imprevisto",
+        healthMin: 40,
+        healthMax: 70,
+        spawnRate: 0.15,
+      },
+    ],
     boss: {
       name: "O Gênio Enganador",
       health: 200,
@@ -263,6 +356,36 @@ const CITIES_TEMPLATES = {
     position: { x: 200, y: 50 },
     difficulty: "Difícil",
     levelRequirement: 15,
+    enemies: [
+      {
+        type: "Dívida",
+        name: "Dívida de Cartão",
+        healthMin: 80,
+        healthMax: 120,
+        spawnRate: 0.3,
+      },
+      {
+        type: "Juro",
+        name: "Juro Abusivo",
+        healthMin: 70,
+        healthMax: 110,
+        spawnRate: 0.3,
+      },
+      {
+        type: "Imposto",
+        name: "Tributação Pesada",
+        healthMin: 65,
+        healthMax: 105,
+        spawnRate: 0.25,
+      },
+      {
+        type: "Emergência",
+        name: "Crise Financeira",
+        healthMin: 60,
+        healthMax: 100,
+        spawnRate: 0.15,
+      },
+    ],
     boss: {
       name: "A Sombra da Dívida",
       health: 300,
@@ -283,6 +406,36 @@ const CITIES_TEMPLATES = {
     position: { x: 250, y: 100 },
     difficulty: "Difícil",
     levelRequirement: 20,
+    enemies: [
+      {
+        type: "Dívida",
+        name: "Financiamento Arriscado",
+        healthMin: 100,
+        healthMax: 150,
+        spawnRate: 0.25,
+      },
+      {
+        type: "Juro",
+        name: "Juro Capitalizado",
+        healthMin: 90,
+        healthMax: 140,
+        spawnRate: 0.3,
+      },
+      {
+        type: "Imposto",
+        name: "Auditoria Fiscal",
+        healthMin: 85,
+        healthMax: 135,
+        spawnRate: 0.25,
+      },
+      {
+        type: "Emergência",
+        name: "Recessão Econômica",
+        healthMin: 80,
+        healthMax: 130,
+        spawnRate: 0.2,
+      },
+    ],
     boss: {
       name: "Titã da Incerteza",
       health: 400,
@@ -303,6 +456,36 @@ const CITIES_TEMPLATES = {
     position: { x: 300, y: 50 },
     difficulty: "Épico",
     levelRequirement: 25,
+    enemies: [
+      {
+        type: "Dívida",
+        name: "Hipoteca Mortal",
+        healthMin: 120,
+        healthMax: 180,
+        spawnRate: 0.25,
+      },
+      {
+        type: "Juro",
+        name: "Juro Predador",
+        healthMin: 110,
+        healthMax: 170,
+        spawnRate: 0.3,
+      },
+      {
+        type: "Imposto",
+        name: "Confisco Brutal",
+        healthMin: 105,
+        healthMax: 165,
+        spawnRate: 0.25,
+      },
+      {
+        type: "Emergência",
+        name: "Catástrofe Financeira",
+        healthMin: 100,
+        healthMax: 160,
+        spawnRate: 0.2,
+      },
+    ],
     boss: {
       name: "Rei dos Gastos Desnecessários",
       health: 500,

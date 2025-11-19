@@ -12,6 +12,10 @@ class TransactionController {
   // GET /api/transactions
   async getTransactions(req, res) {
     try {
+      console.log("🔍 [DEBUG] getTransactions - req.query:", req.query);
+      console.log("🔍 [DEBUG] getTransactions - req.user.id:", req.user.id);
+      console.log("🔍 [DEBUG] getTransactions - req.user._id:", req.user._id);
+
       const {
         page = 1,
         limit = 10,
@@ -19,14 +23,19 @@ class TransactionController {
         category,
         startDate,
         endDate,
+        sortField = "date",
+        sortDirection = "desc",
       } = req.query;
-      const userId = req.user._id;
+      const userId = req.user.id || req.user._id;
 
       // Calcula skip baseado na página
       const skip = (parseInt(page) - 1) * parseInt(limit);
 
       // Monta filtros para getTransactionsByUserId
-      const filters = {};
+      const filters = {
+        sortField,
+        sortDirection,
+      };
       if (type) filters.type = type;
       if (category) filters.category = category;
       if (startDate || endDate) {
@@ -41,6 +50,8 @@ class TransactionController {
         filters
       );
 
+      console.log("✅ [DEBUG] getTransactions result:", result);
+
       return res.status(200).json({
         success: true,
         data: result.data,
@@ -51,6 +62,7 @@ class TransactionController {
         },
       });
     } catch (error) {
+      console.error("❌ [DEBUG] getTransactions error:", error);
       return res.status(500).json({
         success: false,
         error: "Failed to fetch transactions",
@@ -374,8 +386,8 @@ class TransactionValidator {
       errors.push("Description is required");
     }
 
-    if (!data.amount || typeof data.amount !== "number" || data.amount <= 0) {
-      errors.push("Amount must be a positive number");
+    if (!data.amount || typeof data.amount !== "number" || data.amount === 0) {
+      errors.push("Amount must be a non-zero number");
     }
 
     if (!data.category || data.category.trim().length === 0) {
@@ -469,23 +481,69 @@ class TransactionValidator {
 // Export para Node.js
 const getTransactions = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { limit = 5, sortField = "date", sortDirection = "desc" } = req.query;
+    console.log(
+      "🔍 [DEBUG] getTransactions (standalone) - req.query:",
+      req.query
+    );
+    console.log(
+      "🔍 [DEBUG] getTransactions (standalone) - req.user:",
+      req.user
+    );
+
+    const userId = req.user.id || req.user._id;
+    const {
+      page = 1,
+      limit = 5,
+      sortField = "date",
+      sortDirection = "desc",
+      type,
+      category,
+      startDate,
+      endDate,
+    } = req.query;
+
+    // Calcula skip baseado na página
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Monta query
+    const query = { userId };
+    if (type) query.type = type;
+    if (category) query.category = category;
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate);
+      if (endDate) query.date.$lte = new Date(endDate);
+    }
 
     const sortOrder = sortDirection === "asc" ? 1 : -1;
     const sortObj = { [sortField]: sortOrder };
 
-    const transactions = await Transaction.find({ userId })
+    const transactions = await Transaction.find(query)
       .limit(parseInt(limit))
+      .skip(skip)
       .sort(sortObj)
-      .populate("categoryId");
+      .populate("category");
+
+    const total = await Transaction.countDocuments(query);
+    const pages = Math.ceil(total / parseInt(limit));
+
+    console.log(
+      "✅ [DEBUG] getTransactions (standalone) - found:",
+      transactions.length,
+      "transactions"
+    );
 
     return res.json({
       success: true,
       data: transactions || [],
-      pagination: { current: 1, pages: 1, total: transactions.length },
+      pagination: {
+        current: parseInt(page),
+        pages,
+        total,
+      },
     });
   } catch (error) {
+    console.error("❌ [DEBUG] getTransactions (standalone) error:", error);
     return res.status(500).json({
       success: false,
       message: "Erro ao buscar transações",

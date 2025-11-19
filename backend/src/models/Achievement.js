@@ -95,9 +95,9 @@ const AchievementSchema = new mongoose.Schema(
   }
 );
 
-// Índices
+// Índices (evitando duplicados)
 AchievementSchema.index({ userId: 1 });
-AchievementSchema.index({ name: 1 });
+// AchievementSchema.index({ name: 1 }); // Já é unique no schema
 AchievementSchema.index({ category: 1 });
 AchievementSchema.index({ isUnlocked: 1 });
 AchievementSchema.index({ rarity: 1 });

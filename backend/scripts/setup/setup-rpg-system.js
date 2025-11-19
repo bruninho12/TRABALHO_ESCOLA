@@ -2,18 +2,18 @@
 
 const mongoose = require("mongoose");
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config({ path: path.join(__dirname, "../../.env") });
 
-const WorldMap = require(path.join(__dirname, "../src/models/WorldMap"));
+const WorldMap = require(path.join(__dirname, "../../src/models/WorldMap"));
 const { CITIES_TEMPLATES } = require(path.join(
   __dirname,
-  "../src/models/WorldMap"
+  "../../src/models/WorldMap"
 ));
 const { ACHIEVEMENT_TEMPLATES } = require(path.join(
   __dirname,
-  "../src/models/Achievement"
+  "../../src/models/Achievement"
 ));
-const logger = require(path.join(__dirname, "../src/utils/logger"));
+const logger = require(path.join(__dirname, "../../src/utils/logger"));
 
 const mongoUri =
   process.env.MONGO_URI || "mongodb://localhost:27017/despfinance";

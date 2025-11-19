@@ -138,7 +138,7 @@ class InsightsEngine {
         },
         {
           $group: {
-            _id: "$categoryId",
+            _id: "$category",
             total: { $sum: "$amount" },
             count: { $sum: 1 },
           },
@@ -156,7 +156,7 @@ class InsightsEngine {
         },
         {
           $group: {
-            _id: "$categoryId",
+            _id: "$category",
             total: { $sum: "$amount" },
             count: { $sum: 1 },
           },
@@ -250,7 +250,7 @@ class InsightsEngine {
         {
           $group: {
             _id: {
-              category: "$categoryId",
+              category: "$category",
               description: "$description",
             },
             count: { $sum: 1 },
@@ -327,7 +327,7 @@ class InsightsEngine {
           $group: {
             _id: {
               dayOfWeek: { $dayOfWeek: "$date" },
-              category: "$categoryId",
+              category: "$category",
             },
             count: { $sum: 1 },
             avgAmount: { $avg: "$amount" },
@@ -478,7 +478,7 @@ class InsightsEngine {
         },
         {
           $group: {
-            _id: "$categoryId",
+            _id: "$category",
             avgAmount: { $avg: "$amount" },
             stdDev: { $stdDevPop: "$amount" },
             count: { $sum: 1 },
@@ -491,14 +491,14 @@ class InsightsEngine {
         userId,
         type: "expense",
         date: { $gte: last7Days },
-      }).populate("categoryId", "name");
+      }).populate("category", "name");
 
       const statsMap = new Map(
         baselineStats.map((s) => [s._id?.toString(), s])
       );
 
       for (const transaction of recentTransactions) {
-        const categoryId = transaction.categoryId._id.toString();
+        const categoryId = transaction.category._id.toString();
         const stats = statsMap.get(categoryId);
 
         if (stats && stats.count >= 5) {
@@ -509,7 +509,7 @@ class InsightsEngine {
               type: this.insightTypes.UNUSUAL_EXPENSE,
               title: "🚨 Gasto Incomum Detectado",
               message: `O gasto de R$ ${transaction.amount.toFixed(2)} em ${
-                transaction.categoryId.name
+                transaction.category.name
               } está acima do seu padrão habitual (média: R$ ${stats.avgAmount.toFixed(
                 2
               )}).`,
@@ -517,7 +517,7 @@ class InsightsEngine {
               priority: 7,
               data: {
                 transactionId: transaction._id,
-                category: transaction.categoryId.name,
+                category: transaction.category.name,
                 amount: transaction.amount,
                 avgAmount: stats.avgAmount,
                 difference: transaction.amount - stats.avgAmount,
@@ -527,7 +527,12 @@ class InsightsEngine {
         }
       }
     } catch (error) {
-      logger.error("Erro ao detectar anomalias:", error);
+      console.warn("⚠️ Erro ao detectar anomalias:", error?.message || error);
+      logger.error("Erro ao detectar anomalias:", {
+        error: error?.message || error,
+        stack: error?.stack,
+        userId,
+      });
     }
 
     return insights;
@@ -712,7 +717,7 @@ class InsightsEngine {
         },
         {
           $group: {
-            _id: "$categoryId",
+            _id: "$category",
             avgAmount: { $avg: "$amount" },
             count: { $sum: 1 },
           },
@@ -763,7 +768,7 @@ class InsightsEngine {
   async compareBudgetPerformance(userId) {
     try {
       const budgets = await Budget.find({ userId }).populate(
-        "categoryId",
+        "category",
         "name"
       );
 
@@ -774,7 +779,7 @@ class InsightsEngine {
         else if (percentage >= 80) status = "warning";
 
         return {
-          category: budget.categoryId.name,
+          category: budget.category.name,
           limit: budget.limit,
           spent: budget.spent,
           remaining: budget.limit - budget.spent,

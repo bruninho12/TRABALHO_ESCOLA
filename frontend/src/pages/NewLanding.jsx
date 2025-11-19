@@ -24,6 +24,17 @@ import {
   Assessment as ReportsIcon,
   ArrowForward,
   CheckCircle,
+  PlayCircle,
+  Star,
+  Speed,
+  Shield,
+  CloudSync,
+  PhoneAndroid,
+  TrendingDown,
+  Savings,
+  AttachMoney,
+  CreditCard,
+  AutoGraph,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -1117,6 +1128,280 @@ const Landing = () => {
               Sem cartão • Sem compromisso • Cancele quando quiser
             </Typography>
           </Box>
+        </Container>
+      </Box>
+
+      {/* Comparison Section */}
+      <Box sx={{ py: 8, bgcolor: "#f8fafc" }}>
+        <Container maxWidth="lg">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <Box textAlign="center" mb={8}>
+              <Typography variant="h3" fontWeight={800} color="#0f172a" mb={3}>
+                Por que escolher o DespFinance?
+              </Typography>
+              <Typography
+                variant="h6"
+                color="#64748b"
+                maxWidth="800px"
+                mx="auto"
+              >
+                Compare e veja como somos diferentes dos outros apps de finanças
+              </Typography>
+            </Box>
+
+            <Box sx={{ overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: "800px",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: "left",
+                        padding: "16px",
+                        borderBottom: "2px solid #e2e8f0",
+                      }}
+                    >
+                      <Typography variant="h6" fontWeight={700}>
+                        Características
+                      </Typography>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "center",
+                        padding: "16px",
+                        borderBottom: "2px solid #e2e8f0",
+                        background: "rgba(99, 102, 241, 0.1)",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            background:
+                              "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                          }}
+                        >
+                          F
+                        </Box>
+                        <Typography
+                          variant="h6"
+                          fontWeight={700}
+                          color="#6366f1"
+                        >
+                          DespFinance
+                        </Typography>
+                      </Box>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "center",
+                        padding: "16px",
+                        borderBottom: "2px solid #e2e8f0",
+                      }}
+                    >
+                      <Typography variant="h6" fontWeight={700} color="#64748b">
+                        App X
+                      </Typography>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "center",
+                        padding: "16px",
+                        borderBottom: "2px solid #e2e8f0",
+                      }}
+                    >
+                      <Typography variant="h6" fontWeight={700} color="#64748b">
+                        App Y
+                      </Typography>
+                    </th>
+                    <th
+                      style={{
+                        textAlign: "center",
+                        padding: "16px",
+                        borderBottom: "2px solid #e2e8f0",
+                      }}
+                    >
+                      <Typography variant="h6" fontWeight={700} color="#64748b">
+                        App Z
+                      </Typography>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {
+                      feature: "Gamificação Completa",
+                      despfinance: true,
+                      others: [false, false, false],
+                    },
+                    {
+                      feature: "Sistema RPG",
+                      despfinance: true,
+                      others: [false, false, false],
+                    },
+                    {
+                      feature: "Controle de Gastos",
+                      despfinance: true,
+                      others: [true, true, true],
+                    },
+                    {
+                      feature: "Metas Inteligentes",
+                      despfinance: true,
+                      others: [true, false, true],
+                    },
+                    {
+                      feature: "Relatórios Premium",
+                      despfinance: true,
+                      others: [false, true, false],
+                    },
+                    {
+                      feature: "Suporte 24/7",
+                      despfinance: true,
+                      others: [false, false, true],
+                    },
+                    {
+                      feature: "Interface Moderna",
+                      despfinance: true,
+                      others: [false, true, false],
+                    },
+                    {
+                      feature: "Gratuito para Começar",
+                      despfinance: true,
+                      others: [false, false, true],
+                    },
+                  ].map((row, index) => (
+                    <tr
+                      key={index}
+                      style={{ borderBottom: "1px solid #e2e8f0" }}
+                    >
+                      <td style={{ padding: "16px" }}>
+                        <Typography variant="body1" fontWeight={600}>
+                          {row.feature}
+                        </Typography>
+                      </td>
+                      <td
+                        style={{
+                          padding: "16px",
+                          textAlign: "center",
+                          background: row.despfinance
+                            ? "rgba(16, 185, 129, 0.1)"
+                            : "rgba(239, 68, 68, 0.1)",
+                        }}
+                      >
+                        {row.despfinance ? (
+                          <CheckCircle
+                            sx={{ color: "#10b981", fontSize: 24 }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: 24,
+                              height: 24,
+                              borderRadius: "50%",
+                              bgcolor: "#ef4444",
+                              color: "white",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "1rem",
+                              fontWeight: 700,
+                              mx: "auto",
+                            }}
+                          >
+                            ✕
+                          </Box>
+                        )}
+                      </td>
+                      {row.others.map((has, idx) => (
+                        <td
+                          key={idx}
+                          style={{ padding: "16px", textAlign: "center" }}
+                        >
+                          {has ? (
+                            <CheckCircle
+                              sx={{ color: "#10b981", fontSize: 24 }}
+                            />
+                          ) : (
+                            <Box
+                              sx={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: "50%",
+                                bgcolor: "#ef4444",
+                                color: "white",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "1rem",
+                                fontWeight: 700,
+                                mx: "auto",
+                              }}
+                            >
+                              ✕
+                            </Box>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Box>
+
+            <Box textAlign="center" mt={6}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="contained"
+                  size="large"
+                  endIcon={<ArrowForward />}
+                  onClick={() => navigate("/register")}
+                  sx={{
+                    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                    px: 6,
+                    py: 3,
+                    fontSize: "1.2rem",
+                    fontWeight: 700,
+                    borderRadius: 3,
+                    boxShadow: "0 10px 30px rgba(99, 102, 241, 0.3)",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 15px 40px rgba(99, 102, 241, 0.4)",
+                    },
+                  }}
+                >
+                  Experimente Grátis Agora
+                </Button>
+              </motion.div>
+            </Box>
+          </motion.div>
         </Container>
       </Box>
 

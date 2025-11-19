@@ -3,6 +3,7 @@ const Battle = require("../models/Battle");
 const Achievement = require("../models/Achievement");
 const WorldMap = require("../models/WorldMap");
 const logger = require("../utils/logger");
+const CacheMiddleware = require("../middleware/cacheMiddleware");
 
 class RPGController {
   /**
@@ -91,20 +92,82 @@ class RPGController {
     try {
       const userId = req.user.id;
 
+      // CACHE TEMPORARIAMENTE DESABILITADO - Bug de serialização
+      // TODO: Reabilitar após correção completa
+      if (false && req.cachedAvatar) {
+        console.log("🚀 [CACHE] Avatar servido do cache para usuário:", userId);
+        console.log(
+          "🔍 [DEBUG] Tipo do cachedAvatar:",
+          typeof req.cachedAvatar
+        );
+        console.log(
+          "🔍 [DEBUG] É plain object?",
+          req.cachedAvatar.constructor === Object
+        );
+
+        // Garantir que é um plain object
+        let avatarData = req.cachedAvatar;
+        if (typeof avatarData.toDTO === "function") {
+          // Se ainda tem métodos Mongoose, converter para DTO
+          avatarData = avatarData.toDTO();
+          console.log("⚠️ [CACHE] Avatar convertido de Mongoose para DTO");
+        }
+
+        return res.status(200).json({
+          success: true,
+          data: {
+            avatar: avatarData,
+          },
+        });
+      }
+
       const avatar = await Avatar.findOne({ userId }).populate("achievements");
 
-      return res.status(200).json({
-        success: true,
-        data: {
-          avatar: avatar ? avatar.toDTO() : null,
-        },
-      });
+      // Armazenar no cache se encontrou avatar
+      if (avatar) {
+        const avatarDTO = avatar.toDTO();
+        console.log(
+          "🔍 [DEBUG] Tipo do avatarDTO antes do cache:",
+          typeof avatarDTO
+        );
+        console.log(
+          "🔍 [DEBUG] AvatarDTO é plain object?",
+          avatarDTO.constructor === Object
+        );
+
+        // CACHE TEMPORARIAMENTE DESABILITADO
+        // CacheMiddleware.storeAvatar(userId, avatarDTO);
+        console.log("✅ Avatar encontrado no DB para usuário:", userId);
+        return res.status(200).json({
+          success: true,
+          data: {
+            avatar: avatarDTO, // Usar o DTO convertido
+          },
+        });
+      } else {
+        // Usuário não tem avatar ainda
+        return res.status(200).json({
+          success: true,
+          data: {
+            avatar: null,
+          },
+        });
+      }
     } catch (error) {
-      logger.error("Erro ao buscar avatar:", error);
+      console.error("❌ [ERROR] Erro ao buscar avatar:", error);
+      logger.error("Erro ao buscar avatar:", {
+        error: error.message,
+        stack: error.stack,
+        userId: req.user?.id,
+        hasCachedAvatar: !!req.cachedAvatar,
+      });
       return res.status(500).json({
         success: false,
-        message: "Erro ao buscar avatar",
-        error: error.message,
+        message: "Erro interno do servidor",
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : "Erro interno",
       });
     }
   }
@@ -190,8 +253,18 @@ class RPGController {
       const userId = req.user.id;
       const { cityNumber } = req.body;
 
+      // Validate input
+      if (!cityNumber) {
+        return res.status(400).json({
+          success: false,
+          message: "cityNumber é obrigatório",
+        });
+      }
+
       // Get avatar
       const avatar = await Avatar.findOne({ userId });
+      console.log("🎮 [DEBUG] Avatar encontrado:", !!avatar);
+
       if (!avatar) {
         return res.status(404).json({
           success: false,
@@ -199,8 +272,11 @@ class RPGController {
         });
       }
 
+      console.log("🎮 [DEBUG] Procurando cidade:", cityNumber);
       // Get city
       const city = await WorldMap.findOne({ cityNumber });
+      console.log("🎮 [DEBUG] Cidade encontrada:", !!city);
+
       if (!city) {
         return res.status(404).json({
           success: false,
@@ -209,32 +285,64 @@ class RPGController {
       }
 
       // Check access
+      console.log(
+        "🎮 [DEBUG] Verificando acesso. Avatar level:",
+        avatar.level,
+        "City requirement:",
+        city.levelRequirement
+      );
+
       if (!city.canPlayerAccess(avatar.level)) {
+        console.log("❌ [DEBUG] Acesso negado");
         return res.status(403).json({
           success: false,
           message: `Você precisa estar no nível ${city.levelRequirement} para acessar esta cidade`,
         });
       }
 
+      console.log("✅ [DEBUG] Acesso permitido");
+
       // Get random enemy
+      console.log("🎮 [DEBUG] Gerando inimigo...");
       const enemy = city.getRandomEnemy();
+      console.log("🎮 [DEBUG] Inimigo gerado:", !!enemy, enemy);
+
       if (!enemy) {
+        console.log("❌ [DEBUG] Nenhum inimigo disponível");
         return res.status(400).json({
           success: false,
           message: "Nenhum inimigo disponível nesta cidade",
         });
       }
 
-      // Create battle
-      const battle = new Battle({
+      // Validar dados do inimigo antes de criar batalha
+      if (!enemy.healthMax || isNaN(enemy.healthMax) || enemy.healthMax <= 0) {
+        console.error("❌ [DEBUG] HealthMax inválido:", enemy.healthMax);
+        return res.status(500).json({
+          success: false,
+          message: "Erro na geração do inimigo. Tente novamente.",
+        });
+      }
+
+      // Create battle com validações
+      const battleData = {
         userId,
         avatarId: avatar._id,
         enemy: {
-          ...enemy,
-          health: enemy.healthMax,
+          type: enemy.type,
+          name: enemy.name,
+          healthMax: Math.round(enemy.healthMax),
+          health: Math.round(enemy.healthMax),
+          difficulty: enemy.difficulty,
         },
-      });
+      };
 
+      console.log(
+        "🎮 [DEBUG] Dados da batalha:",
+        JSON.stringify(battleData, null, 2)
+      );
+
+      const battle = new Battle(battleData);
       await battle.save();
 
       city.incrementBattleCount();
@@ -270,7 +378,36 @@ class RPGController {
   static async performBattleAction(req, res) {
     try {
       const { battleId } = req.params;
-      const { action, damage } = req.body;
+      const { action } = req.body;
+
+      // Validações de entrada
+      if (!action || typeof action !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Ação é obrigatória e deve ser uma string",
+        });
+      }
+
+      // Gerar dano automaticamente baseado na ação
+      let damage = 0;
+      switch (action) {
+        case "attack":
+          damage = Math.floor(Math.random() * 20) + 10; // 10-30 de dano
+          break;
+        case "special":
+          damage = Math.floor(Math.random() * 35) + 15; // 15-50 de dano
+          break;
+        case "defend":
+          damage = Math.floor(Math.random() * 5) + 2; // 2-7 de dano (reduzido)
+          break;
+        case "heal":
+          damage = 0; // Cura não causa dano ao inimigo
+          break;
+        default:
+          damage = Math.floor(Math.random() * 15) + 5; // 5-20 padrão
+      }
+
+      console.log(`🎮 [BATTLE] Ação: ${action}, Dano calculado: ${damage}`);
 
       const battle = await Battle.findById(battleId);
       if (!battle) {
@@ -287,18 +424,42 @@ class RPGController {
         });
       }
 
-      const avatar = await Avatar.findById(battle.avatarId);
+      // Validar dados do inimigo na batalha
+      if (isNaN(battle.enemy.health) || battle.enemy.health < 0) {
+        console.error(
+          "❌ [DEBUG] Saúde do inimigo inválida:",
+          battle.enemy.health
+        );
+        return res.status(500).json({
+          success: false,
+          message: "Estado da batalha corrompido. Contate o suporte.",
+        });
+      }
 
-      // Calculate enemy damage
+      const avatar = await Avatar.findById(battle.avatarId);
+      if (!avatar) {
+        return res.status(404).json({
+          success: false,
+          message: "Avatar não encontrado",
+        });
+      }
+
+      // Calculate enemy damage com validações
       const currentTurn = battle.stats.totalTurns + 1;
-      const enemyDamage = Math.floor(Math.random() * 20) + 5;
+      const baseDamage = Math.floor(Math.random() * 20) + 5;
+      const enemyDamage = Math.max(1, Math.round(baseDamage)); // Garantir pelo menos 1 de dano
+      const playerDamage = Math.max(1, Math.round(damage)); // Validar dano do jogador
+
+      console.log(
+        `🎮 [DEBUG] Turno ${currentTurn}: Jogador causa ${playerDamage}, Inimigo causa ${enemyDamage}`
+      );
 
       // Add turn log
       battle.addTurnLog(
         currentTurn,
         action,
         "player",
-        damage,
+        playerDamage,
         0,
         `Jogador usa ${action}`
       );
@@ -311,9 +472,22 @@ class RPGController {
         `Inimigo ataca`
       );
 
-      // Update battle state
-      battle.enemy.health = Math.max(0, battle.enemy.health - damage);
-      avatar.stats.health = Math.max(0, avatar.stats.health - enemyDamage);
+      // Update battle state com validações
+      const newEnemyHealth = Math.max(
+        0,
+        Math.round(battle.enemy.health - playerDamage)
+      );
+      const newPlayerHealth = Math.max(
+        0,
+        Math.round(avatar.stats.health - enemyDamage)
+      );
+
+      battle.enemy.health = newEnemyHealth;
+      avatar.stats.health = newPlayerHealth;
+
+      console.log(
+        `🎮 [DEBUG] Nova saúde - Inimigo: ${newEnemyHealth}, Jogador: ${newPlayerHealth}`
+      );
 
       // Check if battle is over
       if (battle.enemy.health <= 0) {
@@ -386,17 +560,67 @@ class RPGController {
     try {
       const userId = req.user.id;
 
-      const avatar = await Avatar.findOne({ userId });
+      // Verificar cache para WorldMap
+      if (req.cachedWorldMap) {
+        const avatar = await Avatar.findOne({ userId });
 
-      const cities = await WorldMap.find().sort({ cityNumber: 1 });
+        // Adicionar informações específicas do usuário
+        const citiesWithAccess = req.cachedWorldMap.cities.map((city) => ({
+          ...city,
+          canAccess: avatar ? city.levelRequirement <= avatar.level : false,
+          isUnlocked: avatar
+            ? avatar.citiesUnlocked.includes(city.cityNumber)
+            : false,
+        }));
+
+        return res.status(200).json({
+          success: true,
+          data: {
+            map: {
+              cities: citiesWithAccess,
+            },
+          },
+        });
+      }
+
+      const avatar = await Avatar.findOne({ userId });
+      const cities = await WorldMap.find().sort({ cityNumber: 1 }).lean();
 
       const citiesDTO = cities.map((city) => ({
-        ...city.toDTO(),
-        canAccess: avatar ? city.canPlayerAccess(avatar.level) : false,
+        _id: city._id,
+        cityNumber: city.cityNumber,
+        name: city.name,
+        description: city.description,
+        position: city.position,
+        difficulty: city.difficulty,
+        levelRequirement: city.levelRequirement,
+        boss: city.boss,
+        theme: city.theme,
+        stats: city.stats,
+        hasEnemies: city.enemies && city.enemies.length > 0,
+        canAccess: avatar ? city.levelRequirement <= avatar.level : false,
         isUnlocked: avatar
           ? avatar.citiesUnlocked.includes(city.cityNumber)
           : false,
       }));
+
+      // Armazenar versão base no cache (sem informações de usuário)
+      const cacheData = {
+        cities: cities.map((city) => ({
+          _id: city._id,
+          cityNumber: city.cityNumber,
+          name: city.name,
+          description: city.description,
+          position: city.position,
+          difficulty: city.difficulty,
+          levelRequirement: city.levelRequirement,
+          boss: city.boss,
+          theme: city.theme,
+          stats: city.stats,
+          hasEnemies: city.enemies && city.enemies.length > 0,
+        })),
+      };
+      CacheMiddleware.storeWorldMap(cacheData);
 
       return res.status(200).json({
         success: true,

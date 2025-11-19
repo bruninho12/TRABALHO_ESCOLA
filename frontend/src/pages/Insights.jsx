@@ -283,7 +283,7 @@ const Insights = () => {
                     >
                       <CardContent>
                         <Typography variant="h6" fontWeight={600} gutterBottom>
-                          {trend.category}
+                          {trend.category?.name || trend.category}
                         </Typography>
                         <Typography
                           variant="h5"

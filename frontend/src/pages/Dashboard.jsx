@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Grid,
   Paper,
@@ -10,12 +10,30 @@ import {
   IconButton,
   Button,
   Chip,
+  Card,
+  CardContent,
+  Fab,
+  Tooltip,
+  Alert,
+  Skeleton,
+  Stack,
 } from "@mui/material";
 import {
   Refresh as RefreshIcon,
   TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
   Lightbulb as InsightsIcon,
   ArrowForward as ArrowForwardIcon,
+  AccountBalance as AccountBalanceIcon,
+  CreditCard as CreditCardIcon,
+  Savings as SavingsIcon,
+  MonetizationOn as MonetizationOnIcon,
+  Speed as SpeedIcon,
+  Add as AddIcon,
+  Timeline as TimelineIcon,
+  ShowChart as ShowChartIcon,
+  Assessment as AssessmentIcon,
+  BarChart as BarChartIcon,
 } from "@mui/icons-material";
 import { Line, Doughnut } from "react-chartjs-2";
 import {
@@ -25,12 +43,12 @@ import {
   PointElement,
   LineElement,
   Title,
-  Tooltip,
+  Tooltip as ChartTooltip,
   Legend,
   ArcElement,
   Filler,
 } from "chart.js";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { formatCurrency } from "../utils/format";
@@ -46,7 +64,7 @@ ChartJS.register(
   PointElement,
   LineElement,
   Title,
-  Tooltip,
+  ChartTooltip,
   Legend,
   ArcElement,
   Filler
@@ -62,13 +80,103 @@ const Dashboard = () => {
     recentTransactions,
     budgetProgress,
     isLoading,
+    error,
+    refreshData,
   } = useDashboardData();
   const [chartPeriod, setChartPeriod] = useState("6");
+  const [selectedMetric, setSelectedMetric] = useState("balance");
+  const [refreshing, setRefreshing] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+
+  // Dados computados com memoização
+  const computedMetrics = useMemo(() => {
+    if (!summary)
+      return {
+        savingsRate: 0,
+        expenseGrowth: 0,
+        goalCompletionRate: 0,
+        financialHealth: 0,
+      };
+
+    const savingsRate =
+      summary.income > 0
+        ? ((summary.income - summary.expenses) / summary.income) * 100
+        : 0;
+    const expenseGrowth =
+      summary.lastMonthExpenses > 0
+        ? ((summary.expenses - summary.lastMonthExpenses) /
+            summary.lastMonthExpenses) *
+          100
+        : 0;
+    const goalCompletionRate =
+      summary.totalGoals > 0
+        ? (summary.completedGoals / summary.totalGoals) * 100
+        : 0;
+
+    return {
+      savingsRate: Math.max(0, Math.min(100, savingsRate)),
+      expenseGrowth,
+      goalCompletionRate,
+      financialHealth: Math.max(
+        0,
+        Math.min(100, (savingsRate + goalCompletionRate) / 2)
+      ),
+    };
+  }, [summary]);
+
+  // Função de refresh com feedback visual
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshData?.();
+    } catch (error) {
+      console.error("Erro ao atualizar dados:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshData]);
 
   if (isLoading) {
     return (
       <Box sx={{ width: "100%", mt: 4 }}>
-        <LinearProgress variant="indeterminate" />
+        <Grid container spacing={3}>
+          {[...Array(6)].map((_, index) => (
+            <Grid item xs={12} md={6} lg={4} key={index}>
+              <Paper sx={{ p: 3 }}>
+                <Skeleton variant="text" width="60%" height={32} />
+                <Skeleton
+                  variant="text"
+                  width="40%"
+                  height={24}
+                  sx={{ mt: 1 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="100%"
+                  height={100}
+                  sx={{ mt: 2 }}
+                />
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ mt: 4 }}>
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={handleRefresh}>
+              Tentar Novamente
+            </Button>
+          }
+        >
+          Erro ao carregar dados do dashboard: {error.message}
+        </Alert>
       </Box>
     );
   }
@@ -166,7 +274,7 @@ const Dashboard = () => {
       {user && <InsightsPanel userId={user._id || user.id} />}
 
       <Grid container spacing={3}>
-        {/* Cartões de resumo com GlassCard Premium */}
+        {/* Cartão de Saldo Principal */}
         <Grid item xs={12} md={4}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -175,36 +283,65 @@ const Dashboard = () => {
           >
             <GlassCard variant="default" blur={15} opacity={0.12}>
               <Box p={3}>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  gutterBottom
-                  fontWeight={600}
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mb={2}
                 >
-                  💵 Saldo Total
-                </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                    fontWeight={600}
+                  >
+                    💵 Saldo Total
+                  </Typography>
+                  <AccountBalanceIcon
+                    sx={{ color: colors.primary.main, opacity: 0.7 }}
+                  />
+                </Box>
                 <Typography
                   variant="h3"
                   component="div"
                   fontWeight={700}
                   color="primary.main"
                   my={1}
+                  sx={{
+                    background: gradients.purpleBlue,
+                    backgroundClip: "text",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
                 >
                   {formatCurrency(summary?.balance || 0)}
                 </Typography>
-                <Chip
-                  label={`Atualizado em ${new Date().toLocaleDateString()}`}
-                  size="small"
-                  sx={{
-                    bgcolor: "rgba(99, 102, 241, 0.1)",
-                    color: colors.primary.main,
-                  }}
-                />
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Chip
+                    label={`Atualizado agora`}
+                    size="small"
+                    sx={{
+                      bgcolor: "rgba(99, 102, 241, 0.1)",
+                      color: colors.primary.main,
+                      fontWeight: 500,
+                    }}
+                  />
+                  {computedMetrics.savingsRate > 0 && (
+                    <Chip
+                      label={`${computedMetrics.savingsRate.toFixed(
+                        1
+                      )}% economia`}
+                      size="small"
+                      color="success"
+                    />
+                  )}
+                </Stack>
               </Box>
             </GlassCard>
           </motion.div>
         </Grid>
 
+        {/* Cartão de Receitas - Melhorado */}
         <Grid item xs={12} md={4}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -213,14 +350,22 @@ const Dashboard = () => {
           >
             <GlassCard variant="success" blur={15} opacity={0.15}>
               <Box p={3}>
-                <Typography
-                  variant="body2"
-                  color="white"
-                  gutterBottom
-                  fontWeight={600}
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mb={2}
                 >
-                  📈 Receitas do Mês
-                </Typography>
+                  <Typography
+                    variant="body2"
+                    color="white"
+                    gutterBottom
+                    fontWeight={600}
+                  >
+                    📈 Receitas do Mês
+                  </Typography>
+                  <MonetizationOnIcon sx={{ color: "white", opacity: 0.9 }} />
+                </Box>
                 <Typography
                   variant="h3"
                   component="div"
@@ -230,12 +375,28 @@ const Dashboard = () => {
                 >
                   {formatCurrency(summary?.income || 0)}
                 </Typography>
-                <Box display="flex" alignItems="center">
-                  <TrendingUpIcon
-                    sx={{ fontSize: 18, color: "white", mr: 0.5 }}
-                  />
-                  <Typography variant="caption" color="white">
-                    Comparado ao mês anterior
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Stack direction="row" alignItems="center">
+                    <TrendingUpIcon
+                      sx={{ fontSize: 18, color: "white", mr: 0.5 }}
+                    />
+                    <Typography variant="caption" color="white">
+                      vs. mês anterior
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" color="white" fontWeight={600}>
+                    +
+                    {(
+                      ((summary?.income || 0) /
+                        (summary?.lastMonthIncome || 1)) *
+                        100 -
+                      100
+                    ).toFixed(1)}
+                    %
                   </Typography>
                 </Box>
               </Box>
@@ -243,6 +404,7 @@ const Dashboard = () => {
           </motion.div>
         </Grid>
 
+        {/* Cartão de Despesas - Melhorado */}
         <Grid item xs={12} md={4}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -258,19 +420,264 @@ const Dashboard = () => {
                 borderRadius: 2,
                 boxShadow: "0 8px 20px rgba(239, 68, 68, 0.3)",
                 transition: "all 0.3s ease",
+                position: "relative",
+                overflow: "hidden",
                 "&:hover": {
                   transform: "translateY(-4px)",
                   boxShadow: "0 12px 28px rgba(239, 68, 68, 0.4)",
                 },
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: "100px",
+                  height: "100px",
+                  background: "rgba(255, 255, 255, 0.1)",
+                  borderRadius: "50%",
+                  transform: "translate(30%, -30%)",
+                },
               }}
             >
-              <Typography variant="body2" gutterBottom fontWeight={600}>
-                📉 Despesas do Mês
-              </Typography>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
+                <Typography variant="body2" gutterBottom fontWeight={600}>
+                  📉 Despesas do Mês
+                </Typography>
+                <CreditCardIcon sx={{ color: "white", opacity: 0.9 }} />
+              </Box>
               <Typography variant="h3" component="div" fontWeight={700} my={1}>
                 {formatCurrency(summary?.expenses || 0)}
               </Typography>
-              <Typography variant="caption">Gerencie seus gastos</Typography>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography variant="caption">Gerencie seus gastos</Typography>
+                {computedMetrics.expenseGrowth && (
+                  <Stack direction="row" alignItems="center">
+                    {computedMetrics.expenseGrowth > 0 ? (
+                      <TrendingUpIcon sx={{ fontSize: 16, color: "white" }} />
+                    ) : (
+                      <TrendingDownIcon sx={{ fontSize: 16, color: "white" }} />
+                    )}
+                    <Typography variant="caption" ml={0.5}>
+                      {Math.abs(computedMetrics.expenseGrowth).toFixed(1)}%
+                    </Typography>
+                  </Stack>
+                )}
+              </Box>
+            </Paper>
+          </motion.div>
+        </Grid>
+
+        {/* Nova Seção: Métricas Avançadas */}
+        <Grid item xs={12}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Paper elevation={0} sx={{ p: 3, borderRadius: 2, mb: 2 }}>
+              <Typography
+                variant="h6"
+                fontWeight={600}
+                mb={3}
+                sx={{ display: "flex", alignItems: "center" }}
+              >
+                <SpeedIcon sx={{ mr: 1, color: colors.primary.main }} />
+                🎯 Métricas de Performance Financeira
+              </Typography>
+
+              <Grid container spacing={3}>
+                {/* Taxa de Poupança */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card
+                    sx={{
+                      bgcolor: "rgba(16, 185, 129, 0.05)",
+                      border: "1px solid rgba(16, 185, 129, 0.2)",
+                    }}
+                  >
+                    <CardContent>
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <SavingsIcon
+                          sx={{ color: colors.success.main, mr: 1 }}
+                        />
+                        <Typography variant="body2" fontWeight={600}>
+                          Taxa de Economia
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="h4"
+                        fontWeight={700}
+                        color="success.main"
+                      >
+                        {computedMetrics.savingsRate?.toFixed(1) || 0}%
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={computedMetrics.savingsRate || 0}
+                        sx={{
+                          mt: 1,
+                          height: 6,
+                          borderRadius: 3,
+                          bgcolor: "rgba(16, 185, 129, 0.1)",
+                          "& .MuiLinearProgress-bar": {
+                            bgcolor: colors.success.main,
+                            borderRadius: 3,
+                          },
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Saúde Financeira */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card
+                    sx={{
+                      bgcolor: "rgba(99, 102, 241, 0.05)",
+                      border: "1px solid rgba(99, 102, 241, 0.2)",
+                    }}
+                  >
+                    <CardContent>
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <AssessmentIcon
+                          sx={{ color: colors.primary.main, mr: 1 }}
+                        />
+                        <Typography variant="body2" fontWeight={600}>
+                          Saúde Financeira
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="h4"
+                        fontWeight={700}
+                        color="primary.main"
+                      >
+                        {computedMetrics.financialHealth?.toFixed(0) || 0}/100
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={computedMetrics.financialHealth || 0}
+                        sx={{
+                          mt: 1,
+                          height: 6,
+                          borderRadius: 3,
+                          bgcolor: "rgba(99, 102, 241, 0.1)",
+                          "& .MuiLinearProgress-bar": {
+                            bgcolor: colors.primary.main,
+                            borderRadius: 3,
+                          },
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Progresso de Metas */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card
+                    sx={{
+                      bgcolor: "rgba(139, 92, 246, 0.05)",
+                      border: "1px solid rgba(139, 92, 246, 0.2)",
+                    }}
+                  >
+                    <CardContent>
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <TimelineIcon
+                          sx={{ color: colors.secondary.main, mr: 1 }}
+                        />
+                        <Typography variant="body2" fontWeight={600}>
+                          Progresso de Metas
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="h4"
+                        fontWeight={700}
+                        color="secondary.main"
+                      >
+                        {computedMetrics.goalCompletionRate?.toFixed(0) || 0}%
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={computedMetrics.goalCompletionRate || 0}
+                        sx={{
+                          mt: 1,
+                          height: 6,
+                          borderRadius: 3,
+                          bgcolor: "rgba(139, 92, 246, 0.1)",
+                          "& .MuiLinearProgress-bar": {
+                            bgcolor: colors.secondary.main,
+                            borderRadius: 3,
+                          },
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Crescimento de Despesas */}
+                <Grid item xs={12} sm={6} md={3}>
+                  <Card
+                    sx={{
+                      bgcolor:
+                        computedMetrics.expenseGrowth > 10
+                          ? "rgba(239, 68, 68, 0.05)"
+                          : "rgba(245, 158, 11, 0.05)",
+                      border: `1px solid ${
+                        computedMetrics.expenseGrowth > 10
+                          ? "rgba(239, 68, 68, 0.2)"
+                          : "rgba(245, 158, 11, 0.2)"
+                      }`,
+                    }}
+                  >
+                    <CardContent>
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <BarChartIcon
+                          sx={{
+                            color:
+                              computedMetrics.expenseGrowth > 10
+                                ? colors.error.main
+                                : colors.warning.main,
+                            mr: 1,
+                          }}
+                        />
+                        <Typography variant="body2" fontWeight={600}>
+                          Crescimento Gastos
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="h4"
+                        fontWeight={700}
+                        sx={{
+                          color:
+                            computedMetrics.expenseGrowth > 10
+                              ? colors.error.main
+                              : colors.warning.main,
+                        }}
+                      >
+                        {computedMetrics.expenseGrowth?.toFixed(1) || 0}%
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color:
+                            computedMetrics.expenseGrowth > 10
+                              ? colors.error.main
+                              : colors.warning.main,
+                        }}
+                      >
+                        vs. mês anterior
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
             </Paper>
           </motion.div>
         </Grid>
@@ -408,7 +815,7 @@ const Dashboard = () => {
                         {transaction.description}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {transaction.category} •{" "}
+                        {transaction.category?.name || transaction.category} •{" "}
                         {new Date(transaction.date).toLocaleDateString()}
                       </Typography>
                     </Box>
@@ -458,7 +865,7 @@ const Dashboard = () => {
                       }}
                     >
                       <Typography variant="body2" fontWeight={500}>
-                        {budget.category}
+                        {budget.category?.name || budget.category}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         {formatCurrency(budget.spent)} /{" "}
@@ -504,6 +911,105 @@ const Dashboard = () => {
           </motion.div>
         </Grid>
       </Grid>
+
+      {/* Botão Flutuante de Ações Rápidas */}
+      <Fab
+        color="primary"
+        sx={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
+          background: gradients.purpleBlue,
+          "&:hover": {
+            transform: "scale(1.1)",
+            boxShadow: "0 8px 25px rgba(99, 102, 241, 0.4)",
+          },
+          transition: "all 0.3s ease",
+        }}
+        onClick={() => setShowQuickActions(!showQuickActions)}
+      >
+        <AddIcon />
+      </Fab>
+
+      {/* Menu de Ações Rápidas */}
+      <AnimatePresence>
+        {showQuickActions && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            style={{
+              position: "fixed",
+              bottom: 100,
+              right: 20,
+              zIndex: 1000,
+            }}
+          >
+            <Stack spacing={1}>
+              <Tooltip title="Nova Transação" placement="left">
+                <Fab
+                  size="small"
+                  color="success"
+                  onClick={() => navigate("/transactions")}
+                  sx={{ "&:hover": { transform: "scale(1.1)" } }}
+                >
+                  <MonetizationOnIcon />
+                </Fab>
+              </Tooltip>
+              <Tooltip title="Nova Meta" placement="left">
+                <Fab
+                  size="small"
+                  color="secondary"
+                  onClick={() => navigate("/goals")}
+                  sx={{ "&:hover": { transform: "scale(1.1)" } }}
+                >
+                  <TimelineIcon />
+                </Fab>
+              </Tooltip>
+              <Tooltip title="Ver Insights" placement="left">
+                <Fab
+                  size="small"
+                  color="warning"
+                  onClick={() => navigate("/insights")}
+                  sx={{ "&:hover": { transform: "scale(1.1)" } }}
+                >
+                  <InsightsIcon />
+                </Fab>
+              </Tooltip>
+            </Stack>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Botão de Refresh */}
+      <Tooltip title="Atualizar dados">
+        <IconButton
+          onClick={handleRefresh}
+          disabled={refreshing}
+          sx={{
+            position: "fixed",
+            top: 100,
+            right: 20,
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 1)",
+              transform: "scale(1.05)",
+            },
+            transition: "all 0.3s ease",
+            ...(refreshing && {
+              animation: "spin 1s linear infinite",
+              "@keyframes spin": {
+                "0%": { transform: "rotate(0deg)" },
+                "100%": { transform: "rotate(360deg)" },
+              },
+            }),
+          }}
+        >
+          <RefreshIcon color="primary" />
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 };
