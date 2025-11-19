@@ -1,6 +1,7 @@
 const Payment = require("../models/Payment");
 const User = require("../models/User");
 const logger = require("../utils/logger");
+const mongoose = require("mongoose");
 
 // Obter todos os pagamentos do usuário
 exports.getPayments = async (req, res) => {
@@ -257,7 +258,7 @@ exports.getPaymentStats = async (req, res) => {
     const stats = await Payment.aggregate([
       {
         $match: {
-          userId: require("mongoose").Types.ObjectId(userId),
+          userId: new mongoose.Types.ObjectId(userId),
           createdAt: { $gte: startDate },
           status: "completed",
         },

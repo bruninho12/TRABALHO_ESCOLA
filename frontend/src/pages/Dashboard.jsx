@@ -567,7 +567,9 @@ const Dashboard = () => {
                       </Typography>
                       <LinearProgress
                         variant="determinate"
-                        value={validateProgressValue(computedMetrics.financialHealth || 0)}
+                        value={validateProgressValue(
+                          computedMetrics.financialHealth || 0
+                        )}
                         sx={{
                           mt: 1,
                           height: 6,
@@ -989,33 +991,35 @@ const Dashboard = () => {
       </AnimatePresence>
 
       {/* Botão de Refresh */}
-      <Tooltip title="Atualizar dados">
-        <IconButton
-          onClick={handleRefresh}
-          disabled={refreshing}
-          sx={{
-            position: "fixed",
-            top: 100,
-            right: 20,
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 1)",
-              transform: "scale(1.05)",
-            },
-            transition: "all 0.3s ease",
-            ...(refreshing && {
-              animation: "spin 1s linear infinite",
-              "@keyframes spin": {
-                "0%": { transform: "rotate(0deg)" },
-                "100%": { transform: "rotate(360deg)" },
+      <Tooltip title={refreshing ? "Atualizando dados..." : "Atualizar dados"}>
+        <span>
+          <IconButton
+            onClick={handleRefresh}
+            disabled={refreshing}
+            sx={{
+              position: "fixed",
+              top: 100,
+              right: 20,
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              backdropFilter: "blur(10px)",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 1)",
+                transform: "scale(1.05)",
               },
-            }),
-          }}
-        >
-          <RefreshIcon color="primary" />
-        </IconButton>
+              transition: "all 0.3s ease",
+              ...(refreshing && {
+                animation: "spin 1s linear infinite",
+                "@keyframes spin": {
+                  "0%": { transform: "rotate(0deg)" },
+                  "100%": { transform: "rotate(360deg)" },
+                },
+              }),
+            }}
+          >
+            <RefreshIcon color="primary" />
+          </IconButton>
+        </span>
       </Tooltip>
     </Box>
   );

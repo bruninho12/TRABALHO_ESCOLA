@@ -6,7 +6,7 @@ import LoadingSpinner from "./components/LoadingSpinner";
 
 // Lazy loading das páginas para otimização de bundle
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
-const Transactions = React.lazy(() => import("./pages/TransactionsSimple"));
+const Transactions = React.lazy(() => import("./pages/Transactions"));
 const Login = React.lazy(() => import("./pages/Login"));
 const Register = React.lazy(() => import("./pages/Register"));
 const Goals = React.lazy(() => import("./pages/Goals"));
