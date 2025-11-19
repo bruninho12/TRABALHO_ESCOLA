@@ -3,14 +3,29 @@ node_modules/
 /node_modules
 *.npm
 
-# Ambiente
+# Ambiente - Arquivos específicos do projeto
 .env
+backend/.env
+frontend/.env
+config/.env.backend
+config/.env.frontend
+
+# Manter os arquivos .example no controle de versão
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+!config/.env.backend.example
+!config/.env.frontend.example
+
+# Outros arquivos de ambiente
 .env.local
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.
-.env.example
+.env.development
+.env.staging
+.env.test
+.env.production
+.environment
+.environ
+.envrc
 
 # Logs
 logs
