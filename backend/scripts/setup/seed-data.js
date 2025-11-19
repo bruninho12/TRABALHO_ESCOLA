@@ -4,44 +4,45 @@
  * Seed Script - Popula o banco com dados de teste
  */
 
-const mongoose = require('mongoose');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const mongoose = require("mongoose");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "..", "..", ".env") });
 
-const User = require('../models/User');
-const Transaction = require('../models/Transaction');
-const Goal = require('../models/Goal');
-const Payment = require('../models/Payment');
+const User = require("../../src/models/User");
+const Transaction = require("../../src/models/Transaction");
+const Goal = require("../../src/models/Goal");
+const Payment = require("../../src/models/Payment");
 
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/despfinance';
+const mongoUri =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/despfinance";
 
 // Dados de teste
 const testUsers = [
   {
-    email: 'bruno@despfinance.com',
-    username: 'bruno',
-    password: 'Senha@123456',
-    fullName: 'Bruno Souza',
+    email: "bruno@despfinance.com",
+    username: "bruno",
+    password: "Senha@123456",
+    fullName: "Bruno Souza",
     level: 5,
     experience: 500,
     score: 250,
     coins: 1500,
   },
   {
-    email: 'maria@despfinance.com',
-    username: 'maria',
-    password: 'Senha@123456',
-    fullName: 'Maria Silva',
+    email: "maria@despfinance.com",
+    username: "maria",
+    password: "Senha@123456",
+    fullName: "Maria Silva",
     level: 3,
     experience: 250,
     score: 100,
     coins: 750,
   },
   {
-    email: 'joao@despfinance.com',
-    username: 'joao',
-    password: 'Senha@123456',
-    fullName: 'João Santos',
+    email: "joao@despfinance.com",
+    username: "joao",
+    password: "Senha@123456",
+    fullName: "João Santos",
     level: 2,
     experience: 100,
     score: 50,
@@ -49,12 +50,18 @@ const testUsers = [
   },
 ];
 
-const categories = ['Alimentação', 'Transporte', 'Saúde', 'Educação', 'Entretenimento'];
+const categories = [
+  "Alimentação",
+  "Transporte",
+  "Saúde",
+  "Educação",
+  "Entretenimento",
+];
 
 async function seedDatabase() {
   try {
     // eslint-disable-next-line no-console
-    console.log('🌱 Iniciando população do banco de dados...');
+    console.log("🌱 Iniciando população do banco de dados...");
 
     // Conectar ao MongoDB
     await mongoose.connect(mongoUri, {
@@ -63,12 +70,12 @@ async function seedDatabase() {
     });
 
     // eslint-disable-next-line no-console
-    console.log('✅ Conectado ao MongoDB');
+    console.log("✅ Conectado ao MongoDB");
 
     // Limpar dados existentes (apenas em desenvolvimento!)
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       // eslint-disable-next-line no-console
-      console.log('🗑️  Limpando dados existentes...');
+      console.log("🗑️  Limpando dados existentes...");
       await User.deleteMany({});
       await Transaction.deleteMany({});
       await Goal.deleteMany({});
@@ -77,7 +84,7 @@ async function seedDatabase() {
 
     // Criar usuários de teste
     // eslint-disable-next-line no-console
-    console.log('👥 Criando usuários de teste...');
+    console.log("👥 Criando usuários de teste...");
     const users = [];
 
     for (const userData of testUsers) {
@@ -90,12 +97,12 @@ async function seedDatabase() {
 
     // Criar transações de teste
     // eslint-disable-next-line no-console
-    console.log('💳 Criando transações de teste...');
+    console.log("💳 Criando transações de teste...");
     for (const user of users) {
       for (let i = 0; i < 5; i += 1) {
         const transaction = new Transaction({
           userId: user._id,
-          type: ['expense', 'income'][Math.floor(Math.random() * 2)],
+          type: ["expense", "income"][Math.floor(Math.random() * 2)],
           category: categories[Math.floor(Math.random() * categories.length)],
           amount: Math.floor(Math.random() * 1000) + 50,
           description: `Transação de teste ${i + 1}`,
@@ -109,26 +116,26 @@ async function seedDatabase() {
 
     // Criar objetivos de teste
     // eslint-disable-next-line no-console
-    console.log('🎯 Criando objetivos de teste...');
+    console.log("🎯 Criando objetivos de teste...");
     for (const user of users) {
       const goal = new Goal({
         userId: user._id,
-        name: 'Economizar para viagem',
-        category: 'Viagem',
+        name: "Economizar para viagem",
+        category: "Viagem",
         targetAmount: 5000,
         currentAmount: Math.floor(Math.random() * 5000),
-        priority: 'high',
-        status: 'active',
+        priority: "high",
+        status: "active",
         deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-        description: 'Objetivo de teste para economizar dinheiro',
+        description: "Objetivo de teste para economizar dinheiro",
       });
       await goal.save();
 
       // Adicionar milestones
       goal.milestones = [
-        { name: '25%', targetAmount: 1250 },
-        { name: '50%', targetAmount: 2500 },
-        { name: '75%', targetAmount: 3750 },
+        { name: "25%", targetAmount: 1250 },
+        { name: "50%", targetAmount: 2500 },
+        { name: "75%", targetAmount: 3750 },
       ];
       await goal.save();
 
@@ -138,20 +145,20 @@ async function seedDatabase() {
 
     // Criar pagamentos de teste
     // eslint-disable-next-line no-console
-    console.log('💰 Criando pagamentos de teste...');
+    console.log("💰 Criando pagamentos de teste...");
     for (const user of users) {
       const payment = new Payment({
         userId: user._id,
-        type: 'subscription',
-        status: 'completed',
+        type: "subscription",
+        status: "completed",
         amount: 99.99,
-        currency: 'BRL',
-        paymentMethod: 'stripe',
-        description: 'Assinatura Premium DespFinance',
+        currency: "BRL",
+        paymentMethod: "stripe",
+        description: "Assinatura Premium DespFinance",
         externalId: `ext_${Date.now()}_${Math.random()}`,
         item: {
-          type: 'premium_subscription',
-          name: 'DespFinance Premium',
+          type: "premium_subscription",
+          name: "DespFinance Premium",
           quantity: 1,
         },
       });
@@ -162,7 +169,7 @@ async function seedDatabase() {
 
     // Exibir estatísticas
     // eslint-disable-next-line no-console
-    console.log('\n📊 Estatísticas Finais:');
+    console.log("\n📊 Estatísticas Finais:");
 
     const userCount = await User.countDocuments();
     const transactionCount = await Transaction.countDocuments();
@@ -179,15 +186,15 @@ async function seedDatabase() {
     console.log(`  💰 Pagamentos: ${paymentCount}`);
 
     // eslint-disable-next-line no-console
-    console.log('\n✅ Banco de dados populado com sucesso!');
+    console.log("\n✅ Banco de dados populado com sucesso!");
     // eslint-disable-next-line no-console
-    console.log('🚀 Agora você pode executar: npm run dev');
+    console.log("🚀 Agora você pode executar: npm run dev");
 
     await mongoose.disconnect();
     process.exit(0);
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error('❌ Erro ao popular banco:', err.message);
+    console.error("❌ Erro ao popular banco:", err.message);
     process.exit(1);
   }
 }

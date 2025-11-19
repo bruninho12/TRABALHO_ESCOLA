@@ -1,14 +1,11 @@
 const mongoose = require("mongoose");
-const fs = require("fs");
+require("dotenv").config({
+  path: require("path").join(__dirname, "../..", ".env"),
+});
 
-const envPath = require("path").join(__dirname, ".env");
-const envContent = fs.readFileSync(envPath, "utf-8");
-const mongoLine = envContent
-  .split("\n")
-  .find((l) => l.startsWith("MONGO_URI="));
-const mongoUri = mongoLine.replace("MONGO_URI=", "").trim();
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
-console.log("Conectando a:", mongoUri);
+console.log("Conectando a:", mongoUri?.replace(/:([^@]+)@/, ":***@"));
 
 mongoose
   .connect(mongoUri)
