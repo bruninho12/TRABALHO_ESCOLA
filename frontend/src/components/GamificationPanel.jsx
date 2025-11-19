@@ -35,6 +35,7 @@ import {
   LocalFireDepartment as FireIcon,
   AutoAwesome as RewardIcon,
 } from "@mui/icons-material";
+import { safePercentage } from "../utils/progressValidation";
 
 const GamificationPanel = ({ userStats = {} }) => {
   const [openAchievements, setOpenAchievements] = useState(false);
@@ -117,7 +118,7 @@ const GamificationPanel = ({ userStats = {} }) => {
     badges: userStats.badges || ["Bronze", "Silver", "Gold"],
   };
 
-  const progressPercent = (stats.points / stats.nextLevelPoints) * 100;
+  const progressPercent = safePercentage(stats.points, stats.nextLevelPoints);
 
   return (
     <>
@@ -161,7 +162,7 @@ const GamificationPanel = ({ userStats = {} }) => {
 
             <LinearProgress
               variant="determinate"
-              value={progressPercent}
+              value={Math.min(Math.max(progressPercent || 0, 0), 100)}
               sx={{
                 height: 8,
                 borderRadius: 4,
@@ -179,7 +180,7 @@ const GamificationPanel = ({ userStats = {} }) => {
                 {stats.points} / {stats.nextLevelPoints} pontos
               </Typography>
               <Typography variant="caption">
-                {progressPercent.toFixed(0)}%
+                {safeProgress(progressPercent).toFixed(0)}%
               </Typography>
             </Box>
           </Box>

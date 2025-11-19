@@ -56,6 +56,7 @@ import GlassCard from "../components/common/GlassCard";
 import InsightsPanel from "../components/InsightsPanel";
 import { colors, gradients } from "../styles/designSystem";
 import { useAuth } from "../contexts/AuthContext";
+import { validateProgressValue } from "../utils/progressValidation";
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -521,7 +522,10 @@ const Dashboard = () => {
                       </Typography>
                       <LinearProgress
                         variant="determinate"
-                        value={computedMetrics.savingsRate || 0}
+                        value={Math.min(
+                          Math.max(computedMetrics.savingsRate || 0, 0),
+                          100
+                        )}
                         sx={{
                           mt: 1,
                           height: 6,
@@ -563,7 +567,7 @@ const Dashboard = () => {
                       </Typography>
                       <LinearProgress
                         variant="determinate"
-                        value={computedMetrics.financialHealth || 0}
+                        value={validateProgressValue(computedMetrics.financialHealth || 0)}
                         sx={{
                           mt: 1,
                           height: 6,
@@ -605,7 +609,10 @@ const Dashboard = () => {
                       </Typography>
                       <LinearProgress
                         variant="determinate"
-                        value={computedMetrics.goalCompletionRate || 0}
+                        value={Math.min(
+                          Math.max(computedMetrics.goalCompletionRate || 0, 0),
+                          100
+                        )}
                         sx={{
                           mt: 1,
                           height: 6,

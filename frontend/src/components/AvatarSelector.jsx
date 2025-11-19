@@ -279,7 +279,13 @@ const AvatarSelector = ({
             </Box>
             <LinearProgress
               variant="determinate"
-              value={((avatar.health || 100) / (avatar.maxHealth || 100)) * 100}
+              value={Math.min(
+                Math.max(
+                  ((avatar.health || 100) / (avatar.maxHealth || 100)) * 100,
+                  0
+                ),
+                100
+              )}
               sx={{ height: 8, borderRadius: 4, backgroundColor: "#ffcccc" }}
             />
           </Box>
@@ -306,8 +312,14 @@ const AvatarSelector = ({
             </Box>
             <LinearProgress
               variant="determinate"
-              value={((avatar.mana || 50) / (avatar.maxMana || 50)) * 100}
-              sx={{ height: 8, borderRadius: 4, backgroundColor: "#cce5ff" }}
+              value={Math.min(
+                Math.max(
+                  ((avatar.mana || 50) / (avatar.maxMana || 50)) * 100,
+                  0
+                ),
+                100
+              )}
+              sx={{ height: 8, borderRadius: 4, backgroundColor: "#cceeff" }}
             />
           </Box>
         </Box>

@@ -201,7 +201,9 @@ const GoalsPage = () => {
   };
 
   const calculateProgress = (current, target) => {
-    return target > 0 ? (current / target) * 100 : 0;
+    if (!target || target <= 0) return 0;
+    const progress = (current / target) * 100;
+    return Math.min(Math.max(progress || 0, 0), 100);
   };
 
   return (

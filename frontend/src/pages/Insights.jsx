@@ -28,6 +28,7 @@ import { motion } from "framer-motion";
 import GlassCard from "../components/common/GlassCard";
 import { colors } from "../styles/designSystem";
 import axios from "axios";
+import { validateProgressValue } from "../utils/progressValidation";
 
 const Insights = () => {
   const [loading, setLoading] = useState(true);
@@ -172,7 +173,7 @@ const Insights = () => {
 
                   <LinearProgress
                     variant="determinate"
-                    value={financialScore.score}
+                    value={validateProgressValue(financialScore.score || 0)}
                     sx={{
                       height: 10,
                       borderRadius: 5,

@@ -57,7 +57,7 @@ import {
   WorkspacePremium as PremiumIcon,
   SportsEsports as GameIcon,
   EmojiPeople as CharacterIcon,
-  Military as WarriorIcon,
+  Shield as WarriorIcon,
   AutoFixHigh as MagicIcon,
   Gavel as HammerIcon,
   Security as ArmorIcon,
@@ -69,287 +69,271 @@ import {
   Terrain as MountainIcon,
   Water as WaterIcon,
   ExpandMore as ExpandMoreIcon,
-      <>
-        <Dialog
-          open={battleDialogOpen}
-          onClose={() => setBattleDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: {
-              background: "linear-gradient(135deg, #1a202c 0%, #2d3748 100%)",
-              color: "white",
-              borderRadius: 4,
-            },
-          }}
-        >
-          <DialogTitle sx={{ textAlign: "center", py: 3 }}>
-            <Typography variant="h4" fontWeight={800}>
-              ⚔️ Batalha Épica
-            </Typography>
-            <Typography variant="body1" sx={{ opacity: 0.8 }}>
-              Round {currentBattle.round || 1}
-            </Typography>
-            {battlePhase === "combat" && (
-              <Stack
-                direction="row"
-                spacing={1}
-                justifyContent="center"
-                mt={2}
-                flexWrap="wrap"
-              >
-                <Chip
-                  label={`Combo: ${comboCounter}`}
-                  color={comboCounter >= 3 ? "secondary" : "default"}
-                  size="small"
-                />
-                <Chip
-                  label={`Tempo: ${battleTimer}s`}
-                  size="small"
-                  color={battleTimer < 10 ? "error" : "primary"}
-                />
-                {criticalHit && (
-                  <Chip label="CRÍTICO!" color="warning" size="small" />
-                )}
-              </Stack>
-            )}
-          </DialogTitle>
+  Refresh as RefreshIcon,
+  Info as InfoIcon,
+  Assessment as StatsIcon,
+  Timeline as TimelineIcon,
+} from "@mui/icons-material";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { motion, AnimatePresence } from "framer-motion";
+import { format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  safeHealthProgress,
+  safeExpProgress,
+  safeQuestProgress,
+} from "../utils/progressValidation";
 
-          <DialogContent sx={{ px: 4, pb: 4 }}>
-            <Grid container spacing={3} mb={4}>
-              <Grid item xs={6}>
-                <Box textAlign="center">
-                  <Avatar
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      mx: "auto",
-                      mb: 2,
-                      bgcolor: "#667eea",
-                    }}
-                  >
-                    {characterClasses[avatar?.characterClass || "Knight"].icon}
-                  </Avatar>
-                  <Typography variant="h6" fontWeight={600} mb={1}>
-                    {avatar?.name || "Herói"}
-                  </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={
-                      (currentBattle.playerHealth /
-                        currentBattle.playerMaxHealth) *
-                      100
-                    }
-                    sx={{
-                      height: 12,
-                      borderRadius: 6,
-                      bgcolor: "rgba(255,255,255,0.2)",
-                      "& .MuiLinearProgress-bar": { bgcolor: "#10b981" },
-                    }}
-                  />
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    {currentBattle.playerHealth}/{currentBattle.playerMaxHealth} HP
-                  </Typography>
-                </Box>
-              </Grid>
+function RPGPage() {
+  // Estados principais
+  const [activeTab, setActiveTab] = useState(0);
+  const [avatar, setAvatar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [battles, setBattles] = useState([]);
+  const [achievements, setAchievements] = useState([]);
+  const [worldMap, setWorldMap] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [currentBattle, setCurrentBattle] = useState(null);
 
-              <Grid item xs={6}>
-                <Box textAlign="center">
-                  <Typography variant="h1" sx={{ fontSize: "5rem" }} mb={1}>
-                    {currentBattle.enemy.icon || "👹"}
-                  </Typography>
-                  <Typography variant="h6" fontWeight={600} mb={1}>
-                    {currentBattle.enemy.name}
-                  </Typography>
-                  <motion.div
-                    animate={shakeEffect ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <LinearProgress
-                      variant="determinate"
-                      value={
-                        (currentBattle.enemy.currentHealth /
-                          currentBattle.enemy.maxHealth) *
-                        100
-                      }
-                      sx={{
-                        height: 12,
-                        borderRadius: 6,
-                        bgcolor: "rgba(255,255,255,0.2)",
-                        "& .MuiLinearProgress-bar": { bgcolor: "#ef4444" },
-                      }}
-                    />
-                  </motion.div>
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    {currentBattle.enemy.currentHealth}/{currentBattle.enemy.maxHealth} HP
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
+  // Estados de diálogos
+  const [battleDialogOpen, setBattleDialogOpen] = useState(false);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [shopDialogOpen, setShopDialogOpen] = useState(false);
+  const [guildDialogOpen, setGuildDialogOpen] = useState(false);
+  const [questDialogOpen, setQuestDialogOpen] = useState(false);
 
-            {battlePhase === "combat" && (
-              <Grid container spacing={2}>
-                <Grid item xs={4}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    onClick={() => executeAttack("basic")}
-                    sx={{
-                      bgcolor: "#667eea",
-                      py: 2,
-                      flexDirection: "column",
-                      gap: 1,
-                    }}
-                  >
-                    <AttackIcon />
-                    <Typography variant="body2" fontWeight={600}>
-                      Ataque Básico
-                    </Typography>
-                  </Button>
-                </Grid>
+  // Estados avançados
+  const [inventory, setInventory] = useState([]);
+  const [shopItems, setShopItems] = useState([]);
+  const [activeQuests, setActiveQuests] = useState([]);
+  const [completedQuests, setCompletedQuests] = useState([]);
+  const [guildInfo, setGuildInfo] = useState(null);
+  const [battleHistory, setBattleHistory] = useState([]);
+  const [dailyRewards, setDailyRewards] = useState([]);
+  const [weeklyRanking, setWeeklyRanking] = useState([]);
+  const [globalStats, setGlobalStats] = useState(null);
 
-                <Grid item xs={4}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    onClick={() => executeAttack("special")}
-                    sx={{
-                      bgcolor: "#7c3aed",
-                      py: 2,
-                      flexDirection: "column",
-                      gap: 1,
-                    }}
-                  >
-                    <MagicIcon />
-                    <Typography variant="body2" fontWeight={600}>
-                      Ataque Especial
-                    </Typography>
-                  </Button>
-                </Grid>
+  // Estados de batalha avançados
+  const [battlePhase, setBattlePhase] = useState("preparation"); // preparation, combat, result
+  const [combatLog, setCombatLog] = useState([]);
+  const [selectedAttack, setSelectedAttack] = useState(null);
+  const [battleTimer, setBattleTimer] = useState(30);
+  const [comboCounter, setComboCounter] = useState(0);
+  const [criticalHit, setCriticalHit] = useState(false);
 
-                <Grid item xs={4}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    onClick={() => executeAttack("ultimate")}
-                    disabled={comboCounter < 3}
-                    sx={{
-                      bgcolor: comboCounter >= 3 ? "#ef4444" : "#64748b",
-                      py: 2,
-                      flexDirection: "column",
-                      gap: 1,
-                    }}
-                  >
-                    <LightningIcon />
-                    <Typography variant="body2" fontWeight={600}>
-                      Ataque Final
-                    </Typography>
-                  </Button>
-                </Grid>
-              </Grid>
-            )}
-            {combatLog.length > 0 && (
-              <Box mt={4}>
-                <Typography variant="subtitle2" mb={1}>
-                  📜 Log de Combate
-                </Typography>
-                <Stack spacing={1} sx={{ maxHeight: 200, overflowY: "auto" }}>
-                  {combatLog.slice(-10).map((entry) => (
-                    <Paper
-                      key={entry.id}
-                      sx={{
-                        p: 1.5,
-                        bgcolor: entry.type === "player"
-                          ? "rgba(16,185,129,0.15)"
-                          : entry.type === "enemy"
-                          ? "rgba(239,68,68,0.15)"
-                          : entry.type === "victory"
-                          ? "rgba(234,179,8,0.25)"
-                          : entry.type === "defeat"
-                          ? "rgba(107,114,128,0.25)"
-                          : "rgba(255,255,255,0.08)",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                      }}
-                    >
-                      <Typography variant="caption" sx={{ fontSize: 12 }}>
-                        {entry.message}
-                      </Typography>
-                    </Paper>
-                  ))}
-                </Stack>
-              </Box>
-            )}
-          </DialogContent>
+  // Estados do avatar customizado
+  const [newAvatar, setNewAvatar] = useState({
+    name: "",
+    characterClass: "Knight",
+    gender: "male",
+    appearance: {
+      hair: "brown",
+      skin: "light",
+      eyes: "blue",
+      outfit: "default",
+    },
+  });
 
-          {battlePhase === "combat" && (
-            <DialogActions sx={{ justifyContent: "center", pb: 3 }}>
-              <Button
-                onClick={() => setBattleDialogOpen(false)}
-                variant="outlined"
-                sx={{ color: "white", borderColor: "white" }}
-              >
-                Fugir da Batalha
-              </Button>
-            </DialogActions>
-          )}
-        </Dialog>
-        <AnimatePresence>
-          {animatingBattle && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.45)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1300,
-              }}
-            >
-              <Stack spacing={2} alignItems="center">
-                <CircularProgress color="inherit" />
-                <Typography variant="h6" color="white" fontWeight={600}>
-                  Preparando batalha...
-                </Typography>
-              </Stack>
-            </motion.div>
-          )}
-          {animatingReward && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                bottom: 24,
-                right: 24,
-                background: "linear-gradient(135deg, #FFD700, #ff6b6b)",
-                color: "#1a202c",
-                padding: "16px 24px",
-                borderRadius: 12,
-                boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
-                zIndex: 1300,
-              }}
-            >
-              <Typography variant="subtitle1" fontWeight={700}>
-                🎉 Recompensas Aplicadas!
-              </Typography>
-              <Typography variant="caption" display="block" sx={{ opacity: 0.85 }}>
-                Experiência e Gold adicionados ao seu avatar.
-              </Typography>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </>
+  // Estados de filtros e busca
+  const [leaderboardFilter, setLeaderboardFilter] = useState("weekly");
+  const [shopCategory, setShopCategory] = useState("weapons");
+  const [questFilter, setQuestFilter] = useState("active");
+
+  // Estados de animações
+  const [animatingBattle, setAnimatingBattle] = useState(false);
+  const [animatingReward, setAnimatingReward] = useState(false);
+  const [shakeEffect, setShakeEffect] = useState(false);
+
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+  const token = localStorage.getItem("finance_flow_token");
+
+  // Dados mock para demonstração de funcionalidades premium
+  const mockShopItems = useMemo(
+    () => [
+      {
+        id: 1,
+        name: "Espada Flamejante",
+        category: "weapons",
+        price: 150,
+        attack: 25,
+        rarity: "epic",
+        icon: "⚔️",
+      },
+      {
+        id: 2,
+        name: "Armadura de Dragão",
+        category: "armor",
+        price: 200,
+        defense: 30,
+        rarity: "legendary",
+        icon: "🛡️",
+      },
+      {
+        id: 3,
+        name: "Anel da Fortuna",
+        category: "accessories",
+        price: 100,
+        luck: 15,
+        rarity: "rare",
+        icon: "💍",
+      },
+      {
+        id: 4,
+        name: "Poção de Vida",
+        category: "consumables",
+        price: 25,
+        health: 50,
+        rarity: "common",
+        icon: "🧪",
+      },
+      {
+        id: 5,
+        name: "Grimório Arcano",
+        category: "weapons",
+        price: 300,
+        magic: 40,
+        rarity: "legendary",
+        icon: "📚",
+      },
+      {
+        id: 6,
+        name: "Botas Aladas",
+        category: "armor",
+        price: 120,
+        speed: 20,
+        rarity: "epic",
+        icon: "👢",
+      },
+    ],
+    []
+  );
+
+  const mockQuests = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "Mestre da Economia",
+        description: "Economize R$ 500 este mês",
+        progress: 65,
+        maxProgress: 100,
+        reward: { gold: 100, exp: 250, item: "Medalha de Ouro" },
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        difficulty: "hard",
+      },
+      {
+        id: 2,
+        title: "Guerreiro das Finanças",
+        description: "Registre 10 transações consecutivas",
+        progress: 3,
+        maxProgress: 10,
+        reward: { gold: 50, exp: 100, item: "Escudo do Guardião" },
+        deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        difficulty: "medium",
+      },
+      {
+        id: 3,
+        title: "Caçador de Gastos",
+        description: "Identifique 5 gastos desnecessários",
+        progress: 5,
+        maxProgress: 5,
+        reward: { gold: 75, exp: 150, item: "Lupa Mágica" },
+        completed: true,
+        difficulty: "medium",
+      },
+    ],
+    []
+  );
+
+  // Classes de personagem expandidas
+  const characterClasses = useMemo(
+    () => ({
+      Knight: {
+        name: "Cavaleiro",
+        description: "Especialista em defesa e proteção financeira",
+        stats: { attack: 15, defense: 25, magic: 5, speed: 10 },
+        color: "#2563eb",
+        icon: "🛡️",
+        abilities: [
+          "Escudo Protetor",
+          "Investimento Seguro",
+          "Defesa Absoluta",
+        ],
+      },
+      Mage: {
+        name: "Mago",
+        description: "Mestre em análises e previsões financeiras",
+        stats: { attack: 10, defense: 10, magic: 30, speed: 15 },
+        color: "#7c3aed",
+        icon: "🧙‍♂️",
+        abilities: [
+          "Previsão Financeira",
+          "Análise Mágica",
+          "Investimento Inteligente",
+        ],
+      },
+      Rogue: {
+        name: "Ladino",
+        description: "Especialista em encontrar oportunidades e economias",
+        stats: { attack: 20, defense: 8, magic: 12, speed: 25 },
+        color: "#059669",
+        icon: "🗡️",
+        abilities: [
+          "Caça ao Desconto",
+          "Economia Furtiva",
+          "Oportunidade Rápida",
+        ],
+      },
+      Paladin: {
+        name: "Paladino",
+        description: "Equilibrio perfeito entre economia e investimento",
+        stats: { attack: 18, defense: 18, magic: 18, speed: 18 },
+        color: "#dc2626",
+        icon: "⚡",
+        abilities: [
+          "Equilíbrio Sagrado",
+          "Proteção Divina",
+          "Investimento Abençoado",
+        ],
+      },
+    }),
+    []
+  );
+
+  // Calculadora de poder total do avatar
+  const calculateAvatarPower = useCallback(
+    (avatarData) => {
+      if (!avatarData) return 0;
+      const baseStats = characterClasses[avatarData.characterClass]?.stats || {
+        attack: 10,
+        defense: 10,
+        magic: 10,
+        speed: 10,
+      };
+      const levelBonus = (avatarData.level || 1) * 5;
+      const equipmentBonus = (avatarData.equipment?.length || 0) * 10;
+
+      return (
+        Object.values(baseStats).reduce((sum, stat) => sum + stat, 0) +
+        levelBonus +
+        equipmentBonus
+      );
+    },
+    [characterClasses]
+  );
+
+  // Carregar dados do RPG quando a página é montada
+  useEffect(() => {
+    loadRPGData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadRPGData = async () => {
+    try {
+      setLoading(true);
+
+      if (!token) {
+        console.warn("Token não encontrado. Usuário não autenticado.");
+        setLoading(false);
         return;
       }
 
@@ -364,7 +348,24 @@ import {
               error.response?.status,
               error.message
             );
-            return { data: { data: { avatar: null } } };
+            return {
+              data: {
+                data: {
+                  avatar: {
+                    name: "Herói Anônimo",
+                    level: 5,
+                    experience: 750,
+                    nextLevelExp: 1000,
+                    characterClass: "Knight",
+                    health: 100,
+                    maxHealth: 100,
+                    gold: 500,
+                    equipment: [],
+                    stats: characterClasses.Knight.stats,
+                  },
+                },
+              },
+            };
           }),
           axios.get(`${apiUrl}/rpg/battles`, { headers }).catch((error) => {
             console.error("Erro ao carregar batalhas:", error.response?.status);
@@ -429,10 +430,10 @@ import {
         { rank: 3, name: "EcoWarrior", level: 11, exp: 1650, gold: 800 },
         {
           rank: 4,
-          name: avatar.name || "Você",
-          level: avatar.level || 5,
-          exp: avatar.experience || 750,
-          gold: avatar.gold || 500,
+          name: avatarRes.data.data?.avatar?.name || "Você",
+          level: avatarRes.data.data?.avatar?.level || 5,
+          exp: avatarRes.data.data?.avatar?.experience || 750,
+          gold: avatarRes.data.data?.avatar?.gold || 500,
         },
       ]);
 
@@ -578,13 +579,7 @@ import {
         console.error("Erro durante o combate:", error);
       }
     },
-    [
-      currentBattle,
-      battlePhase,
-      calculateAttackDamage,
-      handleBattleDefeat,
-      handleBattleVictory,
-    ]
+    [currentBattle, battlePhase]
   );
 
   const calculateAttackDamage = useCallback(
@@ -913,11 +908,10 @@ import {
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={
-                    ((avatar?.experience || 0) /
-                      (avatar?.nextLevelExp || 1000)) *
-                    100
-                  }
+                  value={safeHealthProgress(
+                    avatar?.experience || 0,
+                    avatar?.nextLevelExp || 1000
+                  )}
                   sx={{
                     height: 10,
                     borderRadius: 5,
@@ -927,30 +921,6 @@ import {
                     },
                   }}
                 />
-                <Stack direction="row" spacing={1} mt={2} flexWrap="wrap">
-                  <Chip
-                    label={`Batalhas: ${battles.length}`}
-                    size="small"
-                    sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "white" }}
-                  />
-                  <Chip
-                    label={`Conquistas: ${achievements.length}`}
-                    size="small"
-                    sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "white" }}
-                  />
-                  {worldMap && (
-                    <Chip
-                      label={`Cidades: ${worldMap?.cities?.length || 0}`}
-                      size="small"
-                      sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "white" }}
-                    />
-                  )}
-                  <Chip
-                    label={`Leaderboard: ${leaderboard.length}`}
-                    size="small"
-                    sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "white" }}
-                  />
-                </Stack>
               </Box>
             </Grid>
           </Grid>
@@ -1490,7 +1460,10 @@ import {
                           </Stack>
                           <LinearProgress
                             variant="determinate"
-                            value={(quest.progress / quest.maxProgress) * 100}
+                            value={safeHealthProgress(
+                              quest.progress,
+                              quest.maxProgress
+                            )}
                             sx={{
                               height: 8,
                               borderRadius: 4,
@@ -1587,7 +1560,7 @@ import {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {weeklyRanking.map((player) => (
+                      {weeklyRanking.map((player, index) => (
                         <TableRow
                           key={player.rank}
                           sx={{
@@ -1927,29 +1900,6 @@ import {
           <Typography variant="body1" sx={{ opacity: 0.8 }}>
             Round {currentBattle.round || 1}
           </Typography>
-          {battlePhase === "combat" && (
-            <Stack
-              direction="row"
-              spacing={1}
-              justifyContent="center"
-              mt={2}
-              flexWrap="wrap"
-            >
-              <Chip
-                label={`Combo: ${comboCounter}`}
-                color={comboCounter >= 3 ? "secondary" : "default"}
-                size="small"
-              />
-              <Chip
-                label={`Tempo: ${battleTimer}s`}
-                size="small"
-                color={battleTimer < 10 ? "error" : "primary"}
-              />
-              {criticalHit && (
-                <Chip label="CRÍTICO!" color="warning" size="small" />
-              )}
-            </Stack>
-          )}
         </DialogTitle>
 
         <DialogContent sx={{ px: 4, pb: 4 }}>
@@ -1972,11 +1922,10 @@ import {
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={
-                    (currentBattle.playerHealth /
-                      currentBattle.playerMaxHealth) *
-                    100
-                  }
+                  value={safeHealthProgress(
+                    currentBattle.playerHealth,
+                    currentBattle.playerMaxHealth
+                  )}
                   sx={{
                     height: 12,
                     borderRadius: 6,
@@ -1999,25 +1948,19 @@ import {
                 <Typography variant="h6" fontWeight={600} mb={1}>
                   {currentBattle.enemy.name}
                 </Typography>
-                <motion.div
-                  animate={shakeEffect ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <LinearProgress
+                <LinearProgress
                   variant="determinate"
-                  value={
-                    (currentBattle.enemy.currentHealth /
-                      currentBattle.enemy.maxHealth) *
-                    100
-                  }
+                  value={safeHealthProgress(
+                    currentBattle.enemy.currentHealth,
+                    currentBattle.enemy.maxHealth
+                  )}
                   sx={{
                     height: 12,
                     borderRadius: 6,
                     bgcolor: "rgba(255,255,255,0.2)",
                     "& .MuiLinearProgress-bar": { bgcolor: "#ef4444" },
                   }}
-                  />
-                </motion.div>
+                />
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   {currentBattle.enemy.currentHealth}/
                   {currentBattle.enemy.maxHealth} HP
@@ -2090,39 +2033,6 @@ import {
               </Grid>
             </Grid>
           )}
-          {/* Log de Combate */}
-          {combatLog.length > 0 && (
-            <Box mt={4}>
-              <Typography variant="subtitle2" mb={1}>
-                📜 Log de Combate
-              </Typography>
-              <Stack spacing={1} sx={{ maxHeight: 200, overflowY: "auto" }}>
-                {combatLog.slice(-10).map((entry) => (
-                  <Paper
-                    key={entry.id}
-                    sx={{
-                      p: 1.5,
-                      bgcolor:
-                        entry.type === "player"
-                          ? "rgba(16,185,129,0.15)"
-                          : entry.type === "enemy"
-                          ? "rgba(239,68,68,0.15)"
-                          : entry.type === "victory"
-                          ? "rgba(234,179,8,0.25)"
-                          : entry.type === "defeat"
-                          ? "rgba(107,114,128,0.25)"
-                          : "rgba(255,255,255,0.08)",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                    }}
-                  >
-                    <Typography variant="caption" sx={{ fontSize: 12 }}>
-                      {entry.message}
-                    </Typography>
-                  </Paper>
-                ))}
-              </Stack>
-            </Box>
-          )}
         </DialogContent>
 
         {battlePhase === "combat" && (
@@ -2137,60 +2047,6 @@ import {
           </DialogActions>
         )}
       </Dialog>
-      {/* Overlay animação de início de batalha */}
-      <AnimatePresence>
-        {animatingBattle && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              background: "rgba(0,0,0,0.45)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1300,
-            }}
-          >
-            <Stack spacing={2} alignItems="center">
-              <CircularProgress color="inherit" />
-              <Typography variant="h6" color="white" fontWeight={600}>
-                Preparando batalha...
-              </Typography>
-            </Stack>
-          </motion.div>
-        )}
-        {animatingReward && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "fixed",
-              bottom: 24,
-              right: 24,
-              background: "linear-gradient(135deg, #FFD700, #ff6b6b)",
-              color: "#1a202c",
-              padding: "16px 24px",
-              borderRadius: 12,
-              boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
-              zIndex: 1300,
-            }}
-          >
-            <Typography variant="subtitle1" fontWeight={700}>
-              🎉 Recompensas Aplicadas!
-            </Typography>
-            <Typography variant="caption" display="block" sx={{ opacity: 0.85 }}>
-              Experiência e Gold adicionados ao seu avatar.
-            </Typography>
-          </motion.div>
-        )}
-      </AnimatePresence>
     );
   }
 
@@ -2334,6 +2190,881 @@ import {
   }
 
   // Placeholder para diálogo da loja
+  function renderShopDialog() {
+    return null;
+  }
+
+  // ABA 1: AVATAR (código antigo mantido para compatibilidade)
+  if (loading) {
+    return (
+      <Container sx={{ py: 4, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography mt={2}>Carregando dados RPG...</Typography>
+      </Container>
+    );
+  }
+
+  // Renderização com abas antigas mantidas para compatibilidade
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Paper elevation={0} sx={{ borderRadius: 3, mb: 3, overflow: "hidden" }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          variant="fullWidth"
+        >
+          <Tab label="Aventuras" />
+          <Tab label="Loja" />
+          <Tab label="Missões" />
+          <Tab label="Rankings" />
+          <Tab label="Perfil" />
+        </Tabs>
+      </Paper>
+
+      <AnimatePresence mode="wait">
+        {activeTab === 0 && renderAdventuresTab()}
+        {activeTab === 1 && renderShopTab()}
+        {activeTab === 2 && renderQuestsTab()}
+        {activeTab === 3 && renderRankingsTab()}
+        {activeTab === 4 && renderProfileTab()}
+      </AnimatePresence>
+
+      {renderBattleDialog()}
+      {renderShopDialog()}
+      {renderAvatarDialog()}
+
+      {/* ABA ANTIGA: AVATAR */}
+      {activeTab === 0 && avatar && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  {avatar.name}
+                </Typography>
+                <Box sx={{ my: 2 }}>
+                  <Chip
+                    label={`Classe: ${avatar.characterClass}`}
+                    color="primary"
+                    sx={{ mr: 1 }}
+                  />
+                  <Chip
+                    label={`Nível: ${avatar.level || 1}`}
+                    color="secondary"
+                  />
+                </Box>
+                <Box sx={{ my: 2 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    Vida
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={
+                      avatar.stats?.health && avatar.stats?.maxHealth
+                        ? (avatar.stats.health / avatar.stats.maxHealth) * 100
+                        : 100
+                    }
+                    sx={{ mb: 2 }}
+                  />
+                </Box>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <Chip
+                    icon={<HealthIcon />}
+                    label={`HP: ${avatar.stats?.health || 0}/${
+                      avatar.stats?.maxHealth || 0
+                    }`}
+                  />
+                  <Chip
+                    icon={<AttackIcon />}
+                    label={`ATK: ${avatar.stats?.strength || 0}`}
+                  />
+                  <Chip
+                    icon={<FireIcon />}
+                    label={`DEF: ${avatar.stats?.constitution || 0}`}
+                  />
+                </Box>
+                <Button
+                  variant="contained"
+                  color="error"
+                  fullWidth
+                  sx={{ mt: 3 }}
+                  onClick={() => setAvatarDialogOpen(true)}
+                >
+                  Recriar Avatar
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+          ) : (
+          <Grid item xs={12}>
+            <Card sx={{ textAlign: "center", py: 4 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Nenhum Avatar Criado
+                </Typography>
+                <Typography color="textSecondary" sx={{ mb: 3 }}>
+                  Crie seu primeiro avatar para começar sua jornada financeira
+                  épica!
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setAvatarDialogOpen(true)}
+                >
+                  Criar Avatar
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* ABA 2: BATALHAS */}
+      {activeTab === 1 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>
+              Meus Histórico de Batalhas
+            </Typography>
+          </Grid>
+          {battles && battles.length > 0 ? (
+            battles.map((battle) => (
+              <Grid
+                item
+                xs={12}
+                md={6}
+                key={battle._id || battle.createdAt || Math.random()}
+              >
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">{battle.enemyName}</Typography>
+                    <Typography color="textSecondary" variant="body2">
+                      {new Date(battle.createdAt).toLocaleDateString("pt-BR")}
+                    </Typography>
+                    <Box sx={{ my: 2 }}>
+                      <Chip
+                        label={
+                          battle.status === "completed" ? "Vitória" : "Derrota"
+                        }
+                        color={
+                          battle.status === "completed" ? "success" : "error"
+                        }
+                        size="small"
+                      />
+                    </Box>
+                    <Typography variant="body2">
+                      Recompensa: R$ {battle.reward}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={12}>
+              <Typography color="textSecondary">
+                Nenhuma batalha realizada ainda
+              </Typography>
+            </Grid>
+          )}
+        </Grid>
+      )}
+
+      {/* ABA 3: MAPA DO MUNDO */}
+      {activeTab === 2 && (
+        <Grid container spacing={3}>
+          {worldMap && worldMap.cities ? (
+            worldMap.cities.map((city) => (
+              <Grid item xs={12} md={6} key={city.cityNumber || city.name}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">{city.name}</Typography>
+                    <Typography color="textSecondary" variant="body2">
+                      {city.description}
+                    </Typography>
+                    <Box sx={{ my: 2 }}>
+                      <Chip
+                        label={city.isUnlocked ? "Desbloqueado ✓" : "Bloqueado"}
+                        color={city.isUnlocked ? "success" : "default"}
+                        size="small"
+                      />
+                    </Box>
+                    {city.boss && (
+                      <Typography variant="body2" color="error">
+                        Boss: {city.boss.name} (HP: {city.boss.health})
+                      </Typography>
+                    )}
+                    {city.isUnlocked && avatar && (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        onClick={() => handleStartBattle(city.cityNumber)}
+                      >
+                        Iniciar Batalha
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={12}>
+              <Typography color="textSecondary">Mapa não disponível</Typography>
+            </Grid>
+          )}
+        </Grid>
+      )}
+
+      {/* ABA 4: ACHIEVEMENTS */}
+      {activeTab === 3 && (
+        <Grid container spacing={3}>
+          {achievements && achievements.length > 0 ? (
+            achievements.map((achievement) => (
+              <Grid
+                item
+                xs={12}
+                md={6}
+                key={achievement._id || achievement.name}
+              >
+                <Card sx={{ opacity: achievement.unlockedAt ? 1 : 0.6 }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <AchievementIcon
+                        sx={{
+                          fontSize: 40,
+                          color: achievement.unlockedAt ? "gold" : "gray",
+                        }}
+                      />
+                      <Box>
+                        <Typography variant="h6">{achievement.name}</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          {achievement.description}
+                        </Typography>
+                        {achievement.unlockedAt && (
+                          <Typography variant="caption" color="success">
+                            Desbloqueado em{" "}
+                            {new Date(
+                              achievement.unlockedAt
+                            ).toLocaleDateString("pt-BR")}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={12}>
+              <Typography color="textSecondary">
+                Nenhum achievement desbloqueado ainda
+              </Typography>
+            </Grid>
+          )}
+        </Grid>
+      )}
+
+      {/* ABA 5: LEADERBOARD */}
+      {activeTab === 4 && (
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Top 10 Jogadores
+          </Typography>
+          {leaderboard && leaderboard.length > 0 ? (
+            <Box>
+              {leaderboard.slice(0, 10).map((player, index) => (
+                <Box
+                  key={player._id || player.name || index}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    py: 2,
+                    borderBottom: "1px solid #eee",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Badge badgeContent={index + 1} color="primary">
+                      <Typography variant="h6">{player.name}</Typography>
+                    </Badge>
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                    <Chip
+                      icon={<LevelIcon />}
+                      label={`Nível ${player.level}`}
+                    />
+                    <Typography variant="body2" color="success">
+                      R$ {player.totalRewards}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Typography color="textSecondary">
+              Nenhum jogador no leaderboard ainda
+            </Typography>
+          )}
+        </Paper>
+      )}
+
+      {/* DIALOG: CRIAR/RECRIAR AVATAR */}
+      <Dialog
+        open={avatarDialogOpen}
+        onClose={() => setAvatarDialogOpen(false)}
+        disableEnforceFocus
+        disableRestoreFocus
+      >
+        <DialogTitle>Criar Avatar</DialogTitle>
+        <DialogContent sx={{ minWidth: 400, py: 2 }}>
+          <TextField
+            fullWidth
+            label="Nome do Avatar"
+            value={newAvatar.name}
+            onChange={(e) =>
+              setNewAvatar({ ...newAvatar, name: e.target.value })
+            }
+            margin="normal"
+          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Classe</InputLabel>
+            <Select
+              value={newAvatar.characterClass}
+              onChange={(e) =>
+                setNewAvatar({ ...newAvatar, characterClass: e.target.value })
+              }
+              label="Classe"
+            >
+              <MenuItem value="Knight">Guerreiro</MenuItem>
+              <MenuItem value="Mage">Mago</MenuItem>
+              <MenuItem value="Rogue">Arqueiro</MenuItem>
+              <MenuItem value="Paladin">Paladino</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Gênero</InputLabel>
+            <Select
+              value={newAvatar.gender}
+              onChange={(e) =>
+                setNewAvatar({ ...newAvatar, gender: e.target.value })
+              }
+              label="Gênero"
+            >
+              <MenuItem value="male">Masculino</MenuItem>
+              <MenuItem value="female">Feminino</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAvatarDialogOpen(false)}>Cancelar</Button>
+          <Button
+            onClick={handleCreateAvatar}
+            variant="contained"
+            color="primary"
+          >
+            Criar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* DIALOG: BATALHA */}
+      <Dialog
+        open={battleDialogOpen}
+        onClose={() => setBattleDialogOpen(false)}
+        disableEnforceFocus
+        disableRestoreFocus
+      >
+        <DialogTitle>🗡️ Batalha</DialogTitle>
+        <DialogContent sx={{ minWidth: 400 }}>
+          {currentBattle && (
+            <Box>
+              <Typography variant="h6">
+                vs. {currentBattle.enemy?.name || "Inimigo desconhecido"}
+              </Typography>
+              <Box sx={{ my: 2 }}>
+                <Typography variant="body2">Vida do inimigo</Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={
+                    ((currentBattle.enemy?.health || 0) /
+                      (currentBattle.enemy?.healthMax || 1)) *
+                    100
+                  }
+                />
+                <Typography variant="caption">
+                  {currentBattle.enemy?.health || 0}/
+                  {currentBattle.enemy?.healthMax || 0}
+                </Typography>
+              </Box>
+              <Box sx={{ my: 2 }}>
+                <Typography variant="body2">Sua vida</Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={
+                    ((avatar?.stats?.health || 0) /
+                      (avatar?.stats?.maxHealth || 1)) *
+                    100
+                  }
+                  color={avatar?.stats?.health > 30 ? "primary" : "error"}
+                />
+                <Typography variant="caption">
+                  {avatar?.stats?.health || 0}/{avatar?.stats?.maxHealth || 0}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => handleBattleAction("attack")}
+            variant="contained"
+            color="error"
+          >
+            Atacar
+          </Button>
+          <Button
+            onClick={() => handleBattleAction("defend")}
+            variant="contained"
+            color="primary"
+          >
+            Defender
+          </Button>
+          <Button
+            onClick={() => handleBattleAction("heal")}
+            variant="contained"
+            color="success"
+          >
+            Curar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
+  );
+
+  // Função para renderizar diálogo de batalha avançado
+  function renderBattleDialog() {
+    if (!currentBattle) return null;
+
+    return (
+      <Dialog
+        open={battleDialogOpen}
+        onClose={() => setBattleDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: "linear-gradient(135deg, #1a202c 0%, #2d3748 100%)",
+            color: "white",
+            borderRadius: 4,
+          },
+        }}
+      >
+        <DialogTitle sx={{ textAlign: "center", py: 3 }}>
+          <Typography variant="h4" fontWeight={800}>
+            ⚔️ Batalha Épica
+          </Typography>
+          <Typography variant="body1" sx={{ opacity: 0.8 }}>
+            Round {currentBattle.round || 1}
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 4, pb: 4 }}>
+          {/* Barra de vida dos combatentes */}
+          <Grid container spacing={3} mb={4}>
+            <Grid item xs={6}>
+              <Box textAlign="center">
+                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    mx: "auto",
+                    mb: 2,
+                    bgcolor: "#667eea",
+                  }}
+                >
+                  {characterClasses[avatar?.characterClass || "Knight"].icon}
+                </Avatar>
+                <Typography variant="h6" fontWeight={600} mb={1}>
+                  {avatar?.name || "Herói"}
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={safeHealthProgress(
+                    currentBattle.playerHealth,
+                    currentBattle.playerMaxHealth
+                  )}
+                  sx={{
+                    height: 12,
+                    borderRadius: 6,
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    "& .MuiLinearProgress-bar": { bgcolor: "#10b981" },
+                  }}
+                />
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  {currentBattle.playerHealth}/{currentBattle.playerMaxHealth}{" "}
+                  HP
+                </Typography>
+              </Box>
+            </Grid>
+
+            <Grid item xs={6}>
+              <Box textAlign="center">
+                <Typography variant="h1" sx={{ fontSize: "5rem" }} mb={1}>
+                  {currentBattle.enemy.icon || "👹"}
+                </Typography>
+                <Typography variant="h6" fontWeight={600} mb={1}>
+                  {currentBattle.enemy.name}
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={safeHealthProgress(
+                    currentBattle.enemy.currentHealth,
+                    currentBattle.enemy.maxHealth
+                  )}
+                  sx={{
+                    height: 12,
+                    borderRadius: 6,
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    "& .MuiLinearProgress-bar": { bgcolor: "#ef4444" },
+                  }}
+                />
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  {currentBattle.enemy.currentHealth}/
+                  {currentBattle.enemy.maxHealth} HP
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Log de combate */}
+          <Paper
+            sx={{
+              bgcolor: "rgba(255,255,255,0.1)",
+              p: 3,
+              borderRadius: 3,
+              mb: 3,
+              maxHeight: 200,
+              overflow: "auto",
+            }}
+          >
+            <Typography variant="h6" fontWeight={600} mb={2}>
+              📜 Log de Combate
+            </Typography>
+            {combatLog.slice(-5).map((log) => (
+              <motion.div
+                key={log.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 1,
+                    color:
+                      log.type === "player"
+                        ? "#10b981"
+                        : log.type === "enemy"
+                        ? "#ef4444"
+                        : log.type === "victory"
+                        ? "#FFD700"
+                        : "white",
+                    fontWeight: log.critical ? 700 : 400,
+                  }}
+                >
+                  {log.message}
+                </Typography>
+              </motion.div>
+            ))}
+          </Paper>
+
+          {/* Ações de batalha */}
+          {battlePhase === "combat" && (
+            <Grid container spacing={2}>
+              <Grid item xs={4}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={() => executeAttack("basic")}
+                    sx={{
+                      bgcolor: "#667eea",
+                      py: 2,
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
+                    <AttackIcon />
+                    <Typography variant="body2" fontWeight={600}>
+                      Ataque Básico
+                    </Typography>
+                  </Button>
+                </motion.div>
+              </Grid>
+
+              <Grid item xs={4}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={() => executeAttack("special")}
+                    sx={{
+                      bgcolor: "#7c3aed",
+                      py: 2,
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
+                    <MagicIcon />
+                    <Typography variant="body2" fontWeight={600}>
+                      Ataque Especial
+                    </Typography>
+                  </Button>
+                </motion.div>
+              </Grid>
+
+              <Grid item xs={4}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={() => executeAttack("ultimate")}
+                    disabled={comboCounter < 3}
+                    sx={{
+                      bgcolor: comboCounter >= 3 ? "#ef4444" : "#64748b",
+                      py: 2,
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
+                    <LightningIcon />
+                    <Typography variant="body2" fontWeight={600}>
+                      Ataque Final
+                    </Typography>
+                    {comboCounter < 3 && (
+                      <Typography variant="caption">
+                        Combo: {comboCounter}/3
+                      </Typography>
+                    )}
+                  </Button>
+                </motion.div>
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Resultado da batalha */}
+          {battlePhase === "result" && (
+            <Box textAlign="center" py={4}>
+              {animatingReward && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Typography variant="h2" sx={{ fontSize: "4rem" }}>
+                    🎉
+                  </Typography>
+                  <Typography variant="h4" fontWeight={800} color="#FFD700">
+                    VITÓRIA!
+                  </Typography>
+                </motion.div>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+
+        {battlePhase === "combat" && (
+          <DialogActions sx={{ justifyContent: "center", pb: 3 }}>
+            <Button
+              onClick={() => setBattleDialogOpen(false)}
+              variant="outlined"
+              sx={{ color: "white", borderColor: "white" }}
+            >
+              Fugir da Batalha
+            </Button>
+          </DialogActions>
+        )}
+      </Dialog>
+    );
+  }
+
+  // Função para renderizar diálogo de criação de avatar
+  function renderAvatarDialog() {
+    return (
+      <Dialog
+        open={avatarDialogOpen}
+        onClose={() => setAvatarDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h5" fontWeight={700}>
+            ✨ Criar/Editar Avatar
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent>
+          <Grid container spacing={3} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6}>
+              <Stack spacing={3}>
+                <TextField
+                  fullWidth
+                  label="Nome do Herói"
+                  value={newAvatar.name}
+                  onChange={(e) =>
+                    setNewAvatar((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  variant="outlined"
+                />
+
+                <FormControl fullWidth>
+                  <InputLabel>Classe</InputLabel>
+                  <Select
+                    value={newAvatar.characterClass}
+                    label="Classe"
+                    onChange={(e) =>
+                      setNewAvatar((prev) => ({
+                        ...prev,
+                        characterClass: e.target.value,
+                      }))
+                    }
+                  >
+                    {Object.entries(characterClasses).map(([key, cls]) => (
+                      <MenuItem key={key} value={key}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Typography>{cls.icon}</Typography>
+                          <Box>
+                            <Typography fontWeight={600}>{cls.name}</Typography>
+                            <Typography variant="caption" color="textSecondary">
+                              {cls.description}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel>Gênero</InputLabel>
+                  <Select
+                    value={newAvatar.gender}
+                    label="Gênero"
+                    onChange={(e) =>
+                      setNewAvatar((prev) => ({
+                        ...prev,
+                        gender: e.target.value,
+                      }))
+                    }
+                  >
+                    <MenuItem value="male">Masculino</MenuItem>
+                    <MenuItem value="female">Feminino</MenuItem>
+                    <MenuItem value="other">Outro</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, textAlign: "center", bgcolor: "#f8fafc" }}>
+                <Typography variant="h6" fontWeight={600} mb={2}>
+                  Preview do Avatar
+                </Typography>
+
+                <Avatar
+                  sx={{
+                    width: 120,
+                    height: 120,
+                    mx: "auto",
+                    mb: 2,
+                    background: `linear-gradient(135deg, ${
+                      characterClasses[newAvatar.characterClass].color
+                    }, #ff6b6b)`,
+                    fontSize: "3rem",
+                  }}
+                >
+                  {characterClasses[newAvatar.characterClass].icon}
+                </Avatar>
+
+                <Typography variant="h6" fontWeight={600} mb={1}>
+                  {newAvatar.name || "Nome do Herói"}
+                </Typography>
+
+                <Chip
+                  label={characterClasses[newAvatar.characterClass].name}
+                  sx={{
+                    bgcolor: characterClasses[newAvatar.characterClass].color,
+                    color: "white",
+                    fontWeight: 600,
+                    mb: 2,
+                  }}
+                />
+
+                <Typography variant="body2" color="#64748b">
+                  {characterClasses[newAvatar.characterClass].description}
+                </Typography>
+
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                    Atributos Base:
+                  </Typography>
+                  <Grid container spacing={1}>
+                    {Object.entries(
+                      characterClasses[newAvatar.characterClass].stats
+                    ).map(([stat, value]) => (
+                      <Grid item xs={6} key={stat}>
+                        <Typography variant="caption" color="#64748b">
+                          {stat === "attack"
+                            ? "⚔️"
+                            : stat === "defense"
+                            ? "🛡️"
+                            : stat === "magic"
+                            ? "🔮"
+                            : "⚡"}{" "}
+                          {value}
+                        </Typography>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setAvatarDialogOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            onClick={handleCreateAvatar}
+            sx={{
+              background: `linear-gradient(135deg, ${
+                characterClasses[newAvatar.characterClass].color
+              }, #ff6b6b)`,
+              fontWeight: 600,
+            }}
+          >
+            {avatar ? "Atualizar Avatar" : "Criar Avatar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+
+  // Placeholder para diálogo da loja (se necessário)
   function renderShopDialog() {
     return null;
   }
