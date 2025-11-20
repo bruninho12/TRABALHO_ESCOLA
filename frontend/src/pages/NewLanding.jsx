@@ -1,9 +1,8 @@
 /**
  * @fileoverview Landing Page - DespFinancee - Mobile Optimized
  */
-/* eslint-disable no-unused-vars */
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Container,
@@ -22,16 +21,7 @@ import {
   InputAdornment,
   Snackbar,
   Alert,
-  Card,
-  CardContent,
   Divider,
-  Tooltip,
-  Zoom,
-  Fade,
-  Slide,
-  Grow,
-  Backdrop,
-  CircularProgress,
   Collapse,
   IconButton,
 } from "@mui/material";
@@ -44,32 +34,14 @@ import {
   Assessment as ReportsIcon,
   ArrowForward,
   CheckCircle,
-  PlayCircle,
   Star,
-  Speed,
   Shield,
-  CloudSync,
-  PhoneAndroid,
-  TrendingDown,
-  Savings,
-  AttachMoney,
-  CreditCard,
-  AutoGraph,
   Menu as MenuIcon,
   Close as CloseIcon,
   ExpandMore,
   Email,
   QuestionAnswer,
   Lightbulb,
-  Rocket,
-  Psychology,
-  EmojiEvents,
-  AutoAwesome,
-  Verified,
-  KeyboardArrowDown,
-  TrendingUp as AnimatedTrending,
-  AutoAwesome as MagicIcon,
-  FlashOn,
   Visibility,
 } from "@mui/icons-material";
 import {
@@ -86,30 +58,18 @@ const Landing = () => {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  // eslint-disable-next-line no-unused-vars
-  const [hoveredFeature, setHoveredFeature] = useState(null);
   const [typedText, setTypedText] = useState("");
   const [showFloatingElements, setShowFloatingElements] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Usado no cursor customizado e efeitos magnéticos
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [showLoader, setShowLoader] = useState(false);
   const [particles, setParticles] = useState([]);
   const [currentBg, setCurrentBg] = useState(0);
-  // eslint-disable-next-line no-unused-vars
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
-  // Usado para controlar a exibição das partículas
   const [showParticles, setShowParticles] = useState(false);
-  const [magneticButtons, setMagneticButtons] = useState(new Set());
+  const [magneticButtons] = useState(new Set());
   const containerRef = useRef(null);
-  const cursorRef = useRef(null);
 
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
-  // eslint-disable-next-line no-unused-vars
-  const y2 = useTransform(scrollY, [0, 300], [0, 50]);
-  // eslint-disable-next-line no-unused-vars
-  const opacity = useTransform(scrollY, [0, 300], [1, 0.5]); // Efeito de digitação
   const fullText = "Transforme suas finanças em um jogo divertido!";
   useEffect(() => {
     let i = 0;
@@ -163,7 +123,7 @@ const Landing = () => {
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [magneticButtons, setMousePosition]);
+  }, [magneticButtons]);
 
   // Sistema de Partículas Otimizado
   useEffect(() => {
@@ -185,7 +145,7 @@ const Landing = () => {
     };
 
     setTimeout(generateParticles, 500);
-  }, [setParticles, setShowParticles]);
+  }, []);
 
   // Background Morphing Otimizado
   useEffect(() => {
@@ -193,33 +153,25 @@ const Landing = () => {
       setCurrentBg((prev) => (prev + 1) % 3);
     }, 8000);
     return () => clearInterval(interval);
-  }, [setCurrentBg]);
-
-  // Typing Animation Complete
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsTypingComplete(true);
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [setIsTypingComplete]);
+  }, []);
 
   return (
     <>
       {/* Loader Cinematográfico - Temporariamente desabilitado */}
-      {
-        <AnimatePresence>
-          {showLoader && (
-            <Backdrop
-              open={showLoader}
-              sx={{
-                zIndex: 10000,
-                background: "linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
+      {/*
+      <AnimatePresence>
+        {showLoader && (
+          <Backdrop
+            open={showLoader}
+            sx={{
+              zIndex: 10000,
+              background: "linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
               <motion.div
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -314,11 +266,10 @@ const Landing = () => {
             </Backdrop>
           )}
         </AnimatePresence>
-      }
+      */}
 
       {/* Cursor Personalizado */}
       <motion.div
-        ref={cursorRef}
         style={{
           position: "fixed",
           width: 20,
@@ -566,7 +517,7 @@ const Landing = () => {
               >
                 <Typography
                   sx={{
-                    color: "#64748b",
+                    color: "black",
                     cursor: "pointer",
                     fontSize: "0.95rem",
                     fontWeight: 500,
@@ -578,7 +529,7 @@ const Landing = () => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: "#64748b",
+                    color: "black",
                     cursor: "pointer",
                     fontSize: "0.95rem",
                     fontWeight: 500,
@@ -590,7 +541,7 @@ const Landing = () => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: "#64748b",
+                    color: "black",
                     cursor: "pointer",
                     fontSize: "0.95rem",
                     fontWeight: 500,
@@ -602,7 +553,7 @@ const Landing = () => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: "#64748b",
+                    color: "black",
                     cursor: "pointer",
                     fontSize: "0.95rem",
                     fontWeight: 500,
@@ -618,7 +569,7 @@ const Landing = () => {
                   size="small"
                   sx={{
                     borderColor: "#e2e8f0",
-                    color: "#64748b",
+                    color: "black",
                     fontSize: "0.875rem",
                     px: 2,
                     py: 0.75,
@@ -810,7 +761,7 @@ const Landing = () => {
                 label="🚀 +50.000 usuários economizando jogando"
                 sx={{
                   bgcolor: "rgba(255,255,255,0.2)",
-                  color: "white",
+                  color: "black",
                   fontWeight: 600,
                   fontSize: { xs: "0.75rem", sm: "0.875rem" },
                   px: { xs: 1, sm: 2 },
@@ -823,65 +774,117 @@ const Landing = () => {
         {/* Hero Section */}
         <Box
           sx={{
-            pt: { xs: 6, sm: 8, md: 12 },
-            pb: { xs: 4, sm: 6, md: 8 },
+            background:
+              "linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f1419 75%, #0a0e27 100%)",
+            pt: { xs: 8, sm: 10, md: 16 },
+            pb: { xs: 6, sm: 8, md: 12 },
             position: "relative",
             overflow: "hidden",
-            minHeight: { xs: "auto", md: "60vh" },
+            minHeight: { xs: "90vh", md: "100vh" },
+            display: "flex",
+            alignItems: "center",
+            "&::before": {
+              content: "''",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.15) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%)",
+              zIndex: 0,
+            },
           }}
         >
-          {/* Elementos flutuantes de fundo */}
+          {/* Elementos decorativos avançados */}
           <AnimatePresence>
             {showFloatingElements && (
               <>
+                {/* Círculo principal flutuante */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{
-                    opacity: 0.1,
-                    scale: 1,
-                    y: [0, -20, 0],
-                    rotate: [0, 180, 360],
+                    opacity: [0.3, 0.6, 0.3],
+                    scale: [1, 1.2, 1],
+                    y: [0, -30, 0],
+                    rotate: [0, 360],
                   }}
                   style={{
                     position: "absolute",
-                    top: "10%",
-                    right: "10%",
-                    width: 100,
-                    height: 100,
+                    top: "15%",
+                    right: "8%",
+                    width: 120,
+                    height: 120,
                     borderRadius: "50%",
                     background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                    filter: "blur(1px)",
                     zIndex: 0,
                   }}
                   transition={{
-                    duration: 6,
+                    duration: 10,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
                 />
+
+                {/* Forma orgânica flutuante */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{
-                    opacity: 0.1,
-                    scale: 1,
-                    x: [0, 30, 0],
-                    rotate: [0, -180, -360],
+                    opacity: [0.2, 0.4, 0.2],
+                    scale: [1, 1.1, 1],
+                    x: [0, 40, 0],
+                    rotate: [0, -360],
                   }}
                   style={{
                     position: "absolute",
-                    bottom: "20%",
-                    left: "5%",
-                    width: 80,
-                    height: 80,
+                    bottom: "25%",
+                    left: "3%",
+                    width: 100,
+                    height: 100,
                     borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
                     background: "linear-gradient(135deg, #ec4899, #f59e0b)",
+                    filter: "blur(1px)",
                     zIndex: 0,
                   }}
                   transition={{
-                    duration: 8,
+                    duration: 12,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
                 />
+
+                {/* Partículas pequenas */}
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{
+                      opacity: [0, 0.6, 0],
+                      scale: [0, 1, 0],
+                      x: [0, Math.random() * 100 - 50, 0],
+                      y: [0, Math.random() * 100 - 50, 0],
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: `${20 + Math.random() * 60}%`,
+                      left: `${10 + Math.random() * 80}%`,
+                      width: 4 + Math.random() * 8,
+                      height: 4 + Math.random() * 8,
+                      borderRadius: "50%",
+                      background: `linear-gradient(135deg, ${
+                        i % 2 === 0 ? "#6366f1, #8b5cf6" : "#ec4899, #f59e0b"
+                      })`,
+                      zIndex: 0,
+                    }}
+                    transition={{
+                      duration: 3 + Math.random() * 4,
+                      repeat: Infinity,
+                      delay: Math.random() * 2,
+                      ease: "easeInOut",
+                    }}
+                  />
+                ))}
               </>
             )}
           </AnimatePresence>
@@ -930,7 +933,7 @@ const Landing = () => {
                           xl: "3.5rem",
                         },
                         fontWeight: 800,
-                        color: "#0f1",
+                        color: "white",
                         lineHeight: { xs: 1.3, sm: 1.2, md: 1.1 },
                         mb: { xs: 2, sm: 2.5, md: 3 },
                         textAlign: { xs: "center", lg: "left" },
@@ -951,7 +954,7 @@ const Landing = () => {
                           position: "relative",
                           display: { xs: "block", sm: "inline" },
                           "&::after": {
-                            content: '""',
+                            content: "''",
                             position: "absolute",
                             bottom: { xs: -2, md: -5 },
                             left: 0,
@@ -994,47 +997,62 @@ const Landing = () => {
                       <Typography
                         variant="h6"
                         sx={{
-                          color: "#64748b",
+                          color: "rgba(255, 255, 255, 0.9)",
                           mb: { xs: 3, sm: 3.5, md: 4 },
                           fontSize: {
-                            xs: "0.875rem",
-                            sm: "1rem",
-                            md: "1.1rem",
+                            xs: "0.95rem",
+                            sm: "1.1rem",
+                            md: "1.25rem",
                           },
                           lineHeight: { xs: 1.6, md: 1.6 },
                           minHeight: { xs: "auto", md: "2em" },
                           textAlign: { xs: "center", lg: "left" },
                           px: { xs: 1, sm: 0 },
                           maxWidth: { xs: "100%", lg: "90%" },
+                          fontWeight: 400,
                         }}
                       >
-                        {typedText}
-                        <motion.span
-                          animate={{ opacity: [0, 1, 0] }}
-                          transition={{ duration: 1, repeat: Infinity }}
-                          style={{
-                            color: "#6366f1",
-                            fontWeight: 700,
-                            fontSize: "1.2em",
-                          }}
-                        >
-                          |
-                        </motion.span>
+                        {typedText ||
+                          "Transforme suas finanças em um jogo divertido!"}
+                        {typedText && (
+                          <motion.span
+                            animate={{ opacity: [0, 1, 0] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                            style={{
+                              color: "#6366f1",
+                              fontWeight: 700,
+                              fontSize: "1.2em",
+                            }}
+                          >
+                            |
+                          </motion.span>
+                        )}
                       </Typography>
 
                       <Typography
                         variant="body1"
                         sx={{
-                          color: "#64748b",
-                          mb: 4,
-                          fontSize: "1rem",
-                          lineHeight: 1.6,
+                          color: "rgba(255, 255, 255, 0.8)",
+                          mb: { xs: 4, md: 5 },
+                          fontSize: { xs: "0.95rem", sm: "1rem", md: "1.1rem" },
+                          lineHeight: 1.7,
+                          textAlign: { xs: "center", lg: "left" },
+                          px: { xs: 1, sm: 0 },
+                          maxWidth: { xs: "100%", lg: "85%" },
                         }}
                       >
                         O primeiro app de finanças pessoais com{" "}
                         <Box
                           component="span"
-                          sx={{ fontWeight: 700, color: "#6366f1" }}
+                          sx={{
+                            fontWeight: 700,
+                            color: "#a855f7",
+                            background:
+                              "linear-gradient(135deg, #6366f1, #a855f7)",
+                            WebkitBackgroundClip: "text",
+                            backgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                          }}
                         >
                           gamificação completa
                         </Box>
@@ -1072,6 +1090,7 @@ const Landing = () => {
                           id="main-cta"
                           variant="contained"
                           size="large"
+                          startIcon={<span>🚀</span>}
                           endIcon={
                             <motion.div
                               animate={{
@@ -1090,24 +1109,24 @@ const Landing = () => {
                           onClick={() => navigate("/register")}
                           sx={{
                             background:
-                              "linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)",
+                              "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)",
                             px: { xs: 3, sm: 4, md: 6 },
-                            py: { xs: 2, sm: 2.5, md: 3 },
+                            py: { xs: 2.5, sm: 3, md: 3.5 },
                             fontSize: {
-                              xs: "0.95rem",
-                              sm: "1.1rem",
-                              md: "1.2rem",
+                              xs: "1rem",
+                              sm: "1.15rem",
+                              md: "1.25rem",
                             },
                             fontWeight: 700,
                             width: { xs: "100%", sm: "auto" },
-                            minWidth: { xs: "auto", sm: "200px" },
-                            maxWidth: { xs: "100%", sm: "300px" },
-                            boxShadow: "0 8px 25px rgba(99, 102, 241, 0.3)",
-                            borderRadius: { xs: 2, sm: 3 },
+                            minWidth: { xs: "auto", sm: "250px" },
+                            maxWidth: { xs: "100%", sm: "350px" },
+                            boxShadow: "0 20px 40px rgba(99, 102, 241, 0.4)",
+                            borderRadius: { xs: 3, sm: 4 },
                             position: "relative",
                             overflow: "hidden",
-                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                             textTransform: "none",
+                            border: "1px solid rgba(255, 255, 255, 0.1)",
                             "&::before": {
                               content: '""',
                               position: "absolute",
@@ -1119,34 +1138,16 @@ const Landing = () => {
                                 "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
                               transition: "left 0.8s",
                             },
-                            "&::after": {
-                              content: '""',
-                              position: "absolute",
-                              top: -2,
-                              left: -2,
-                              right: -2,
-                              bottom: -2,
-                              background:
-                                "linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899, #f59e0b)",
-                              borderRadius: "inherit",
-                              zIndex: -1,
-                              filter: "blur(10px)",
-                              opacity: 0,
-                              transition: "opacity 0.3s",
-                            },
                             "&:hover": {
-                              transform: "translateY(-3px)",
+                              transform: "translateY(-2px)",
                               boxShadow: "0 25px 50px rgba(99, 102, 241, 0.5)",
                               "&::before": {
                                 left: "100%",
                               },
-                              "&::after": {
-                                opacity: 1,
-                              },
                             },
                           }}
                         >
-                          🚀 Criar Conta Mágica
+                          Criar Conta Mágica
                         </Button>
                       </motion.div>
 
@@ -1182,23 +1183,23 @@ const Landing = () => {
                             </motion.div>
                           }
                           sx={{
-                            borderColor: "#6366f1",
-                            color: "#6366f1",
-                            px: { xs: 2, sm: 3, md: 5 },
+                            borderColor: "rgba(255, 255, 255, 0.3)",
+                            color: "rgba(255, 255, 255, 0.9)",
+                            px: { xs: 2.5, sm: 3, md: 4 },
                             py: { xs: 2, sm: 2.5, md: 3 },
                             fontSize: {
                               xs: "0.9rem",
                               sm: "1rem",
-                              md: "1.1rem",
+                              md: "1.05rem",
                             },
                             fontWeight: 600,
-                            borderRadius: { xs: 2, sm: 3 },
+                            borderRadius: { xs: 3, sm: 4 },
                             borderWidth: 2,
-                            background: "rgba(99, 102, 241, 0.05)",
-                            backdropFilter: "blur(10px)",
+                            background: "rgba(255, 255, 255, 0.05)",
+                            backdropFilter: "blur(20px)",
                             width: { xs: "100%", sm: "auto" },
-                            minWidth: { xs: "auto", sm: "180px" },
-                            maxWidth: { xs: "100%", sm: "250px" },
+                            minWidth: { xs: "auto", sm: "200px" },
+                            maxWidth: { xs: "100%", sm: "280px" },
                             position: "relative",
                             overflow: "hidden",
                             textTransform: "none",
@@ -1210,15 +1211,15 @@ const Landing = () => {
                               right: 0,
                               bottom: 0,
                               background:
-                                "linear-gradient(45deg, transparent 30%, rgba(99, 102, 241, 0.1) 50%, transparent 70%)",
+                                "linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%)",
                               transform: "translateX(-100%)",
                               transition: "transform 0.6s",
                             },
                             "&:hover": {
-                              borderColor: "#8b5cf6",
-                              color: "#8b5cf6",
-                              bgcolor: "rgba(139, 92, 246, 0.1)",
-                              boxShadow: "0 10px 25px rgba(139, 92, 246, 0.2)",
+                              borderColor: "rgba(255, 255, 255, 0.6)",
+                              color: "white",
+                              bgcolor: "rgba(255, 255, 255, 0.1)",
+                              boxShadow: "0 15px 35px rgba(255, 255, 255, 0.1)",
                               "&::before": {
                                 transform: "translateX(100%)",
                               },
@@ -1235,113 +1236,315 @@ const Landing = () => {
 
               <Grid item xs={12} lg={6}>
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
+                  initial={{ opacity: 0, scale: 0.95, x: 50 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
                 >
                   <Box
                     sx={{
                       position: "relative",
-                      mt: { xs: 4, lg: 0 },
-                      px: { xs: 1, sm: 0 },
+                      mt: { xs: 6, lg: 0 },
+                      px: { xs: 2, sm: 0 },
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 3,
                     }}
                   >
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: { xs: 3, sm: 4 },
-                        borderRadius: 4,
-                        background: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
-                        border: "1px solid #e2e8f0",
-                        position: "relative",
+                    {/* Painel Principal de Métricas */}
+                    <motion.div
+                      animate={{
+                        y: [0, -10, 0],
+                        rotateY: [0, 5, 0],
+                      }}
+                      transition={{
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
                       }}
                     >
-                      <Grid container spacing={3} mb={3}>
-                        <Grid item xs={6}>
-                          <Paper
-                            sx={{
-                              p: 2,
-                              textAlign: "center",
-                              borderRadius: 2,
-                              background:
-                                "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                              color: "white",
-                            }}
-                          >
-                            <Typography variant="h4" fontWeight={700}>
-                              50.000+
-                            </Typography>
-                            <Typography variant="body2">
-                              Usuários Ativos
-                            </Typography>
-                          </Paper>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Paper
-                            sx={{
-                              p: 2,
-                              textAlign: "center",
-                              borderRadius: 2,
-                              bgcolor: "white",
-                              border: "1px solid #e2e8f0",
-                            }}
-                          >
-                            <Typography
-                              variant="h4"
-                              fontWeight={700}
-                              color="#10b981"
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          background:
+                            "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
+                          backdropFilter: "blur(20px)",
+                          border: "1px solid rgba(255, 255, 255, 0.2)",
+                          borderRadius: 4,
+                          p: { xs: 3, sm: 4 },
+                          position: "relative",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Grid container spacing={3}>
+                          {/* Usuários Ativos */}
+                          <Grid item xs={6}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              transition={{ duration: 0.2 }}
                             >
-                              R$ 25M+
-                            </Typography>
-                            <Typography variant="body2" color="#64748b">
-                              Economizados
-                            </Typography>
-                          </Paper>
-                        </Grid>
-                      </Grid>
+                              <Paper
+                                sx={{
+                                  background:
+                                    "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                                  p: 3,
+                                  borderRadius: 3,
+                                  color: "white",
+                                  textAlign: "center",
+                                  position: "relative",
+                                  overflow: "hidden",
+                                  "&::before": {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background:
+                                      "linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent)",
+                                    animation: "shimmer 3s infinite",
+                                  },
+                                  "@keyframes shimmer": {
+                                    "0%": { transform: "translateX(-100%)" },
+                                    "100%": { transform: "translateX(100%)" },
+                                  },
+                                }}
+                              >
+                                <motion.div
+                                  animate={{ scale: [1, 1.1, 1] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                >
+                                  <Typography
+                                    variant="h4"
+                                    fontWeight={800}
+                                    sx={{ mb: 1 }}
+                                  >
+                                    50.000+
+                                  </Typography>
+                                </motion.div>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ opacity: 0.9 }}
+                                >
+                                  Usuários Ativos
+                                </Typography>
+                              </Paper>
+                            </motion.div>
+                          </Grid>
 
-                      <Grid container spacing={3}>
-                        <Grid item xs={6}>
-                          <Paper
-                            sx={{
-                              p: 2,
-                              textAlign: "center",
-                              borderRadius: 2,
-                              bgcolor: "white",
-                              border: "1px solid #e2e8f0",
-                            }}
-                          >
-                            <Typography
-                              variant="h4"
-                              fontWeight={700}
-                              color="#f59e0b"
+                          {/* Dinheiro Economizado */}
+                          <Grid item xs={6}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              transition={{ duration: 0.2 }}
                             >
-                              4.9/5
-                            </Typography>
-                            <Typography variant="body2" color="#64748b">
-                              Avaliação
-                            </Typography>
-                          </Paper>
+                              <Paper
+                                sx={{
+                                  background:
+                                    "linear-gradient(135deg, #10b981, #059669)",
+                                  p: 3,
+                                  borderRadius: 3,
+                                  color: "white",
+                                  textAlign: "center",
+                                  position: "relative",
+                                  overflow: "hidden",
+                                  "&::before": {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background:
+                                      "linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent)",
+                                    animation: "shimmer 3s infinite 0.5s",
+                                  },
+                                }}
+                              >
+                                <motion.div
+                                  animate={{ scale: [1, 1.1, 1] }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    delay: 0.5,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="h4"
+                                    fontWeight={800}
+                                    sx={{ mb: 1 }}
+                                  >
+                                    R$ 25M+
+                                  </Typography>
+                                </motion.div>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ opacity: 0.9 }}
+                                >
+                                  Economizados
+                                </Typography>
+                              </Paper>
+                            </motion.div>
+                          </Grid>
+
+                          {/* Avaliação */}
+                          <Grid item xs={6}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Paper
+                                sx={{
+                                  background:
+                                    "linear-gradient(135deg, #f59e0b, #f97316)",
+                                  p: 3,
+                                  borderRadius: 3,
+                                  color: "white",
+                                  textAlign: "center",
+                                  position: "relative",
+                                  overflow: "hidden",
+                                  "&::before": {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background:
+                                      "linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent)",
+                                    animation: "shimmer 3s infinite 1s",
+                                  },
+                                }}
+                              >
+                                <motion.div
+                                  animate={{ scale: [1, 1.1, 1] }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    delay: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="h4"
+                                    fontWeight={800}
+                                    sx={{ mb: 1 }}
+                                  >
+                                    4.9/5
+                                  </Typography>
+                                </motion.div>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ opacity: 0.9 }}
+                                >
+                                  Avaliação
+                                </Typography>
+                              </Paper>
+                            </motion.div>
+                          </Grid>
+
+                          {/* Satisfação */}
+                          <Grid item xs={6}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Paper
+                                sx={{
+                                  background:
+                                    "linear-gradient(135deg, #ec4899, #be185d)",
+                                  p: 3,
+                                  borderRadius: 3,
+                                  color: "white",
+                                  textAlign: "center",
+                                  position: "relative",
+                                  overflow: "hidden",
+                                  "&::before": {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background:
+                                      "linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent)",
+                                    animation: "shimmer 3s infinite 1.5s",
+                                  },
+                                }}
+                              >
+                                <motion.div
+                                  animate={{ scale: [1, 1.1, 1] }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    delay: 1.5,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="h4"
+                                    fontWeight={800}
+                                    sx={{ mb: 1 }}
+                                  >
+                                    98%
+                                  </Typography>
+                                </motion.div>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ opacity: 0.9 }}
+                                >
+                                  Satisfação
+                                </Typography>
+                              </Paper>
+                            </motion.div>
+                          </Grid>
                         </Grid>
-                        <Grid item xs={6}>
-                          <Paper
-                            sx={{
-                              p: 2,
-                              textAlign: "center",
-                              borderRadius: 2,
-                              background:
-                                "linear-gradient(135deg, #ec4899, #be185d)",
-                              color: "white",
-                            }}
-                          >
-                            <Typography variant="h4" fontWeight={700}>
-                              98%
-                            </Typography>
-                            <Typography variant="body2">Satisfação</Typography>
-                          </Paper>
-                        </Grid>
-                      </Grid>
-                    </Paper>
+                      </Paper>
+                    </motion.div>
+
+                    {/* Indicações Visuais */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.8 }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        justifyContent="center"
+                        flexWrap="wrap"
+                      >
+                        <Chip
+                          icon={
+                            <CheckCircle sx={{ color: "#10b981 !important" }} />
+                          }
+                          label="100% Gratuito"
+                          sx={{
+                            bgcolor: "rgba(16, 185, 129, 0.1)",
+                            color: "#10b981",
+                            border: "1px solid rgba(16, 185, 129, 0.3)",
+                            fontWeight: 600,
+                          }}
+                        />
+                        <Chip
+                          icon={<Shield sx={{ color: "#6366f1 !important" }} />}
+                          label="Dados Seguros"
+                          sx={{
+                            bgcolor: "rgba(99, 102, 241, 0.1)",
+                            color: "#6366f1",
+                            border: "1px solid rgba(99, 102, 241, 0.3)",
+                            fontWeight: 600,
+                          }}
+                        />
+                        <Chip
+                          icon={<Star sx={{ color: "#f59e0b !important" }} />}
+                          label="Sem Anúncios"
+                          sx={{
+                            bgcolor: "rgba(245, 158, 11, 0.1)",
+                            color: "#f59e0b",
+                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            fontWeight: 600,
+                          }}
+                        />
+                      </Stack>
+                    </motion.div>
                   </Box>
                 </motion.div>
               </Grid>
@@ -1456,15 +1659,20 @@ const Landing = () => {
                       <Typography
                         variant="h5"
                         fontWeight={700}
-                        color="#0f172a"
+                        color="#0f1"
                         mb={2}
                       >
                         {feature.title}
                       </Typography>
                       <Typography
                         variant="body1"
-                        color="#64748b"
-                        lineHeight={1.7}
+                        sx={{
+                          background:
+                            "linear-gradient(135deg, #8b5cf6, #ec4899)",
+                          backgroundClip: "text",
+                          WebkitBackgroundClip: "text",
+                          color: "transparent",
+                        }}
                       >
                         {feature.description}
                       </Typography>
@@ -1570,12 +1778,21 @@ const Landing = () => {
                         <Typography
                           variant="h6"
                           fontWeight={700}
-                          color="#0f172a"
+                          color="#0f1"
                           mb={1}
                         >
                           {item.title}
                         </Typography>
-                        <Typography variant="body2" color="#64748b">
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            background:
+                              "linear-gradient(135deg, #8b5cf6, #ec4899)",
+                            backgroundClip: "text",
+                            WebkitBackgroundClip: "text",
+                            color: "transparent",
+                          }}
+                        >
                           {item.desc}
                         </Typography>
                       </Paper>
@@ -1724,14 +1941,21 @@ const Landing = () => {
                     >
                       Free
                     </Typography>
-                    <Typography variant="body2" color="#64748b" mb={3}>
+                    <Typography variant="body2" color="white" mb={3}>
                       Acesso para começar
                     </Typography>
                     <Typography variant="h2" fontWeight={800} color="#6366f1">
                       R$ 0
-                      <Typography component="span" variant="h6" color="#64748b">
+                      <Typography component="span" variant="h6" color="white">
                         /sempre grátis
                       </Typography>
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="#10b981"
+                      fontWeight={600}
+                    >
+                      💰 Contém anúncios
                     </Typography>
                   </Box>
 
@@ -1750,7 +1974,42 @@ const Landing = () => {
                         alignItems="center"
                       >
                         <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                        <Typography variant="body2" color="#64748b">
+                        <Typography variant="body2" color="white">
+                          {feature}
+                        </Typography>
+                      </Stack>
+                    ))}
+                    {[
+                      "Sem anúncios",
+                      "Avatar premium",
+                      "Metas ilimitadas",
+                      "Relatorios PDF",
+                      "Suporte prioritário",
+                    ].map((feature, index) => (
+                      <Stack
+                        key={index}
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                      >
+                        <Box
+                          sx={{
+                            width: 19,
+                            height: 19,
+                            borderRadius: "50%",
+                            bgcolor: "#ef4444",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            mx: "auto",
+                          }}
+                        >
+                          ✕
+                        </Box>
+                        <Typography variant="body2" color="white">
                           {feature}
                         </Typography>
                       </Stack>
@@ -1759,17 +2018,18 @@ const Landing = () => {
 
                   <Button
                     fullWidth
-                    variant="outlined"
+                    variant="contained"
                     size="large"
                     onClick={() => navigate("/register")}
                     sx={{
-                      borderColor: "#e2e8f0",
-                      color: "#64748b",
+                      background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
                       py: 1.5,
+                      fontSize: "1.1rem",
+                      fontWeight: 700,
+                      boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
                       "&:hover": {
-                        borderColor: "#6366f1",
-                        color: "#6366f1",
-                        bgcolor: "rgba(99, 102, 241, 0.04)",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 12px 35px rgba(139, 92, 246, 0.4)",
                       },
                     }}
                   >
@@ -1891,19 +2151,19 @@ const Landing = () => {
             <Stack direction="row" justifyContent="center" spacing={3} mt={4}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                <Typography variant="body2" color="#64748b">
+                <Typography variant="body2" color="black">
                   7 dias de garantia
                 </Typography>
               </Stack>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                <Typography variant="body2" color="#64748b">
+                <Typography variant="body2" color="black">
                   Cancele quando quiser
                 </Typography>
               </Stack>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                <Typography variant="body2" color="#64748b">
+                <Typography variant="body2" color="black">
                   Suporte dedicado
                 </Typography>
               </Stack>
@@ -1929,7 +2189,7 @@ const Landing = () => {
                 sx={{
                   fontSize: { xs: "2rem", md: "2.5rem" },
                   fontWeight: 800,
-                  color: "#0f172a",
+                  color: "#0f1",
                   mb: 2,
                 }}
               >
@@ -1943,7 +2203,15 @@ const Landing = () => {
                 mb={2}
               >
                 <Rating value={5} readOnly size="large" />
-                <Typography variant="h6" fontWeight={700} color="#0f172a">
+                <Typography
+                  variant="h6"
+                  sx={{
+                    background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
+                    backgroundClip: "text",
+                    WebkitBackgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
                   4.9/5 de 5.000+ avaliações
                 </Typography>
               </Stack>
@@ -1992,7 +2260,7 @@ const Landing = () => {
 
                       <Typography
                         variant="body1"
-                        color="#0f172a"
+                        color="white"
                         fontStyle="italic"
                         lineHeight={1.7}
                       >
@@ -2016,11 +2284,11 @@ const Landing = () => {
                           <Typography
                             variant="subtitle1"
                             fontWeight={700}
-                            color="#0f172a"
+                            color="#0f1"
                           >
                             {testimonial.name}
                           </Typography>
-                          <Typography variant="body2" color="#64748b">
+                          <Typography variant="body2" color="white">
                             {testimonial.role}
                           </Typography>
                         </Box>
@@ -2092,6 +2360,7 @@ const Landing = () => {
                 sx={{
                   mt: 2,
                   opacity: 0.8,
+                  color: "black",
                 }}
               >
                 Sem cartão • Sem compromisso • Cancele quando quiser
@@ -2594,7 +2863,7 @@ const Landing = () => {
                   size="large"
                   sx={{
                     bgcolor: "white",
-                    color: "#6366f1",
+                    color: "black",
                     fontWeight: 700,
                     "&:hover": {
                       bgcolor: "#f8fafc",
@@ -2641,7 +2910,7 @@ const Landing = () => {
                   </Stack>
                   <Typography
                     variant="body1"
-                    color="#64748b"
+                    color="black"
                     mb={4}
                     lineHeight={1.7}
                   >
@@ -2666,7 +2935,7 @@ const Landing = () => {
                         <Typography variant="body2">{benefit.icon}</Typography>
                         <Typography
                           variant="body2"
-                          color="#64748b"
+                          color="black"
                           fontWeight={500}
                         >
                           {benefit.text}
@@ -2712,14 +2981,14 @@ const Landing = () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <Email sx={{ color: "#6366f1" }} />
+                              <Email sx={{ color: "white" }} />
                             </InputAdornment>
                           ),
                         }}
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             borderRadius: 3,
-                            bgcolor: "white",
+                            bgcolor: "#0f172a",
                           },
                         }}
                       />
@@ -2756,7 +3025,7 @@ const Landing = () => {
 
                     <Typography
                       variant="caption"
-                      color="#64748b"
+                      color="black"
                       textAlign="center"
                       display="block"
                       mt={2}
