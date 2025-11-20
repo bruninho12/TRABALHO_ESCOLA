@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Box,
   Container,
@@ -24,6 +25,7 @@ import {
   Divider,
   Collapse,
   IconButton,
+  Backdrop,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -52,7 +54,7 @@ import {
 } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const Landing = () => {
+const NewLanding = () => {
   const navigate = useNavigate();
   const [expandedFaq, setExpandedFaq] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -61,6 +63,10 @@ const Landing = () => {
   const [typedText, setTypedText] = useState("");
   const [showFloatingElements, setShowFloatingElements] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Loader state - agora ativo por padrão
+  const [showLoader, setShowLoader] = useState(true);
+  const [loaderProgress, setLoaderProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("Iniciando...");
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [particles, setParticles] = useState([]);
   const [currentBg, setCurrentBg] = useState(0);
@@ -68,9 +74,224 @@ const Landing = () => {
   const [magneticButtons] = useState(new Set());
   const containerRef = useRef(null);
 
+  // Componente do Loader como Portal
+  const LoaderPortal = () => {
+    if (!showLoader) return null;
+
+    return createPortal(
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 999999,
+            background: "linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          {/* Partículas flutuantes no loader */}
+          {Array.from({ length: 15 }).map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                opacity: 0,
+              }}
+              animate={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                opacity: [0, 0.6, 0],
+              }}
+              transition={{
+                duration: Math.random() * 10 + 5,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+              style={{
+                position: "absolute",
+                width: Math.random() * 4 + 2,
+                height: Math.random() * 4 + 2,
+                borderRadius: "50%",
+                background: `hsl(${Math.random() * 60 + 240}, 70%, 60%)`,
+                pointerEvents: "none",
+              }}
+            />
+          ))}
+
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0, transition: { duration: 0.5 } }}
+            transition={{ duration: 0.8, ease: "backOut" }}
+          >
+            <Box
+              sx={{
+                width: 100,
+                height: 100,
+                borderRadius: 2,
+                background: "linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+                mb: 4,
+              }}
+            >
+              <motion.div
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                <Typography
+                  variant="h2"
+                  sx={{
+                    color: "white",
+                    fontWeight: 900,
+                    textShadow: "0 0 20px rgba(255,255,255,0.5)",
+                  }}
+                >
+                  💰
+                </Typography>
+              </motion.div>
+            </Box>
+          </motion.div>
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                color: "white",
+                fontWeight: 700,
+                mb: 2,
+                textAlign: "center",
+              }}
+            >
+              DespFinance
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "rgba(255,255,255,0.7)",
+                textAlign: "center",
+                mb: 4,
+                minHeight: 24,
+              }}
+            >
+              {loadingMessage}
+            </Typography>
+          </motion.div>
+
+          {/* Barra de progresso real */}
+          <Box sx={{ width: 200, position: "relative", mb: 2 }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${loaderProgress}%` }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              style={{
+                height: 6,
+                background: "linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899)",
+                borderRadius: 3,
+                boxShadow: "0 0 10px rgba(99, 102, 241, 0.5)",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                top: -2,
+                width: "100%",
+                height: 10,
+                background: "rgba(255,255,255,0.1)",
+                borderRadius: 3,
+                zIndex: -1,
+              }}
+            />
+          </Box>
+
+          <Typography
+            variant="body2"
+            sx={{
+              color: "rgba(255,255,255,0.8)",
+              fontFamily: "monospace",
+              letterSpacing: 1,
+            }}
+          >
+            {Math.round(loaderProgress)}%
+          </Typography>
+        </motion.div>
+      </AnimatePresence>,
+      document.body
+    );
+  };
+
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
   const fullText = "Transforme suas finanças em um jogo divertido!";
+
+  // Controle do loader
+  useEffect(() => {
+    const loadingMessages = [
+      "Iniciando...",
+      "Carregando recursos...",
+      "Preparando interface...",
+      "Configurando dados...",
+      "Otimizando experiência...",
+      "Quase pronto...",
+    ];
+
+    let progress = 0;
+    let messageIndex = 0;
+
+    const loadingTimer = setInterval(() => {
+      progress += Math.random() * 15 + 5; // Progresso variável mais realista
+      const currentProgress = Math.min(progress, 100);
+      setLoaderProgress(currentProgress);
+
+      // Atualizar mensagem baseada no progresso
+      const newMessageIndex = Math.floor(
+        (currentProgress / 100) * (loadingMessages.length - 1)
+      );
+      if (
+        newMessageIndex !== messageIndex &&
+        loadingMessages[newMessageIndex]
+      ) {
+        messageIndex = newMessageIndex;
+        setLoadingMessage(loadingMessages[newMessageIndex]);
+      }
+
+      if (progress >= 100) {
+        clearInterval(loadingTimer);
+        setLoadingMessage("Pronto!");
+        // Aguardar um pouco antes de esconder o loader
+        setTimeout(() => {
+          setShowLoader(false);
+        }, 800);
+      }
+    }, 150);
+
+    return () => clearInterval(loadingTimer);
+  }, []);
   useEffect(() => {
     let i = 0;
     const timer = setInterval(() => {
@@ -84,11 +305,14 @@ const Landing = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Efeito de elementos flutuantes
+  // Efeito de elementos flutuantes - agora conectado ao loader
   useEffect(() => {
-    const timer = setTimeout(() => setShowFloatingElements(true), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    // Só ativar elementos flutuantes após o loader terminar
+    if (!showLoader) {
+      const timer = setTimeout(() => setShowFloatingElements(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [showLoader]);
 
   // Tracking do mouse para parallax
   useEffect(() => {
@@ -157,116 +381,169 @@ const Landing = () => {
 
   return (
     <>
-      {/* Loader Cinematográfico - Temporariamente desabilitado */}
-      {/*
+      {/* Loader Cinematográfico - Agora com máxima prioridade */}
       <AnimatePresence>
         {showLoader && (
-          <Backdrop
-            open={showLoader}
+          <Box
             sx={{
-              zIndex: 10000,
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              zIndex: 999999, // Z-index máximo
               background: "linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              overflow: "hidden",
             }}
           >
+            {/* Partículas flutuantes no loader */}
+            {Array.from({ length: 15 }).map((_, i) => (
               <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0, transition: { duration: 0.5 } }}
-                transition={{ duration: 0.8, ease: "backOut" }}
-              >
-                <Box
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    borderRadius: 2,
-                    background:
-                      "linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                    mb: 4,
-                  }}
-                >
-                  <motion.div
-                    animate={{
-                      rotate: [0, 360],
-                      scale: [1, 1.2, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  >
-                    <Typography
-                      variant="h2"
-                      sx={{
-                        color: "white",
-                        fontWeight: 900,
-                        textShadow: "0 0 20px rgba(255,255,255,0.5)",
-                      }}
-                    >
-                      F
-                    </Typography>
-                  </motion.div>
-                </Box>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -20, opacity: 0 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-              >
-                <Typography
-                  variant="h4"
-                  sx={{
-                    color: "white",
-                    fontWeight: 700,
-                    mb: 2,
-                    textAlign: "center",
-                  }}
-                >
-                  DespFinance
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: "rgba(255,255,255,0.7)",
-                    textAlign: "center",
-                    mb: 4,
-                  }}
-                >
-                  Preparando uma experiência incrível...
-                </Typography>
-              </motion.div>
-
-              <motion.div
+                key={i}
+                initial={{
+                  x: Math.random() * window.innerWidth,
+                  y: Math.random() * window.innerHeight,
+                  opacity: 0,
+                }}
                 animate={{
-                  width: ["0%", "100%", "0%"],
+                  x: Math.random() * window.innerWidth,
+                  y: Math.random() * window.innerHeight,
+                  opacity: [0, 0.6, 0],
                 }}
                 transition={{
-                  duration: 2.5,
+                  duration: Math.random() * 10 + 5,
                   repeat: Infinity,
-                  ease: "easeInOut",
+                  ease: "linear",
                 }}
                 style={{
-                  height: 4,
-                  background:
-                    "linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899)",
-                  borderRadius: 2,
-                  maxWidth: 200,
+                  position: "absolute",
+                  width: Math.random() * 4 + 2,
+                  height: Math.random() * 4 + 2,
+                  borderRadius: "50%",
+                  background: `hsl(${Math.random() * 60 + 240}, 70%, 60%)`,
+                  pointerEvents: "none",
                 }}
               />
-            </Backdrop>
-          )}
-        </AnimatePresence>
-      */}
+            ))}
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0, transition: { duration: 0.5 } }}
+              transition={{ duration: 0.8, ease: "backOut" }}
+            >
+              <Box
+                sx={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 2,
+                  background:
+                    "linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  mb: 4,
+                }}
+              >
+                <motion.div
+                  animate={{
+                    rotate: [0, 360],
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                >
+                  <Typography
+                    variant="h2"
+                    sx={{
+                      color: "white",
+                      fontWeight: 900,
+                      textShadow: "0 0 20px rgba(255,255,255,0.5)",
+                    }}
+                  >
+                    F
+                  </Typography>
+                </motion.div>
+              </Box>
+            </motion.div>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            >
+              <Typography
+                variant="h4"
+                sx={{
+                  color: "white",
+                  fontWeight: 700,
+                  mb: 2,
+                  textAlign: "center",
+                }}
+              >
+                DespFinance
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "rgba(255,255,255,0.7)",
+                  textAlign: "center",
+                  mb: 4,
+                  minHeight: 24, // Evita mudança de layout
+                }}
+              >
+                {loadingMessage}
+              </Typography>
+            </motion.div>
+
+            {/* Barra de progresso real */}
+            <Box sx={{ width: 200, position: "relative", mb: 2 }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${loaderProgress}%` }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                style={{
+                  height: 6,
+                  background:
+                    "linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899)",
+                  borderRadius: 3,
+                  boxShadow: "0 0 10px rgba(99, 102, 241, 0.5)",
+                }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: -2,
+                  width: "100%",
+                  height: 10,
+                  background: "rgba(255,255,255,0.1)",
+                  borderRadius: 3,
+                  zIndex: -1,
+                }}
+              />
+            </Box>
+
+            <Typography
+              variant="body2"
+              sx={{
+                color: "rgba(255,255,255,0.8)",
+                fontFamily: "monospace",
+                letterSpacing: 1,
+              }}
+            >
+              {Math.round(loaderProgress)}%
+            </Typography>
+          </Box>
+        )}
+      </AnimatePresence>
 
       {/* Cursor Personalizado */}
       <motion.div
@@ -290,7 +567,6 @@ const Landing = () => {
           ease: "easeInOut",
         }}
       />
-
       {/* Sistema de Partículas */}
       <Box
         sx={{
@@ -331,7 +607,6 @@ const Landing = () => {
           />
         ))}
       </Box>
-
       {/* Background Morphing */}
       <Box
         sx={{
@@ -350,7 +625,6 @@ const Landing = () => {
           transition: "background 2s ease-in-out",
         }}
       />
-
       {/* Sistema de Partículas Flutuantes */}
       <AnimatePresence>
         {showParticles && (
@@ -400,7 +674,6 @@ const Landing = () => {
           </Box>
         )}
       </AnimatePresence>
-
       {/* Cursor Customizado Otimizado */}
       <motion.div
         style={{
@@ -425,7 +698,6 @@ const Landing = () => {
           damping: 40,
         }}
       />
-
       {/* Background Morphing */}
       <Box
         sx={{
@@ -443,7 +715,6 @@ const Landing = () => {
           transition: "background 4s ease-in-out",
         }}
       />
-
       <Box
         sx={{
           bgcolor: "transparent",
@@ -3189,4 +3460,4 @@ const Landing = () => {
   );
 };
 
-export default Landing;
+export default NewLanding;
