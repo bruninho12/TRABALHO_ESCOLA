@@ -2498,14 +2498,14 @@ const NewLanding = () => {
                   avatar: "M",
                 },
                 {
-                  name: "Pedro Oliveira",
+                  name: "Lucas Souza",
                   role: "Desenvolvedor",
                   comment:
                     "Melhor app de finanças que já usei. O sistema de conquistas me motiva a economizar todo dia!",
                   avatar: "P",
                 },
                 {
-                  name: "Julia Costa",
+                  name: "Bruno Souza",
                   role: "Estudante",
                   comment:
                     "Sai de R$ 2.500 negativos para R$ 1.500 positivos em 3 meses. Mudou minha vida!",
@@ -3016,11 +3016,7 @@ const NewLanding = () => {
                         }}
                       >
                         <QuestionAnswer sx={{ mr: 2, color: "#6366f1" }} />
-                        <Typography
-                          variant="h6"
-                          fontWeight={600}
-                          color="#0f172a"
-                        >
+                        <Typography variant="h6" fontWeight={600} color="white">
                           {faq.question}
                         </Typography>
                       </AccordionSummary>
@@ -3089,11 +3085,7 @@ const NewLanding = () => {
                         }}
                       >
                         <Lightbulb sx={{ mr: 2, color: "#6366f1" }} />
-                        <Typography
-                          variant="h6"
-                          fontWeight={600}
-                          color="#0f172a"
-                        >
+                        <Typography variant="h6" fontWeight={600} color="white">
                           {faq.question}
                         </Typography>
                       </AccordionSummary>
@@ -3340,7 +3332,7 @@ const NewLanding = () => {
                   >
                     F
                   </Box>
-                  <Typography variant="h6" fontWeight={700}>
+                  <Typography variant="h6" color="white" fontWeight={700}>
                     DespFinance
                   </Typography>
                 </Stack>
@@ -3356,7 +3348,7 @@ const NewLanding = () => {
               </Grid>
 
               <Grid item xs={12} md={2}>
-                <Typography variant="h6" fontWeight={700} mb={3}>
+                <Typography variant="h6" color="white" fontWeight={700} mb={3}>
                   Produto
                 </Typography>
                 <Stack spacing={2}>
@@ -3383,7 +3375,7 @@ const NewLanding = () => {
               </Grid>
 
               <Grid item xs={12} md={3}>
-                <Typography variant="h6" fontWeight={700} mb={3}>
+                <Typography variant="h6" color="white" fontWeight={700} mb={3}>
                   Legal
                 </Typography>
                 <Stack spacing={2}>
@@ -3407,7 +3399,7 @@ const NewLanding = () => {
               </Grid>
 
               <Grid item xs={12} md={3}>
-                <Typography variant="h6" fontWeight={700} mb={3}>
+                <Typography variant="h6" color="white" fontWeight={700} mb={3}>
                   Contato
                 </Typography>
                 <Stack spacing={2}>
