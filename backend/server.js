@@ -43,9 +43,10 @@ if (
   });
 } else {
   // Fallback para HTTP
-  app.listen(PORT, () => {
-    console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ Servidor rodando em http://0.0.0.0:${PORT}`);
     console.log(`📚 Documentação API: http://localhost:${PORT}/api-docs`);
+    console.log(`🌐 Acesso via rede: http://192.168.100.7:${PORT}`);
 
     // Iniciar serviços em background
     try {

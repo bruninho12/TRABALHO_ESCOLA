@@ -11,138 +11,69 @@ const getBudgetData = (userId, categories) => {
   // Calcular datas para o mês atual
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
-  const startOfMonth = new Date(currentYear, currentMonth, 1);
-  const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
-
-  // Calcular datas para o próximo mês
-  const startOfNextMonth = new Date(currentYear, currentMonth + 1, 1);
-  const endOfNextMonth = new Date(currentYear, currentMonth + 2, 0);
+  const currentMonth = now.getMonth() + 1; // getMonth() retorna 0-11, mas o modelo espera 1-12
 
   // Dados de orçamentos
-  const budgets = [
-    // Orçamento total mensal
-    {
-      user: userId,
-      name: "Orçamento Mensal Total",
-      amount: 3000,
-      period: "monthly",
-      startDate: startOfMonth,
-      endDate: endOfMonth,
-      categories: expenseCategories.map((cat) => cat._id),
-    },
+  const budgets = [];
 
-    // Orçamento para o próximo mês
-    {
-      user: userId,
-      name: "Orçamento do Próximo Mês",
-      amount: 3200,
-      period: "monthly",
-      startDate: startOfNextMonth,
-      endDate: endOfNextMonth,
-      categories: expenseCategories.map((cat) => cat._id),
-    },
+  // Criar orçamentos para cada categoria de despesa
+  expenseCategories.forEach((category) => {
+    let amount;
 
-    // Orçamento alimentação
-    {
-      user: userId,
-      name: "Alimentação",
-      amount: 800,
-      period: "monthly",
-      startDate: startOfMonth,
-      endDate: endOfMonth,
-      categories: [
-        expenseCategories.find((cat) => cat.name === "Alimentação")._id,
-      ],
-    },
+    // Definir valores de orçamento baseados no tipo de categoria
+    switch (category.name) {
+      case "Alimentação":
+        amount = 800;
+        break;
+      case "Moradia":
+        amount = 1500;
+        break;
+      case "Transporte":
+        amount = 400;
+        break;
+      case "Entretenimento":
+        amount = 300;
+        break;
+      case "Saúde":
+        amount = 200;
+        break;
+      case "Educação":
+        amount = 250;
+        break;
+      case "Contas":
+        amount = 500;
+        break;
+      case "Compras":
+        amount = 300;
+        break;
+      case "Outros":
+        amount = 200;
+        break;
+      default:
+        amount = 200;
+    }
 
-    // Orçamento entretenimento
-    {
+    // Orçamento para o mês atual
+    budgets.push({
       user: userId,
-      name: "Entretenimento",
-      amount: 300,
-      period: "monthly",
-      startDate: startOfMonth,
-      endDate: endOfMonth,
-      categories: [
-        expenseCategories.find((cat) => cat.name === "Entretenimento")._id,
-      ],
-    },
+      month: currentMonth,
+      year: currentYear,
+      category: category._id,
+      amount: amount,
+    });
 
-    // Orçamento de transporte
-    {
-      user: userId,
-      name: "Transporte",
-      amount: 500,
-      period: "monthly",
-      startDate: startOfMonth,
-      endDate: endOfMonth,
-      categories: [
-        expenseCategories.find((cat) => cat.name === "Transporte")._id,
-      ],
-    },
+    // Orçamento para o próximo mês (com pequeno ajuste)
+    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+    const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
 
-    // Orçamento de contas
-    {
+    budgets.push({
       user: userId,
-      name: "Contas Fixas",
-      amount: 450,
-      period: "monthly",
-      startDate: startOfMonth,
-      endDate: endOfMonth,
-      categories: [expenseCategories.find((cat) => cat.name === "Contas")._id],
-    },
-
-    // Orçamento de compras
-    {
-      user: userId,
-      name: "Compras",
-      amount: 400,
-      period: "monthly",
-      startDate: startOfMonth,
-      endDate: endOfMonth,
-      categories: [expenseCategories.find((cat) => cat.name === "Compras")._id],
-    },
-
-    // Orçamento anual para educação
-    {
-      user: userId,
-      name: "Educação Anual",
-      amount: 2000,
-      period: "yearly",
-      startDate: new Date(currentYear, 0, 1),
-      endDate: new Date(currentYear, 11, 31),
-      categories: [
-        expenseCategories.find((cat) => cat.name === "Educação")._id,
-      ],
-    },
-
-    // Orçamento anual para saúde
-    {
-      user: userId,
-      name: "Saúde Anual",
-      amount: 1500,
-      period: "yearly",
-      startDate: new Date(currentYear, 0, 1),
-      endDate: new Date(currentYear, 11, 31),
-      categories: [expenseCategories.find((cat) => cat.name === "Saúde")._id],
-    },
-
-    // Orçamento personalizado para férias (3 meses)
-    {
-      user: userId,
-      name: "Férias de Fim de Ano",
-      amount: 3000,
-      period: "custom",
-      startDate: new Date(currentYear, 9, 1), // Começa em Outubro
-      endDate: new Date(currentYear, 11, 31), // Termina em Dezembro
-      categories: [
-        expenseCategories.find((cat) => cat.name === "Entretenimento")._id,
-        expenseCategories.find((cat) => cat.name === "Transporte")._id,
-      ],
-    },
-  ];
+      month: nextMonth,
+      year: nextYear,
+      category: category._id,
+      amount: Math.floor(amount * (0.9 + Math.random() * 0.2)), // Variação de ±10%
+    });
+  });
 
   return budgets;
 };

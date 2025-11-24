@@ -19,7 +19,7 @@ const getNotificationData = (userId) => {
   const notifications = [
     // Notificação de boas-vindas
     {
-      user: userId,
+      userId: userId,
       title: "Bem-vindo ao DespFinancee!",
       message:
         "Obrigado por usar nosso aplicativo. Estamos felizes em ajudá-lo a gerenciar suas finanças pessoais!",
@@ -30,7 +30,7 @@ const getNotificationData = (userId) => {
 
     // Alertas de orçamento
     {
-      user: userId,
+      userId: userId,
       title: "Orçamento de Alimentação",
       message: "Você já gastou 80% do seu orçamento de alimentação neste mês.",
       type: "warning",
@@ -40,7 +40,7 @@ const getNotificationData = (userId) => {
 
     // Alertas de fatura
     {
-      user: userId,
+      userId: userId,
       title: "Fatura em breve",
       message:
         "A fatura do seu cartão de crédito vence em 3 dias. Lembre-se de pagar a tempo!",
@@ -51,7 +51,7 @@ const getNotificationData = (userId) => {
 
     // Alerta de pagamento recorrente
     {
-      user: userId,
+      userId: userId,
       title: "Pagamento Recorrente Amanhã",
       message:
         "Você tem um pagamento recorrente de aluguel agendado para amanhã.",
@@ -62,7 +62,7 @@ const getNotificationData = (userId) => {
 
     // Notificação de transação suspeita
     {
-      user: userId,
+      userId: userId,
       title: "Transação Não Usual",
       message:
         "Detectamos uma transação de alto valor não usual em sua conta. Verifique seus registros.",
@@ -73,7 +73,7 @@ const getNotificationData = (userId) => {
 
     // Notificação de economia
     {
-      user: userId,
+      userId: userId,
       title: "Parabéns!",
       message:
         "Você gastou menos em entretenimento este mês em comparação com a média dos últimos 3 meses.",
@@ -84,7 +84,7 @@ const getNotificationData = (userId) => {
 
     // Sugestão de orçamento
     {
-      user: userId,
+      userId: userId,
       title: "Sugestão de Orçamento",
       message:
         "Com base em seus gastos, sugerimos criar um orçamento para a categoria Transporte.",
@@ -95,7 +95,7 @@ const getNotificationData = (userId) => {
 
     // Alerta de meta de economia
     {
-      user: userId,
+      userId: userId,
       title: "Meta de Economia",
       message:
         "Você alcançou 75% da sua meta de economia para comprar um novo notebook!",
@@ -106,7 +106,7 @@ const getNotificationData = (userId) => {
 
     // Dica financeira
     {
-      user: userId,
+      userId: userId,
       title: "Dica Financeira",
       message:
         "Economize mais definindo limites para gastos não essenciais e monitorando-os regularmente.",
@@ -117,7 +117,7 @@ const getNotificationData = (userId) => {
 
     // Lembrança de imposto
     {
-      user: userId,
+      userId: userId,
       title: "Lembrete de Imposto",
       message:
         "Faltam 30 dias para o prazo final da declaração de imposto de renda.",

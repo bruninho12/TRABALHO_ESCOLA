@@ -108,6 +108,17 @@ class AuthController {
     try {
       const { email, password, rememberMe } = req.body;
 
+      // Log detalhado para debug mobile
+      console.log("🔐 [LOGIN DEBUG] Tentativa de login:");
+      console.log("📧 Email:", email);
+      console.log(
+        "🔑 Senha fornecida:",
+        password ? `${password.substring(0, 3)}***` : "não fornecida"
+      );
+      console.log("🌐 IP:", req.ip);
+      console.log("📱 User-Agent:", req.get("User-Agent"));
+      console.log("🔗 Origin:", req.get("Origin"));
+
       // Valida dados de login
       const validation = this.validateRequest(authSchemas.login, {
         email,
@@ -115,6 +126,7 @@ class AuthController {
         rememberMe,
       });
       if (!validation.isValid) {
+        console.log("❌ [LOGIN DEBUG] Erro de validação:", validation.errors);
         return res.status(400).json({
           success: false,
           message: "Erro de validação",
@@ -123,18 +135,34 @@ class AuthController {
       }
 
       // Busca usuário no banco
+      console.log("🔍 [LOGIN DEBUG] Buscando usuário:", email.toLowerCase());
       const user = await this.dataManager.getUserByEmail(email.toLowerCase());
       if (!user) {
+        console.log("❌ [LOGIN DEBUG] Usuário não encontrado:", email);
         return res.status(401).json({
           success: false,
           message: "Credenciais inválidas",
         });
       }
 
+      console.log("👤 [LOGIN DEBUG] Usuário encontrado:", {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        hasPassword: !!user.password,
+      });
+
       // Verifica senha
+      console.log("🔑 [LOGIN DEBUG] Verificando senha...");
       const senhaValida = await this.verifyPassword(password, user.password);
+      console.log(
+        `🔑 [LOGIN DEBUG] Senha ${senhaValida ? "VÁLIDA" : "INVÁLIDA"}`
+      );
+
       if (!senhaValida) {
         await this.logFailedLoginAttempt(user._id, req.ip);
+        console.log("❌ [LOGIN DEBUG] Login rejeitado - senha inválida");
         return res.status(401).json({
           success: false,
           message: "Credenciais inválidas",
@@ -142,6 +170,7 @@ class AuthController {
       }
 
       // Gera novos tokens
+      console.log("🎫 [LOGIN DEBUG] Gerando tokens...");
       const tokens = await this.tokenManager.generateTokenPair(
         {
           id: user._id,
@@ -152,12 +181,14 @@ class AuthController {
       );
 
       // Atualiza último login
+      console.log("📅 [LOGIN DEBUG] Atualizando último login...");
       await this.dataManager.updateUser(user._id, {
         lastLogin: new Date().toISOString(),
       });
 
       await this.logLoginActivity(user._id, req.ip);
 
+      console.log("✅ [LOGIN DEBUG] Login realizado com sucesso!");
       return res.status(200).json({
         success: true,
         message: "Login realizado com sucesso!",

@@ -34,18 +34,17 @@ const seedDemoUser = async () => {
   const hashedPassword = await bcrypt.hash("senha123", salt);
 
   const demoUser = await User.create({
-    name: "Usuário Demo",
+    username: "demo",
+    fullName: "Usuário Demo",
     email: "demo@despfinancee.com",
     password: hashedPassword,
     isActive: true,
-    isVerified: true,
-    settings: {
+    emailVerified: true,
+    preferences: {
       theme: "light",
-      notificationsEnabled: true,
-      showCents: true,
+      notifications: true,
+      emailNotifications: true,
       currency: "BRL",
-      language: "pt-BR",
-      dateFormat: "DD/MM/YYYY",
     },
   });
 

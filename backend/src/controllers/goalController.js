@@ -1,7 +1,7 @@
 const logger = require("../utils/logger");
-const _Utils = require("../utils/utils");
 const { Goal } = require("../models");
 const MongoDataManager = require("../utils/mongoDataManager");
+const mongoose = require("mongoose");
 
 // Goal Validator
 class GoalValidator {
@@ -68,7 +68,7 @@ class GoalController {
         // Authenticated user - return their goals
         userId = req.user.id;
         filters = {
-          userId,
+          userId: new mongoose.Types.ObjectId(userId),
           ...(status && { status }),
           ...(category && { category }),
         };
@@ -173,7 +173,7 @@ class GoalController {
 
       const goalData = {
         ...req.body,
-        userId: req.user.id,
+        userId: new mongoose.Types.ObjectId(req.user.id),
       };
 
       const errors = this.validator.validate(goalData);
@@ -368,7 +368,7 @@ class GoalController {
       const userId = req.user.id;
 
       const summary = await Goal.aggregate([
-        { $match: { userId: userId } },
+        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
         {
           $group: {
             _id: null,
@@ -433,14 +433,14 @@ class GoalController {
       const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
       const goals = await Goal.find({
-        userId,
+        userId: new mongoose.Types.ObjectId(userId),
         status: "active",
-        targetDate: {
+        deadline: {
           $gte: today,
           $lte: nextMonth,
         },
       })
-        .sort({ targetDate: 1 })
+        .sort({ deadline: 1 })
         .limit(10);
 
       return res.status(200).json({
@@ -480,6 +480,9 @@ if (typeof module !== "undefined" && module.exports) {
     addValue: goalControllerInstance.addValue.bind(goalControllerInstance),
     getSummary: goalControllerInstance.getSummary.bind(goalControllerInstance),
     getUpcomingDeadlines: goalControllerInstance.getUpcomingDeadlines.bind(
+      goalControllerInstance
+    ),
+    getGoalsProgress: goalControllerInstance.getGoalsProgress.bind(
       goalControllerInstance
     ),
     GoalController,

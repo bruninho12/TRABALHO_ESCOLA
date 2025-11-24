@@ -29,6 +29,7 @@ const corsOptions = {
     const allowedOrigins = [
       "http://localhost:5173", // Vite dev server
       "http://127.0.0.1:5173", // Vite dev server
+      "http://192.168.100.7:5173", // Vite dev server via rede
       "http://localhost:8080",
       "http://127.0.0.1:5500",
       "http://localhost:5500",
@@ -56,6 +57,7 @@ const corsOptions = {
     "Cache-Control",
     "Pragma",
     "Expires",
+    "X-Requested-With",
   ],
   credentials: true,
   optionsSuccessStatus: 200,

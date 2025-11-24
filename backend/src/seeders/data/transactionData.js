@@ -45,7 +45,7 @@ const getTransactionData = (userId, categories) => {
   months.forEach(({ month, year }) => {
     // Salário mensal - no dia 5 de cada mês
     transactions.push({
-      user: userId,
+      userId: userId,
       category: incomeCategories.find((cat) => cat.name === "Salário")._id,
       description: "Salário mensal",
       amount: 3500,
@@ -61,7 +61,7 @@ const getTransactionData = (userId, categories) => {
     if (Math.random() > 0.3) {
       // 70% de chance de ter rendimento no mês
       transactions.push({
-        user: userId,
+        userId: userId,
         category: incomeCategories.find((cat) => cat.name === "Investimentos")
           ._id,
         description: "Rendimento de investimentos",
@@ -78,7 +78,7 @@ const getTransactionData = (userId, categories) => {
   // Trabalho freelance ocasional (1-2 por período de 3 meses)
   for (let i = 0; i < Math.floor(Math.random() * 2) + 1; i++) {
     transactions.push({
-      user: userId,
+      userId: userId,
       category: incomeCategories.find((cat) => cat.name === "Freelance")._id,
       description:
         "Projeto freelance " +
@@ -95,7 +95,7 @@ const getTransactionData = (userId, categories) => {
   if (Math.random() > 0.5) {
     // 50% de chance
     transactions.push({
-      user: userId,
+      userId: userId,
       category: incomeCategories.find((cat) => cat.name === "Presentes")._id,
       description: "Presente de aniversário",
       amount: Math.floor(Math.random() * 200) + 100, // Entre 100 e 300
@@ -110,7 +110,7 @@ const getTransactionData = (userId, categories) => {
   months.forEach(({ month, year }) => {
     // Aluguel - dia 15 de cada mês
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Moradia")._id,
       description: "Aluguel",
       amount: 1200,
@@ -124,7 +124,7 @@ const getTransactionData = (userId, categories) => {
 
     // Conta de luz - dia 20 de cada mês
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Contas")._id,
       description: "Conta de luz",
       amount: Math.floor(Math.random() * 50) + 120, // Entre 120 e 170
@@ -138,7 +138,7 @@ const getTransactionData = (userId, categories) => {
 
     // Conta de água - dia 18 de cada mês
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Contas")._id,
       description: "Conta de água",
       amount: Math.floor(Math.random() * 30) + 60, // Entre 60 e 90
@@ -151,7 +151,7 @@ const getTransactionData = (userId, categories) => {
 
     // Internet - dia 25 de cada mês
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Contas")._id,
       description: "Internet",
       amount: 99.9,
@@ -164,7 +164,7 @@ const getTransactionData = (userId, categories) => {
 
     // Assinatura streaming - dia 22 de cada mês
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Entretenimento")
         ._id,
       description: "Assinatura streaming",
@@ -180,7 +180,7 @@ const getTransactionData = (userId, categories) => {
     for (let i = 0; i < Math.floor(Math.random() * 2) + 2; i++) {
       const day = Math.floor(Math.random() * 28) + 1;
       transactions.push({
-        user: userId,
+        userId: userId,
         category: expenseCategories.find((cat) => cat.name === "Alimentação")
           ._id,
         description: "Supermercado",
@@ -197,7 +197,7 @@ const getTransactionData = (userId, categories) => {
     for (let i = 0; i < Math.floor(Math.random() * 4) + 1; i++) {
       const day = Math.floor(Math.random() * 28) + 1;
       transactions.push({
-        user: userId,
+        userId: userId,
         category: expenseCategories.find((cat) => cat.name === "Alimentação")
           ._id,
         description:
@@ -218,7 +218,7 @@ const getTransactionData = (userId, categories) => {
       const day = Math.floor(Math.random() * 28) + 1;
       const isGas = Math.random() > 0.5;
       transactions.push({
-        user: userId,
+        userId: userId,
         category: expenseCategories.find((cat) => cat.name === "Transporte")
           ._id,
         description: isGas ? "Abastecimento" : "Transporte público",
@@ -238,7 +238,7 @@ const getTransactionData = (userId, categories) => {
   // Compras
   for (let i = 0; i < Math.floor(Math.random() * 3) + 2; i++) {
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Compras")._id,
       description:
         "Compra " +
@@ -256,7 +256,7 @@ const getTransactionData = (userId, categories) => {
   // Saúde - 0-2 vezes no período
   for (let i = 0; i < Math.floor(Math.random() * 3); i++) {
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Saúde")._id,
       description:
         "Consulta " +
@@ -275,7 +275,7 @@ const getTransactionData = (userId, categories) => {
   if (Math.random() > 0.7) {
     // 30% de chance
     transactions.push({
-      user: userId,
+      userId: userId,
       category: expenseCategories.find((cat) => cat.name === "Educação")._id,
       description: "Curso online",
       amount: Math.floor(Math.random() * 300) + 200, // Entre 200 e 500

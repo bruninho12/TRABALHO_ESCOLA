@@ -18,8 +18,21 @@ router.use((req, res, next) => {
 // Aplicar middleware de autenticação em todas as rotas
 router.use(authenticate);
 
+// Rotas específicas devem vir ANTES das rotas com parâmetros dinâmicos
+// Resumo das metas
+router.get("/summary", goalController.getSummary);
+
+// Prazos próximos
+router.get("/deadlines", goalController.getUpcomingDeadlines);
+
+// Progresso das metas (alias para summary)
+router.get("/progress", goalController.getGoalsProgress);
+
 // Listar metas
 router.get("/", goalController.getAll);
+
+// Adicionar valor à meta
+router.post("/:id/add-value", goalController.addValue);
 
 // Obter meta por ID
 router.get("/:id", goalController.getById);
