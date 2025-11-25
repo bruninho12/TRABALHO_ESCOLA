@@ -957,18 +957,77 @@ body {
   }
 }
 
-@media (min-width: 641px) and (max-width: 768px) {
+/* Mobile Landscape */
+@media (max-width: 896px) and (orientation: landscape) {
   .container {
-    padding: 1.5rem;
+    padding: 1rem 0.5rem;
   }
 
-  .grid-3,
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modal {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  /* Navigation otimizada para landscape */
+  .navbar {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Tablet Portrait */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .container {
+    padding: 1.5rem;
+    max-width: 95%;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .btn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.5rem;
+    min-height: 46px;
+  }
+
+  /* Cards em tablet */
+  .card {
+    padding: 1.5rem;
+  }
+}
+
+/* Small Mobile (iPhone SE) */
+@media (max-width: 375px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  /* Botões menores em telas pequenas */
+  .btn {
+    font-size: 0.8125rem;
+    min-height: 44px;
+    padding: 0.75rem;
   }
 }
 

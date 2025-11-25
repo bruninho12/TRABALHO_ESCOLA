@@ -560,11 +560,14 @@ const Login = () => {
             {/* Campo E-mail com Autocomplete */}
             <Autocomplete
               freeSolo
-              options={suggestedEmails.map((domain) =>
+              options={
                 formData.email.includes("@")
-                  ? formData.email
-                  : formData.email + domain
-              )}
+                  ? suggestedEmails.map(
+                      (domain, index) =>
+                        `${formData.email.split("@")[0]}${domain}`
+                    )
+                  : suggestedEmails.map((domain) => `usuario${domain}`)
+              }
               value={formData.email}
               onInputChange={(event, newValue) => {
                 handleChange({

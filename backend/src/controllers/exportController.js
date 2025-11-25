@@ -19,30 +19,58 @@ class ExportController {
       const userId = req.user._id;
       const { startDate, endDate, type, category } = req.query;
 
+      // Validar parâmetros de data
+      if (startDate && !Date.parse(startDate)) {
+        return res.status(400).json({
+          success: false,
+          message: "Data de início inválida",
+        });
+      }
+
+      if (endDate && !Date.parse(endDate)) {
+        return res.status(400).json({
+          success: false,
+          message: "Data de fim inválida",
+        });
+      }
+
       const query = { userId };
       if (startDate || endDate) {
         query.date = {};
         if (startDate) query.date.$gte = new Date(startDate);
         if (endDate) query.date.$lte = new Date(endDate);
       }
-      if (type) query.type = type;
+      if (type && ["income", "expense"].includes(type)) {
+        query.type = type;
+      }
       if (category) query.categoryId = category;
 
       const transactions = await Transaction.find(query)
         .populate("categoryId", "name")
-        .sort({ date: -1 });
+        .sort({ date: -1 })
+        .lean();
 
-      // Gerar relatório Excel (que será usado para ambos)
-      const result = await exportService.generateExcelReport(userId, {
+      if (!transactions.length) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Nenhuma transação encontrada para os critérios especificados",
+        });
+      }
+
+      // Gerar CSV usando exportService
+      const result = await exportService.generateCSVExport(transactions, {
+        type: "transactions",
         startDate: startDate ? new Date(startDate) : undefined,
         endDate: endDate ? new Date(endDate) : undefined,
       });
 
-      res.download(result.filepath, result.filename, (err) => {
-        if (err) {
-          logger.error("Error downloading CSV:", err);
-        }
-      });
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${result.filename}"`
+      );
+      res.status(200).send(result.content);
     } catch (error) {
       logger.error("Error exporting transactions to CSV:", error);
       return res.status(500).json({

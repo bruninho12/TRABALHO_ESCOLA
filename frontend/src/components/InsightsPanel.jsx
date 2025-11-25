@@ -123,7 +123,17 @@ const InsightsPanel = ({ userId }) => {
     return (
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-          <Typography variant="h6">🤖 Insights Inteligentes</Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            🤖 Insights Inteligentes
+          </Typography>
           <Tooltip title="Recarregar insights">
             <IconButton size="small" onClick={loadInsights}>
               <Refresh fontSize="small" />

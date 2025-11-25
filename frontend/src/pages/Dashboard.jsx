@@ -57,6 +57,12 @@ import InsightsPanel from "../components/InsightsPanel";
 import { colors, gradients } from "../styles/designSystem";
 import { useAuth } from "../contexts/AuthContext";
 import { validateProgressValue } from "../utils/progressValidation";
+import {
+  ResponsiveContainer,
+  ResponsiveGrid,
+  ResponsiveCard,
+  useResponsive,
+} from "../components/ResponsiveComponents";
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -74,6 +80,7 @@ ChartJS.register(
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isMobile, isMobileSmall } = useResponsive();
   const {
     summary,
     monthlyData,
@@ -85,7 +92,6 @@ const Dashboard = () => {
     refreshData,
   } = useDashboardData();
   const [chartPeriod, setChartPeriod] = useState("6");
-  const [selectedMetric, setSelectedMetric] = useState("balance");
   const [refreshing, setRefreshing] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
 
@@ -99,20 +105,19 @@ const Dashboard = () => {
         financialHealth: 0,
       };
 
-    const savingsRate =
-      summary.income > 0
-        ? ((summary.income - summary.expenses) / summary.income) * 100
-        : 0;
+    const income = summary.income || 0;
+    const expenses = summary.expenses || 0;
+    const lastMonthExpenses = summary.lastMonthExpenses || 0;
+    const totalGoals = summary.totalGoals || 0;
+    const completedGoals = summary.completedGoals || 0;
+
+    const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0;
     const expenseGrowth =
-      summary.lastMonthExpenses > 0
-        ? ((summary.expenses - summary.lastMonthExpenses) /
-            summary.lastMonthExpenses) *
-          100
+      lastMonthExpenses > 0
+        ? ((expenses - lastMonthExpenses) / lastMonthExpenses) * 100
         : 0;
     const goalCompletionRate =
-      summary.totalGoals > 0
-        ? (summary.completedGoals / summary.totalGoals) * 100
-        : 0;
+      totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0;
 
     return {
       savingsRate: Math.max(0, Math.min(100, savingsRate)),
@@ -125,13 +130,77 @@ const Dashboard = () => {
     };
   }, [summary]);
 
+  // Dados dos gráficos com memoização
+  const monthlyChartData = useMemo(
+    () => ({
+      labels: monthlyData?.labels || [],
+      datasets: [
+        {
+          label: "Receitas",
+          data: monthlyData?.income || [],
+          borderColor: colors.success.main,
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: colors.success.main,
+          pointBorderColor: "#fff",
+          pointBorderWidth: 2,
+        },
+        {
+          label: "Despesas",
+          data: monthlyData?.expenses || [],
+          borderColor: colors.error.main,
+          backgroundColor: "rgba(239, 68, 68, 0.1)",
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: colors.error.main,
+          pointBorderColor: "#fff",
+          pointBorderWidth: 2,
+        },
+      ],
+    }),
+    [monthlyData]
+  );
+
+  const categoryChartData = useMemo(() => {
+    const labels = categoriesData?.labels || [];
+    const values = categoriesData?.values || [];
+
+    return {
+      labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: [
+            colors.primary.main,
+            colors.secondary.main,
+            colors.success.main,
+            colors.error.main,
+            colors.warning.main,
+            colors.info.main,
+          ].slice(0, labels.length), // Garantir que temos cores suficientes
+          borderWidth: 2,
+          borderColor: "#fff",
+        },
+      ],
+    };
+  }, [categoriesData]);
+
   // Função de refresh com feedback visual
   const handleRefresh = useCallback(async () => {
+    if (!refreshData) {
+      console.warn("Função refreshData não disponível");
+      return;
+    }
+
     setRefreshing(true);
     try {
-      await refreshData?.();
+      await refreshData();
     } catch (error) {
-      console.error("Erro ao atualizar dados:", error);
+      console.error("Erro ao atualizar dados do dashboard:", {
+        message: error?.message || "Erro desconhecido",
+        stack: error?.stack,
+      });
     } finally {
       setRefreshing(false);
     }
@@ -139,87 +208,94 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ width: "100%", mt: 4 }}>
-        <Grid container spacing={3}>
+      <ResponsiveContainer>
+        <ResponsiveGrid
+          columns={{ xs: 1, sm: 2, md: 2, lg: 3 }}
+          spacing={{ xs: 1, sm: 1.5, md: 2 }}
+        >
           {[...Array(6)].map((_, index) => (
-            <Grid item xs={12} md={6} lg={4} key={index}>
-              <Paper sx={{ p: 3 }}>
-                <Skeleton variant="text" width="60%" height={32} />
-                <Skeleton
-                  variant="text"
-                  width="40%"
-                  height={24}
-                  sx={{ mt: 1 }}
-                />
-                <Skeleton
-                  variant="rectangular"
-                  width="100%"
-                  height={100}
-                  sx={{ mt: 2 }}
-                />
-              </Paper>
-            </Grid>
+            <ResponsiveCard key={index} elevation={1}>
+              <Skeleton
+                variant="text"
+                width="60%"
+                height={isMobile ? 24 : 32}
+                sx={{ mb: 1 }}
+              />
+              <Skeleton
+                variant="text"
+                width="40%"
+                height={isMobile ? 18 : 24}
+                sx={{ mb: 1 }}
+              />
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={isMobile ? 80 : 100}
+                sx={{ borderRadius: 2 }}
+              />
+            </ResponsiveCard>
           ))}
-        </Grid>
-      </Box>
+        </ResponsiveGrid>
+      </ResponsiveContainer>
     );
   }
 
   if (error) {
     return (
-      <Box sx={{ mt: 4 }}>
+      <ResponsiveContainer>
         <Alert
           severity="error"
+          sx={{
+            borderRadius: 3,
+            fontSize: { xs: "0.875rem", sm: "1rem" },
+            "& .MuiAlert-message": {
+              width: "100%",
+            },
+            "& .MuiAlert-action": {
+              pl: { xs: 0, sm: 2 },
+              pt: { xs: 1, sm: 0 },
+              alignSelf: { xs: "stretch", sm: "center" },
+            },
+          }}
           action={
-            <Button color="inherit" size="small" onClick={handleRefresh}>
+            <Button
+              color="inherit"
+              size={isMobile ? "small" : "medium"}
+              onClick={handleRefresh}
+              fullWidth={isMobile}
+              sx={{
+                minHeight: { xs: 44, sm: "auto" },
+                fontSize: { xs: "0.8rem", sm: "0.875rem" },
+              }}
+            >
               Tentar Novamente
             </Button>
           }
         >
-          Erro ao carregar dados do dashboard: {error.message}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "flex-start", sm: "center" },
+              gap: { xs: 1, sm: 0 },
+            }}
+          >
+            <Typography
+              variant={isMobile ? "body2" : "body1"}
+              sx={{ fontWeight: 500 }}
+            >
+              Erro ao carregar dados do dashboard
+            </Typography>
+            {!isMobile && (
+              <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                {error.message}
+              </Typography>
+            )}
+          </Box>
         </Alert>
-      </Box>
+      </ResponsiveContainer>
     );
   }
-
-  const monthlyChartData = {
-    labels: monthlyData?.labels || [],
-    datasets: [
-      {
-        label: "Receitas",
-        data: monthlyData?.income || [],
-        borderColor: colors.success.main,
-        backgroundColor: "rgba(16, 185, 129, 0.1)",
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: "Despesas",
-        data: monthlyData?.expenses || [],
-        borderColor: colors.error.main,
-        backgroundColor: "rgba(239, 68, 68, 0.1)",
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  };
-
-  const categoryChartData = {
-    labels: categoriesData?.labels || [],
-    datasets: [
-      {
-        data: categoriesData?.values || [],
-        backgroundColor: [
-          colors.primary.main,
-          colors.secondary.main,
-          colors.success.main,
-          colors.error.main,
-          colors.warning.main,
-          colors.info.main,
-        ],
-      },
-    ],
-  };
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -234,7 +310,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h4" color="green" fontWeight={700}>
             💰 Dashboard Financeiro
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={0.5}>
@@ -274,73 +350,81 @@ const Dashboard = () => {
       {/* Painel de Insights Inteligentes */}
       {user && <InsightsPanel userId={user._id || user.id} />}
 
-      <Grid container spacing={3}>
+      {/* Cards Principais - Responsivos */}
+      <ResponsiveGrid
+        columns={{ xs: 1, sm: 2, md: 3, lg: 3 }}
+        spacing={{ xs: 1.5, sm: 2, md: 3 }}
+      >
         {/* Cartão de Saldo Principal */}
-        <Grid item xs={12} md={4}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <GlassCard variant="default" blur={15} opacity={0.12}>
-              <Box p={3}>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    gutterBottom
-                    fontWeight={600}
-                  >
-                    💵 Saldo Total
-                  </Typography>
-                  <AccountBalanceIcon
-                    sx={{ color: colors.primary.main, opacity: 0.7 }}
-                  />
-                </Box>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <GlassCard variant="default" blur={15} opacity={0.12}>
+            <Box p={{ xs: 2, sm: 2.5, md: 3 }}>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Typography
-                  variant="h3"
-                  component="div"
-                  fontWeight={700}
-                  color="primary.main"
-                  my={1}
-                  sx={{
-                    background: gradients.purpleBlue,
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
+                  variant={isMobile ? "caption" : "body2"}
+                  color="text.secondary"
+                  gutterBottom
+                  fontWeight={600}
+                  sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}
                 >
-                  {formatCurrency(summary?.balance || 0)}
+                  💵 Saldo Total
                 </Typography>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Chip
-                    label={`Atualizado agora`}
-                    size="small"
-                    sx={{
-                      bgcolor: "rgba(99, 102, 241, 0.1)",
-                      color: colors.primary.main,
-                      fontWeight: 500,
-                    }}
-                  />
-                  {computedMetrics.savingsRate > 0 && (
-                    <Chip
-                      label={`${computedMetrics.savingsRate.toFixed(
-                        1
-                      )}% economia`}
-                      size="small"
-                      color="success"
-                    />
-                  )}
-                </Stack>
+                <AccountBalanceIcon
+                  sx={{
+                    color: colors.primary.main,
+                    opacity: 0.7,
+                    fontSize: { xs: 20, sm: 24 },
+                  }}
+                />
               </Box>
-            </GlassCard>
-          </motion.div>
-        </Grid>
+              <Typography
+                variant={isMobileSmall ? "h5" : isMobile ? "h4" : "h3"}
+                component="div"
+                fontWeight={700}
+                color="primary.main"
+                my={1}
+                sx={{
+                  background: gradients.purpleBlue,
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  lineHeight: 1.2,
+                }}
+              >
+                {formatCurrency(summary?.balance || 0)}
+              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Chip
+                  label={`Atualizado agora`}
+                  size="small"
+                  sx={{
+                    bgcolor: "rgba(99, 102, 241, 0.1)",
+                    color: colors.primary.main,
+                    fontWeight: 500,
+                  }}
+                />
+                {computedMetrics.savingsRate > 0 && (
+                  <Chip
+                    label={`${computedMetrics.savingsRate.toFixed(
+                      1
+                    )}% economia`}
+                    size="small"
+                    color="success"
+                  />
+                )}
+              </Stack>
+            </Box>
+          </GlassCard>
+        </motion.div>
 
         {/* Cartão de Receitas - Melhorado */}
         <Grid item xs={12} md={4}>
@@ -359,18 +443,20 @@ const Dashboard = () => {
                 >
                   <Typography
                     variant="body2"
-                    color="white"
+                    color="primary.main"
                     gutterBottom
                     fontWeight={600}
                   >
                     📈 Receitas do Mês
                   </Typography>
-                  <MonetizationOnIcon sx={{ color: "white", opacity: 0.9 }} />
+                  <MonetizationOnIcon
+                    sx={{ color: "primary.main", opacity: 0.9 }}
+                  />
                 </Box>
                 <Typography
                   variant="h3"
                   component="div"
-                  color="white"
+                  color="primary.main"
                   fontWeight={700}
                   my={1}
                 >
@@ -383,21 +469,27 @@ const Dashboard = () => {
                 >
                   <Stack direction="row" alignItems="center">
                     <TrendingUpIcon
-                      sx={{ fontSize: 18, color: "white", mr: 0.5 }}
+                      sx={{ fontSize: 18, color: "primary.main", mr: 0.5 }}
                     />
-                    <Typography variant="caption" color="white">
+                    <Typography variant="caption" color="primary.main">
                       vs. mês anterior
                     </Typography>
                   </Stack>
-                  <Typography variant="body2" color="white" fontWeight={600}>
-                    +
-                    {(
-                      ((summary?.income || 0) /
-                        (summary?.lastMonthIncome || 1)) *
-                        100 -
-                      100
-                    ).toFixed(1)}
-                    %
+                  <Typography
+                    variant="body2"
+                    color="primary.main"
+                    fontWeight={600}
+                  >
+                    {(() => {
+                      const currentIncome = summary?.income || 0;
+                      const lastIncome = summary?.lastMonthIncome || 0;
+                      if (lastIncome === 0) return "N/A";
+                      const percentage =
+                        (currentIncome / lastIncome) * 100 - 100;
+                      return `${percentage >= 0 ? "+" : ""}${percentage.toFixed(
+                        1
+                      )}%`;
+                    })()}
                   </Typography>
                 </Box>
               </Box>
@@ -487,6 +579,7 @@ const Dashboard = () => {
             <Paper elevation={0} sx={{ p: 3, borderRadius: 2, mb: 2 }}>
               <Typography
                 variant="h6"
+                color="primary.main"
                 fontWeight={600}
                 mb={3}
                 sx={{ display: "flex", alignItems: "center" }}
@@ -509,7 +602,11 @@ const Dashboard = () => {
                         <SavingsIcon
                           sx={{ color: colors.success.main, mr: 1 }}
                         />
-                        <Typography variant="body2" fontWeight={600}>
+                        <Typography
+                          variant="body2"
+                          color="primary.main"
+                          fontWeight={600}
+                        >
                           Taxa de Economia
                         </Typography>
                       </Box>
@@ -554,7 +651,11 @@ const Dashboard = () => {
                         <AssessmentIcon
                           sx={{ color: colors.primary.main, mr: 1 }}
                         />
-                        <Typography variant="body2" fontWeight={600}>
+                        <Typography
+                          variant="body2"
+                          color="primary.main"
+                          fontWeight={600}
+                        >
                           Saúde Financeira
                         </Typography>
                       </Box>
@@ -598,7 +699,11 @@ const Dashboard = () => {
                         <TimelineIcon
                           sx={{ color: colors.secondary.main, mr: 1 }}
                         />
-                        <Typography variant="body2" fontWeight={600}>
+                        <Typography
+                          variant="body2"
+                          color="secondary.main"
+                          fontWeight={600}
+                        >
                           Progresso de Metas
                         </Typography>
                       </Box>
@@ -656,7 +761,15 @@ const Dashboard = () => {
                             mr: 1,
                           }}
                         />
-                        <Typography variant="body2" fontWeight={600}>
+                        <Typography
+                          variant="body2"
+                          color={
+                            computedMetrics.expenseGrowth > 10
+                              ? "error.main"
+                              : "warning.main"
+                          }
+                          fontWeight={600}
+                        >
                           Crescimento Gastos
                         </Typography>
                       </Box>
@@ -703,7 +816,11 @@ const Dashboard = () => {
                 sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}
               >
                 <Box>
-                  <Typography variant="h6" fontWeight={600}>
+                  <Typography
+                    variant="h6"
+                    color="primary.main"
+                    fontWeight={600}
+                  >
                     📊 Fluxo Mensal
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -760,7 +877,12 @@ const Dashboard = () => {
             transition={{ delay: 0.5 }}
           >
             <Paper elevation={0} sx={{ p: 3, borderRadius: 2, height: "100%" }}>
-              <Typography variant="h6" gutterBottom fontWeight={600}>
+              <Typography
+                variant="h6"
+                color="primary.main"
+                gutterBottom
+                fontWeight={600}
+              >
                 🎯 Gastos por Categoria
               </Typography>
               <Box
@@ -800,7 +922,12 @@ const Dashboard = () => {
             transition={{ delay: 0.6 }}
           >
             <Paper elevation={0} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" gutterBottom fontWeight={600}>
+              <Typography
+                variant="h6"
+                color="primary.main"
+                gutterBottom
+                fontWeight={600}
+              >
                 🕐 Transações Recentes
               </Typography>
               {recentTransactions && recentTransactions.length > 0 ? (
@@ -853,73 +980,82 @@ const Dashboard = () => {
         </Grid>
 
         {/* Progresso do Orçamento */}
-        <Grid item xs={12} md={6}>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.7 }}
-          >
-            <Paper elevation={0} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" gutterBottom fontWeight={600}>
-                💪 Progresso do Orçamento
-              </Typography>
-              {budgetProgress && budgetProgress.length > 0 ? (
-                budgetProgress.map((budget, index) => (
-                  <Box key={budget._id || index} sx={{ mb: 3 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography variant="body2" fontWeight={500}>
-                        {budget.category?.name || budget.category}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatCurrency(budget.spent)} /{" "}
-                        {formatCurrency(budget.limit)}
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min((budget.spent / budget.limit) * 100, 100)}
-                      sx={{
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: "rgba(0, 0, 0, 0.05)",
-                        "& .MuiLinearProgress-bar": {
-                          borderRadius: 4,
-                          bgcolor:
-                            budget.spent > budget.limit
-                              ? colors.error.main
-                              : budget.spent > budget.limit * 0.8
-                              ? colors.warning.main
-                              : colors.success.main,
-                        },
-                      }}
-                    />
-                    {budget.spent > budget.limit && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ mt: 0.5, display: "block" }}
-                      >
-                        ⚠️ Orçamento excedido em{" "}
-                        {formatCurrency(budget.spent - budget.limit)}
-                      </Typography>
-                    )}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Paper elevation={0} sx={{ p: 3, borderRadius: 2 }}>
+            <Typography
+              variant="h6"
+              color="primary.main"
+              gutterBottom
+              fontWeight={600}
+            >
+              💪 Progresso do Orçamento
+            </Typography>
+            {budgetProgress && budgetProgress.length > 0 ? (
+              budgetProgress.map((budget, index) => (
+                <Box key={budget._id || index} sx={{ mb: 3 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={500}>
+                      {budget.category?.name || budget.category}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {formatCurrency(budget.spent)} /{" "}
+                      {formatCurrency(budget.limit)}
+                    </Typography>
                   </Box>
-                ))
-              ) : (
-                <Typography color="text.secondary">
-                  Nenhum orçamento cadastrado
-                </Typography>
-              )}
-            </Paper>
-          </motion.div>
-        </Grid>
-      </Grid>
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(
+                      Math.max((budget.spent / (budget.limit || 1)) * 100, 0),
+                      100
+                    )}
+                    aria-label={`Progresso do orçamento para ${
+                      budget.category?.name || budget.category
+                    }`}
+                    sx={{
+                      height: 8,
+                      borderRadius: 4,
+                      bgcolor: "rgba(0, 0, 0, 0.05)",
+                      "& .MuiLinearProgress-bar": {
+                        borderRadius: 4,
+                        bgcolor:
+                          budget.spent > budget.limit
+                            ? colors.error.main
+                            : budget.spent > budget.limit * 0.8
+                            ? colors.warning.main
+                            : colors.success.main,
+                      },
+                    }}
+                  />
+                  {budget.spent > budget.limit && (
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{ mt: 0.5, display: "block" }}
+                    >
+                      ⚠️ Orçamento excedido em{" "}
+                      {formatCurrency(budget.spent - budget.limit)}
+                    </Typography>
+                  )}
+                </Box>
+              ))
+            ) : (
+              <Typography color="text.secondary">
+                Nenhum orçamento cadastrado
+              </Typography>
+            )}
+          </Paper>
+        </motion.div>
+      </ResponsiveGrid>
 
       {/* Botão Flutuante de Ações Rápidas */}
       <Fab

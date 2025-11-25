@@ -74,24 +74,50 @@ class ValidationRules {
         .trim()
         .notEmpty()
         .withMessage("Descrição é obrigatória")
-        .isLength({ max: 200 })
-        .withMessage("Descrição não pode ter mais de 200 caracteres"),
+        .isLength({ min: 3, max: 200 })
+        .withMessage("Descrição deve ter entre 3 e 200 caracteres"),
       body("amount")
         .notEmpty()
         .withMessage("Valor é obrigatório")
-        .isFloat({ gt: 0 })
-        .withMessage("Valor deve ser maior que zero"),
+        .isFloat({ gt: 0, max: 1000000 })
+        .withMessage("Valor deve estar entre R$ 0,01 e R$ 1.000.000"),
       body("type")
         .notEmpty()
         .withMessage("Tipo é obrigatório")
         .isIn(["income", "expense"])
         .withMessage("Tipo deve ser income ou expense"),
-      body("category").trim().notEmpty().withMessage("Categoria é obrigatória"),
+      body("category")
+        .trim()
+        .notEmpty()
+        .withMessage("Categoria é obrigatória")
+        .isMongoId()
+        .withMessage("Categoria deve ser um ID válido"),
       body("date")
         .notEmpty()
         .withMessage("Data é obrigatória")
         .isISO8601()
-        .withMessage("Data inválida"),
+        .withMessage("Data inválida")
+        .custom((value) => {
+          const date = new Date(value);
+          const now = new Date();
+          const oneYearAgo = new Date(
+            now.getFullYear() - 1,
+            now.getMonth(),
+            now.getDate()
+          );
+          const oneMonthFuture = new Date(
+            now.getFullYear(),
+            now.getMonth() + 1,
+            now.getDate()
+          );
+
+          if (date < oneYearAgo || date > oneMonthFuture) {
+            throw new Error(
+              "Data deve estar entre um ano atrás e um mês no futuro"
+            );
+          }
+          return true;
+        }),
     ];
   }
 
@@ -155,8 +181,8 @@ class ValidationRules {
       body("title")
         .optional()
         .trim()
-        .isLength({ max: 100 })
-        .withMessage("Título não pode ter mais de 100 caracteres"),
+        .isLength({ min: 1, max: 100 })
+        .withMessage("Título deve ter entre 1 e 100 caracteres"),
       body("description")
         .optional()
         .trim()
@@ -164,9 +190,39 @@ class ValidationRules {
         .withMessage("Descrição não pode ter mais de 500 caracteres"),
       body("targetAmount")
         .optional()
-        .isFloat({ gt: 0 })
-        .withMessage("Valor alvo deve ser maior que zero"),
-      body("deadline").optional().isISO8601().withMessage("Data inválida"),
+        .isFloat({ gt: 0, max: 10000000 })
+        .withMessage("Valor alvo deve estar entre R$ 0,01 e R$ 10.000.000"),
+      body("currentAmount")
+        .optional()
+        .isFloat({ min: 0 })
+        .withMessage("Valor atual não pode ser negativo"),
+      body("deadline")
+        .optional()
+        .isISO8601()
+        .withMessage("Data inválida")
+        .custom((value) => {
+          if (value && new Date(value) <= new Date()) {
+            throw new Error("A data limite deve ser no futuro");
+          }
+          return true;
+        }),
+      body("category")
+        .optional()
+        .isIn([
+          "savings",
+          "investment",
+          "purchase",
+          "travel",
+          "education",
+          "home",
+          "emergency",
+          "other",
+        ])
+        .withMessage("Categoria inválida"),
+      body("priority")
+        .optional()
+        .isIn(["low", "medium", "high", "critical"])
+        .withMessage("Prioridade inválida"),
     ];
   }
 
@@ -175,8 +231,13 @@ class ValidationRules {
       body("amount")
         .notEmpty()
         .withMessage("Valor é obrigatório")
-        .isFloat({ gt: 0 })
-        .withMessage("Valor deve ser maior que zero"),
+        .isFloat({ gt: 0, max: 1000000 })
+        .withMessage("Valor deve estar entre R$ 0,01 e R$ 1.000.000"),
+      body("description")
+        .optional()
+        .trim()
+        .isLength({ max: 200 })
+        .withMessage("Descrição não pode ter mais de 200 caracteres"),
     ];
   }
 

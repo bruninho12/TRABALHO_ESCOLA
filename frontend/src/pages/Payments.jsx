@@ -89,6 +89,17 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import axios from "axios";
+import {
+  ResponsiveContainer,
+  ResponsiveGrid,
+  ResponsiveCard,
+  ResponsiveStack,
+  useResponsive,
+} from "../components/ResponsiveComponents";
+import {
+  ResponsiveButton,
+  ResponsiveButtonGroup,
+} from "../components/ResponsiveButtons";
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -643,6 +654,8 @@ const PaymentsPage = () => {
     ],
   };
 
+  const { isMobile, isMobileSmall } = useResponsive();
+
   const doughnutData = {
     labels: ["Cartão de Crédito", "PIX", "Boleto", "Transferência"],
     datasets: [
@@ -655,20 +668,38 @@ const PaymentsPage = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ mb: 2 }}
+    <ResponsiveContainer maxWidth="xl">
+      {/* Header - Responsivo */}
+      <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            justifyContent: { xs: "flex-start", sm: "space-between" },
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: { xs: 2, sm: 0 },
+            mb: 2,
+          }}
         >
-          <Typography variant="h4" component="h1" fontWeight="bold">
+          <Typography
+            variant={isMobileSmall ? "h5" : isMobile ? "h4" : "h4"}
+            component="h1"
+            fontWeight="bold"
+            sx={{
+              fontSize: { xs: "1.5rem", sm: "2rem", md: "2.125rem" },
+              lineHeight: 1.2,
+            }}
+          >
             💳 Pagamentos
           </Typography>
-          <Stack direction="row" spacing={2}>
-            <Button
+
+          {/* Botões de Ação - Responsivos */}
+          <ResponsiveButtonGroup
+            direction={{ xs: "column", sm: "row" }}
+            spacing={{ xs: 1, sm: 1.5 }}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
+          >
+            <ResponsiveButton
               variant="outlined"
               startIcon={<RefreshIcon />}
               onClick={() => {
@@ -678,25 +709,36 @@ const PaymentsPage = () => {
                   loadPaymentStats(),
                 ]);
               }}
+              hideTextOnMobile={isMobileSmall}
             >
-              Atualizar
-            </Button>
-            <Button
+              {isMobileSmall ? "" : "Atualizar"}
+            </ResponsiveButton>
+
+            <ResponsiveButton
               variant="outlined"
               startIcon={<ExportIcon />}
               onClick={() => setOpenExportDialog(true)}
+              hideTextOnMobile={isMobileSmall}
             >
-              Exportar
-            </Button>
-            <Button
+              {isMobileSmall ? "" : "Exportar"}
+            </ResponsiveButton>
+
+            <ResponsiveButton
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setOpenPaymentDialog(true)}
+              sx={{
+                background: "linear-gradient(45deg, #667eea 0%, #764ba2 100%)",
+                "&:hover": {
+                  background:
+                    "linear-gradient(45deg, #5a6fd8 0%, #6a4190 100%)",
+                },
+              }}
             >
-              Novo Pagamento
-            </Button>
-          </Stack>
-        </Stack>
+              {isMobileSmall ? "Novo" : "Novo Pagamento"}
+            </ResponsiveButton>
+          </ResponsiveButtonGroup>
+        </Box>
 
         <Typography variant="body1" color="text.secondary">
           Gerencie seus pagamentos, métodos e assinaturas de forma segura e
@@ -704,65 +746,231 @@ const PaymentsPage = () => {
         </Typography>
       </Box>
 
-      {/* Estatísticas */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Total Gasto"
-            value={`R$ ${paymentStats.total.toFixed(2)}`}
-            icon={<MonetizationOnIcon />}
-            color="#1976d2"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Este Mês"
-            value={`R$ ${paymentStats.thisMonth.toFixed(2)}`}
-            icon={<TrendingUpIcon />}
-            color="#2e7d32"
-            trend="up"
-            trendValue="+18.8%"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Mês Anterior"
-            value={`R$ ${paymentStats.lastMonth.toFixed(2)}`}
-            icon={<AttachMoneyIcon />}
-            color="#ed6c02"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Pendentes"
-            value={paymentStats.pending.toString()}
-            icon={<ScheduleIcon />}
-            color="#d32f2f"
-          />
-        </Grid>
-      </Grid>
+      {/* Cards de Estatísticas - Responsivos */}
+      <ResponsiveGrid
+        columns={{ xs: 1, sm: 2, md: 4 }}
+        spacing={{ xs: 1.5, sm: 2, md: 3 }}
+        sx={{ mb: { xs: 3, sm: 4 } }}
+      >
+        {/* Total Gasto */}
+        <ResponsiveCard elevation={2}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              mb: 2,
+            }}
+          >
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant={isMobile ? "caption" : "body2"}
+                color="text.secondary"
+                sx={{
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  letterSpacing: 0.5,
+                  mb: 0.5,
+                }}
+              >
+                Total Gasto
+              </Typography>
+              <Typography
+                variant={isMobileSmall ? "h6" : isMobile ? "h5" : "h4"}
+                fontWeight="bold"
+                color="primary"
+                sx={{ lineHeight: 1.2 }}
+              >
+                R$ {paymentStats.total.toFixed(2)}
+              </Typography>
+            </Box>
+            <Avatar
+              sx={{
+                bgcolor: "#1976d2",
+                width: { xs: 36, sm: 40 },
+                height: { xs: 36, sm: 40 },
+              }}
+            >
+              <MonetizationOnIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+            </Avatar>
+          </Box>
+        </ResponsiveCard>
+
+        {/* Este Mês */}
+        <ResponsiveCard elevation={2}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              mb: 2,
+            }}
+          >
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant={isMobile ? "caption" : "body2"}
+                color="text.secondary"
+                sx={{
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  letterSpacing: 0.5,
+                  mb: 0.5,
+                }}
+              >
+                Este Mês
+              </Typography>
+              <Typography
+                variant={isMobileSmall ? "h6" : isMobile ? "h5" : "h4"}
+                fontWeight="bold"
+                color="success.main"
+                sx={{ lineHeight: 1.2 }}
+              >
+                R$ {paymentStats.thisMonth.toFixed(2)}
+              </Typography>
+              <Typography
+                variant={isMobile ? "caption" : "body2"}
+                color="success.main"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  fontWeight: 500,
+                  mt: 0.5,
+                }}
+              >
+                <TrendingUpIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
+                +18.8%
+              </Typography>
+            </Box>
+            <Avatar
+              sx={{
+                bgcolor: "#2e7d32",
+                width: { xs: 36, sm: 40 },
+                height: { xs: 36, sm: 40 },
+              }}
+            >
+              <TrendingUpIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+            </Avatar>
+          </Box>
+        </ResponsiveCard>
+
+        {/* Mês Anterior */}
+        <ResponsiveCard elevation={2}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              mb: 2,
+            }}
+          >
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant={isMobile ? "caption" : "body2"}
+                color="text.secondary"
+                sx={{
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  letterSpacing: 0.5,
+                  mb: 0.5,
+                }}
+              >
+                Mês Anterior
+              </Typography>
+              <Typography
+                variant={isMobileSmall ? "h6" : isMobile ? "h5" : "h4"}
+                fontWeight="bold"
+                color="warning.main"
+                sx={{ lineHeight: 1.2 }}
+              >
+                R$ {paymentStats.lastMonth.toFixed(2)}
+              </Typography>
+            </Box>
+            <Avatar
+              sx={{
+                bgcolor: "#ed6c02",
+                width: { xs: 36, sm: 40 },
+                height: { xs: 36, sm: 40 },
+              }}
+            >
+              <AttachMoneyIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+            </Avatar>
+          </Box>
+        </ResponsiveCard>
+
+        {/* Pendentes */}
+        <ResponsiveCard elevation={2}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              mb: 2,
+            }}
+          >
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant={isMobile ? "caption" : "body2"}
+                color="text.secondary"
+                sx={{
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  letterSpacing: 0.5,
+                  mb: 0.5,
+                }}
+              >
+                Pendentes
+              </Typography>
+              <Typography
+                variant={isMobileSmall ? "h6" : isMobile ? "h5" : "h4"}
+                fontWeight="bold"
+                color="error.main"
+                sx={{ lineHeight: 1.2 }}
+              >
+                {paymentStats.pending}
+              </Typography>
+            </Box>
+            <Avatar
+              sx={{
+                bgcolor: "#d32f2f",
+                width: { xs: 36, sm: 40 },
+                height: { xs: 36, sm: 40 },
+              }}
+            >
+              <ScheduleIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+            </Avatar>
+          </Box>
+        </ResponsiveCard>
+      </ResponsiveGrid>
 
       {/* Assinatura Ativa */}
       {subscription && (
         <Alert
           severity="success"
           sx={{
-            mb: 4,
+            mb: { xs: 3, sm: 4 },
             "& .MuiAlert-message": { width: "100%" },
           }}
         >
           <AlertTitle>✅ Assinatura Premium Ativa</AlertTitle>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: { xs: "flex-start", sm: "space-between" },
+              alignItems: { xs: "flex-start", sm: "center" },
+              gap: { xs: 2, sm: 0 },
+            }}
           >
-            <Box>
-              <Typography variant="body2">
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant={isMobile ? "body2" : "body1"}
+                sx={{ mb: { xs: 1, sm: 0.5 } }}
+              >
                 <strong>Plano:</strong> {subscription.plan} •{" "}
                 <strong>Valor:</strong> R$ {subscription.amount?.toFixed(2)}
               </Typography>
-              <Typography variant="body2">
+              <Typography variant={isMobile ? "body2" : "body1"}>
                 <strong>Próxima cobrança:</strong>{" "}
                 {format(
                   new Date(subscription.nextBillingDate),
@@ -771,27 +979,61 @@ const PaymentsPage = () => {
                 )}
               </Typography>
             </Box>
-            <Button variant="outlined" size="small">
+            <ResponsiveButton
+              variant="outlined"
+              size={isMobile ? "small" : "medium"}
+              sx={{
+                alignSelf: { xs: "stretch", sm: "center" },
+                mt: { xs: 1, sm: 0 },
+              }}
+            >
               Gerenciar Assinatura
-            </Button>
-          </Stack>
+            </ResponsiveButton>
+          </Box>
         </Alert>
       )}
 
-      {/* Tabs de Navegação */}
-      <Paper sx={{ mb: 4 }}>
+      {/* Tabs de Navegação - Responsivas */}
+      <ResponsiveCard elevation={1} sx={{ mb: { xs: 3, sm: 4 } }}>
         <Tabs
           value={tabValue}
           onChange={(e, newValue) => setTabValue(newValue)}
-          variant="scrollable"
+          variant={isMobile ? "scrollable" : "fullWidth"}
           scrollButtons="auto"
+          allowScrollButtonsMobile
+          sx={{
+            "& .MuiTab-root": {
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              minWidth: { xs: 80, sm: 120 },
+              padding: { xs: "8px 12px", sm: "12px 16px" },
+            },
+            "& .MuiTabs-indicator": {
+              height: 3,
+            },
+          }}
         >
-          <Tab label="Dashboard" icon={<DashboardIcon />} />
-          <Tab label="Histórico" icon={<HistoryIcon />} />
-          <Tab label="Métodos de Pagamento" icon={<CreditCardIcon />} />
-          <Tab label="Segurança" icon={<SecurityIcon />} />
+          <Tab
+            label={isMobileSmall ? "Dashboard" : "Dashboard"}
+            icon={<DashboardIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? "top" : "start"}
+          />
+          <Tab
+            label={isMobileSmall ? "Histórico" : "Histórico"}
+            icon={<HistoryIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? "top" : "start"}
+          />
+          <Tab
+            label={isMobileSmall ? "Métodos" : "Métodos de Pagamento"}
+            icon={<CreditCardIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? "top" : "start"}
+          />
+          <Tab
+            label={isMobileSmall ? "Segurança" : "Segurança"}
+            icon={<SecurityIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? "top" : "start"}
+          />
         </Tabs>
-      </Paper>
+      </ResponsiveCard>
 
       {/* Tab Panel - Dashboard */}
       <TabPanel value={tabValue} index={0}>
@@ -848,203 +1090,302 @@ const PaymentsPage = () => {
           </Grid>
         </Grid>
 
-        {/* Ações Rápidas */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
+        {/* Ações Rápidas - Responsivas */}
+        <ResponsiveGrid
+          columns={{ xs: 1, sm: 2, md: 4 }}
+          spacing={{ xs: 2, sm: 2.5, md: 3 }}
+          sx={{ mt: { xs: 2, sm: 3, md: 4 } }}
+        >
+          {/* Fazer Pagamento */}
+          <ResponsiveCard
+            elevation={2}
+            onClick={() => setOpenPaymentDialog(true)}
+            sx={{
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: { xs: "none", sm: "translateY(-4px)" },
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
               sx={{
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: 4,
-                },
+                textAlign: "center",
+                py: { xs: 3, sm: 4 },
+                px: { xs: 2, sm: 3 },
               }}
-              onClick={() => setOpenPaymentDialog(true)}
             >
-              <CardContent sx={{ textAlign: "center", py: 4 }}>
-                <PaymentIcon
-                  sx={{ fontSize: 48, color: "primary.main", mb: 2 }}
-                />
-                <Typography variant="h6" gutterBottom>
-                  Fazer Pagamento
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Processe um novo pagamento
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+              <PaymentIcon
+                sx={{
+                  fontSize: { xs: 40, sm: 48 },
+                  color: "primary.main",
+                  mb: { xs: 1.5, sm: 2 },
+                }}
+              />
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                gutterBottom
+                fontWeight="bold"
+              >
+                Fazer Pagamento
+              </Typography>
+              <Typography
+                variant={isMobile ? "body2" : "body1"}
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+              >
+                Processe um novo pagamento
+              </Typography>
+            </CardContent>
+          </ResponsiveCard>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
+          {/* Métodos de Pagamento */}
+          <ResponsiveCard
+            elevation={2}
+            onClick={() => setTabValue(2)}
+            sx={{
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: { xs: "none", sm: "translateY(-4px)" },
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
               sx={{
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: 4,
-                },
+                textAlign: "center",
+                py: { xs: 3, sm: 4 },
+                px: { xs: 2, sm: 3 },
               }}
-              onClick={() => setTabValue(2)}
             >
-              <CardContent sx={{ textAlign: "center", py: 4 }}>
-                <CreditCardIcon
-                  sx={{ fontSize: 48, color: "success.main", mb: 2 }}
-                />
-                <Typography variant="h6" gutterBottom>
-                  Métodos de Pagamento
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Gerencie seus cartões e contas
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+              <CreditCardIcon
+                sx={{
+                  fontSize: { xs: 40, sm: 48 },
+                  color: "success.main",
+                  mb: { xs: 1.5, sm: 2 },
+                }}
+              />
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                gutterBottom
+                fontWeight="bold"
+              >
+                Métodos de Pagamento
+              </Typography>
+              <Typography
+                variant={isMobile ? "body2" : "body1"}
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+              >
+                Gerencie seus cartões e contas
+              </Typography>
+            </CardContent>
+          </ResponsiveCard>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
+          {/* Exportar Dados */}
+          <ResponsiveCard
+            elevation={2}
+            onClick={() => setOpenExportDialog(true)}
+            sx={{
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: { xs: "none", sm: "translateY(-4px)" },
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
               sx={{
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: 4,
-                },
+                textAlign: "center",
+                py: { xs: 3, sm: 4 },
+                px: { xs: 2, sm: 3 },
               }}
-              onClick={() => setOpenExportDialog(true)}
             >
-              <CardContent sx={{ textAlign: "center", py: 4 }}>
-                <FileDownloadIcon
-                  sx={{ fontSize: 48, color: "info.main", mb: 2 }}
-                />
-                <Typography variant="h6" gutterBottom>
-                  Exportar Dados
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Baixe relatórios em CSV/PDF
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+              <FileDownloadIcon
+                sx={{
+                  fontSize: { xs: 40, sm: 48 },
+                  color: "info.main",
+                  mb: { xs: 1.5, sm: 2 },
+                }}
+              />
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                gutterBottom
+                fontWeight="bold"
+              >
+                Exportar Dados
+              </Typography>
+              <Typography
+                variant={isMobile ? "body2" : "body1"}
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+              >
+                Baixe relatórios em CSV/PDF
+              </Typography>
+            </CardContent>
+          </ResponsiveCard>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <Card
+          {/* Segurança */}
+          <ResponsiveCard
+            elevation={2}
+            onClick={() => setTabValue(3)}
+            sx={{
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: { xs: "none", sm: "translateY(-4px)" },
+                boxShadow: 4,
+              },
+            }}
+          >
+            <CardContent
               sx={{
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow: 4,
-                },
+                textAlign: "center",
+                py: { xs: 3, sm: 4 },
+                px: { xs: 2, sm: 3 },
               }}
-              onClick={() => setTabValue(3)}
             >
-              <CardContent sx={{ textAlign: "center", py: 4 }}>
-                <SecurityIcon
-                  sx={{ fontSize: 48, color: "warning.main", mb: 2 }}
-                />
-                <Typography variant="h6" gutterBottom>
-                  Segurança
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Configure autenticação 2FA
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+              <SecurityIcon
+                sx={{
+                  fontSize: { xs: 40, sm: 48 },
+                  color: "warning.main",
+                  mb: { xs: 1.5, sm: 2 },
+                }}
+              />
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                gutterBottom
+                fontWeight="bold"
+              >
+                Segurança
+              </Typography>
+              <Typography
+                variant={isMobile ? "body2" : "body1"}
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.8rem", sm: "0.875rem" } }}
+              >
+                Configure autenticação 2FA
+              </Typography>
+            </CardContent>
+          </ResponsiveCard>
+        </ResponsiveGrid>
       </TabPanel>
 
       {/* Tab Panel - Histórico */}
       <TabPanel value={tabValue} index={1}>
-        <Paper sx={{ p: 3 }}>
+        <ResponsiveCard elevation={2}>
           {/* Filtros */}
-          <Accordion sx={{ mb: 3 }}>
+          <Accordion
+            sx={{
+              mb: { xs: 2, sm: 3 },
+              "& .MuiAccordionSummary-root": {
+                minHeight: { xs: 56, sm: 64 },
+              },
+            }}
+          >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6" startIcon={<FilterIcon />}>
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <FilterIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
                 🔍 Filtros Avançados
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    fullWidth
-                    label="Buscar"
-                    placeholder="Descrição do pagamento..."
-                    value={filters.search}
+              <ResponsiveGrid
+                columns={{ xs: 1, sm: 2, md: 4 }}
+                spacing={{ xs: 1.5, sm: 2 }}
+              >
+                {/* Buscar */}
+                <TextField
+                  fullWidth
+                  label="Buscar"
+                  placeholder="Descrição do pagamento..."
+                  value={filters.search}
+                  onChange={(e) =>
+                    setFilters({ ...filters, search: e.target.value })
+                  }
+                  size={isMobile ? "small" : "medium"}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    "& .MuiInputBase-input": {
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                    },
+                  }}
+                />
+
+                {/* Status */}
+                <FormControl fullWidth size={isMobile ? "small" : "medium"}>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={filters.status}
+                    label="Status"
                     onChange={(e) =>
-                      setFilters({ ...filters, search: e.target.value })
+                      setFilters({ ...filters, status: e.target.value })
                     }
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth>
-                    <InputLabel>Status</InputLabel>
-                    <Select
-                      value={filters.status}
-                      label="Status"
-                      onChange={(e) =>
-                        setFilters({ ...filters, status: e.target.value })
-                      }
-                    >
-                      <MenuItem value="">Todos</MenuItem>
-                      <MenuItem value="pending">Pendente</MenuItem>
-                      <MenuItem value="completed">Concluído</MenuItem>
-                      <MenuItem value="cancelled">Cancelado</MenuItem>
-                      <MenuItem value="refunded">Reembolsado</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <FormControl fullWidth>
-                    <InputLabel>Método</InputLabel>
-                    <Select
-                      value={filters.paymentMethod}
-                      label="Método"
-                      onChange={(e) =>
-                        setFilters({
-                          ...filters,
-                          paymentMethod: e.target.value,
-                        })
-                      }
-                    >
-                      <MenuItem value="">Todos</MenuItem>
-                      <MenuItem value="credit_card">Cartão de Crédito</MenuItem>
-                      <MenuItem value="debit_card">Cartão de Débito</MenuItem>
-                      <MenuItem value="pix">PIX</MenuItem>
-                      <MenuItem value="boleto">Boleto</MenuItem>
-                      <MenuItem value="bank_transfer">Transferência</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() =>
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    <MenuItem value="pending">Pendente</MenuItem>
+                    <MenuItem value="completed">Concluído</MenuItem>
+                    <MenuItem value="cancelled">Cancelado</MenuItem>
+                    <MenuItem value="refunded">Reembolsado</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Método */}
+                <FormControl fullWidth size={isMobile ? "small" : "medium"}>
+                  <InputLabel>Método</InputLabel>
+                  <Select
+                    value={filters.paymentMethod}
+                    label="Método"
+                    onChange={(e) =>
                       setFilters({
-                        status: "",
-                        paymentMethod: "",
-                        startDate: null,
-                        endDate: null,
-                        search: "",
+                        ...filters,
+                        paymentMethod: e.target.value,
                       })
                     }
-                    sx={{ height: 56 }}
                   >
-                    Limpar Filtros
-                  </Button>
-                </Grid>
-              </Grid>
+                    <MenuItem value="">Todos</MenuItem>
+                    <MenuItem value="credit_card">Cartão de Crédito</MenuItem>
+                    <MenuItem value="debit_card">Cartão de Débito</MenuItem>
+                    <MenuItem value="pix">PIX</MenuItem>
+                    <MenuItem value="boleto">Boleto</MenuItem>
+                    <MenuItem value="bank_transfer">Transferência</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Limpar Filtros */}
+                <ResponsiveButton
+                  fullWidth
+                  variant="outlined"
+                  onClick={() =>
+                    setFilters({
+                      status: "",
+                      paymentMethod: "",
+                      startDate: null,
+                      endDate: null,
+                      search: "",
+                    })
+                  }
+                  sx={{ height: { xs: 48, sm: 56 } }}
+                >
+                  Limpar Filtros
+                </ResponsiveButton>
+              </ResponsiveGrid>
             </AccordionDetails>
           </Accordion>
 
@@ -1157,7 +1498,7 @@ const PaymentsPage = () => {
               `${from}-${to} de ${count}`
             }
           />
-        </Paper>
+        </ResponsiveCard>
       </TabPanel>
 
       {/* Tab Panel - Métodos de Pagamento */}
@@ -1537,7 +1878,7 @@ const PaymentsPage = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </ResponsiveContainer>
   );
 };
 

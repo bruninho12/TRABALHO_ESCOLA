@@ -16,6 +16,7 @@ const Settings = React.lazy(() => import("./pages/Settings"));
 const RPG = React.lazy(() => import("./pages/RPG"));
 const Insights = React.lazy(() => import("./pages/Insights"));
 const Landing = React.lazy(() => import("./pages/NewLanding"));
+const ResponsiveTest = React.lazy(() => import("./pages/ResponsiveTest"));
 
 // Wrapper para Suspense
 const SuspenseWrapper = ({ children }) => (
@@ -101,6 +102,14 @@ export const router = createBrowserRouter(
           element: (
             <SuspenseWrapper>
               <Settings />
+            </SuspenseWrapper>
+          ),
+        },
+        {
+          path: "responsive-test",
+          element: (
+            <SuspenseWrapper>
+              <ResponsiveTest />
             </SuspenseWrapper>
           ),
         },

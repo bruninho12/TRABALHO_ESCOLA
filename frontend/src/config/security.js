@@ -3,23 +3,177 @@
  * Este arquivo define configurações específicas de segurança para o cliente
  */
 
+/**
+ * Classe para gerenciar CSP dinamicamente baseado no ambiente
+ */
+class SecurityManager {
+  constructor() {
+    this.isDevelopment = this.detectDevelopmentEnvironment();
+    this.currentDomain = window.location.origin;
+    this.init();
+  }
+
+  detectDevelopmentEnvironment() {
+    const hostname = window.location.hostname;
+
+    // Detectar ambiente de desenvolvimento
+    const devPatterns = [
+      "localhost",
+      "127.0.0.1",
+      /^192\.168\./,
+      /^10\./,
+      /^172\.1[6-9]\./,
+      /^172\.2[0-9]\./,
+      /^172\.3[0-1]\./,
+    ];
+
+    return devPatterns.some((pattern) => {
+      if (typeof pattern === "string") {
+        return hostname === pattern;
+      }
+      return pattern.test(hostname);
+    });
+  }
+
+  init() {
+    if (this.isDevelopment) {
+      this.setupDevelopmentSecurity();
+    } else {
+      this.setupProductionSecurity();
+    }
+  }
+
+  setupDevelopmentSecurity() {
+    console.log("🔧 Configurando segurança para DESENVOLVIMENTO");
+
+    // Em desenvolvimento, não fazemos nada aqui porque a CSP já foi configurada no HTML
+    console.log("🔓 Segurança de desenvolvimento já configurada no HTML");
+
+    // Permitir conexões locais
+    this.allowLocalConnections();
+  }
+
+  setupProductionSecurity() {
+    console.log("🔒 Configurando segurança para PRODUÇÃO");
+    this.enforceProductionCSP();
+  }
+
+  allowLocalConnections() {
+    // Configurar fetch para aceitar conexões locais
+    if (!window.originalFetch) {
+      window.originalFetch = window.fetch;
+
+      window.fetch = async (url, options = {}) => {
+        const devOptions = {
+          ...options,
+          mode: "cors",
+          credentials: "include",
+        };
+
+        try {
+          return await window.originalFetch(url, devOptions);
+        } catch (error) {
+          console.warn("🚨 Erro de conectividade:", error.message);
+          throw error;
+        }
+      };
+    }
+  }
+
+  enforceProductionCSP() {
+    const csp = this.getProductionCSP();
+
+    let cspMeta = document.querySelector(
+      'meta[http-equiv="Content-Security-Policy"]'
+    );
+    if (!cspMeta) {
+      cspMeta = document.createElement("meta");
+      cspMeta.setAttribute("http-equiv", "Content-Security-Policy");
+      document.head.appendChild(cspMeta);
+    }
+
+    cspMeta.setAttribute("content", csp);
+    console.log("🛡️ CSP de produção aplicada");
+  }
+
+  getProductionCSP() {
+    return [
+      "default-src 'self'",
+      "script-src 'self' https://js.stripe.com https://www.mercadopago.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: https: blob:",
+      "connect-src 'self' https://api.stripe.com https://api.mercadopago.com",
+      "frame-src https://js.stripe.com https://www.mercadopago.com",
+      "worker-src 'self' blob:",
+      "child-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+    ].join("; ");
+  }
+
+  async checkApiConnectivity(apiUrl) {
+    try {
+      const response = await fetch(`${apiUrl}/health`, {
+        method: "GET",
+        mode: "cors",
+        timeout: 5000,
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.warn(`❌ API não acessível em ${apiUrl}:`, error.message);
+      return false;
+    }
+  }
+
+  async detectBestApiUrl(possibleUrls) {
+    console.log("🔍 Testando conectividade com APIs...");
+
+    for (const url of possibleUrls) {
+      const isAccessible = await this.checkApiConnectivity(url);
+      if (isAccessible) {
+        console.log(`✅ API acessível em: ${url}`);
+        return url;
+      }
+    }
+
+    console.warn("❌ Nenhuma API acessível encontrada");
+    return possibleUrls[0]; // fallback
+  }
+}
+
+// Inicializar e exportar gerenciador de segurança
+const SECURITY_MANAGER = new SecurityManager();
+
 // Configurações de Content Security Policy para desenvolvimento
 export const CSP_CONFIG = {
   development: {
-    "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-    "font-src": ["'self'", "https://fonts.gstatic.com"],
-    "img-src": ["'self'", "data:", "https:"],
-    "connect-src": ["'self'", "http://localhost:3001", "ws://localhost:*"],
+    // CSP muito permissiva para desenvolvimento - aplicada diretamente no HTML
+    allowAll: true,
   },
   production: {
     "default-src": ["'self'"],
-    "script-src": ["'self'"],
-    "style-src": ["'self'", "https://fonts.googleapis.com"],
+    "script-src": [
+      "'self'",
+      "https://js.stripe.com",
+      "https://www.mercadopago.com",
+    ],
+    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    "style-src-elem": [
+      "'self'",
+      "'unsafe-inline'",
+      "https://fonts.googleapis.com",
+    ],
     "font-src": ["'self'", "https://fonts.gstatic.com"],
-    "img-src": ["'self'", "data:", "https:"],
-    "connect-src": ["'self'"],
+    "img-src": ["'self'", "data:", "https:", "blob:"],
+    "connect-src": [
+      "'self'",
+      "https://api.stripe.com",
+      "https://api.mercadopago.com",
+    ],
+    "frame-src": ["https://js.stripe.com", "https://www.mercadopago.com"],
   },
 };
 
@@ -205,4 +359,4 @@ class ClientRateLimit {
   }
 }
 
-export { ClientRateLimit };
+export { ClientRateLimit, SecurityManager, SECURITY_MANAGER };

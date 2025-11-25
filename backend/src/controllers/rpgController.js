@@ -388,20 +388,38 @@ class RPGController {
         });
       }
 
+      // Validar ações permitidas
+      const validActions = ["attack", "defend", "special", "heal", "ultimate"];
+      if (!validActions.includes(action.toLowerCase())) {
+        return res.status(400).json({
+          success: false,
+          message: `Ação '${action}' não é válida. Ações permitidas: ${validActions.join(
+            ", "
+          )}`,
+        });
+      }
+
       // Gerar dano automaticamente baseado na ação
       let damage = 0;
-      switch (action) {
+      let healAmount = 0;
+      const actionLower = action.toLowerCase();
+
+      switch (actionLower) {
         case "attack":
           damage = Math.floor(Math.random() * 20) + 10; // 10-30 de dano
           break;
         case "special":
           damage = Math.floor(Math.random() * 35) + 15; // 15-50 de dano
           break;
+        case "ultimate":
+          damage = Math.floor(Math.random() * 50) + 30; // 30-80 de dano
+          break;
         case "defend":
           damage = Math.floor(Math.random() * 5) + 2; // 2-7 de dano (reduzido)
           break;
         case "heal":
           damage = 0; // Cura não causa dano ao inimigo
+          healAmount = Math.floor(Math.random() * 30) + 20; // 20-50 de cura
           break;
         default:
           damage = Math.floor(Math.random() * 15) + 5; // 5-20 padrão
@@ -472,18 +490,37 @@ class RPGController {
         `Inimigo ataca`
       );
 
+      // Aplicar cura se necessário
+      if (healAmount > 0) {
+        const maxHealth = avatar.stats.maxHealth || 100;
+        avatar.stats.health = Math.min(
+          maxHealth,
+          avatar.stats.health + healAmount
+        );
+        console.log(
+          `🎮 [HEAL] Jogador curou ${healAmount} HP. Nova saúde: ${avatar.stats.health}`
+        );
+      }
+
       // Update battle state com validações
       const newEnemyHealth = Math.max(
         0,
         Math.round(battle.enemy.health - playerDamage)
       );
+
+      // Aplicar dano do inimigo apenas se jogador não defendeu
+      const actualEnemyDamage =
+        actionLower === "defend" ? Math.floor(enemyDamage * 0.5) : enemyDamage;
       const newPlayerHealth = Math.max(
         0,
-        Math.round(avatar.stats.health - enemyDamage)
+        Math.round(avatar.stats.health - actualEnemyDamage)
       );
 
       battle.enemy.health = newEnemyHealth;
-      avatar.stats.health = newPlayerHealth;
+      if (!healAmount) {
+        // Só aplicar dano se não curou
+        avatar.stats.health = newPlayerHealth;
+      }
 
       console.log(
         `🎮 [DEBUG] Nova saúde - Inimigo: ${newEnemyHealth}, Jogador: ${newPlayerHealth}`

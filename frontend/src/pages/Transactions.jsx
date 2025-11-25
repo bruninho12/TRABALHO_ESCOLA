@@ -626,9 +626,7 @@ export default function Transactions() {
                     </Badge>
                   </Avatar>
                   <Box flex={1}>
-                    <Typography variant="body2" color="text.secondary">
-                      Total de Transações
-                    </Typography>
+                    <Typography variant="body2">Total de Transações</Typography>
                     <Typography variant="h5" fontWeight={700}>
                       {loading ? (
                         <Skeleton width={40} />
@@ -773,7 +771,7 @@ export default function Transactions() {
           <TableContainer>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: "grey.50" }}>
+                <TableRow sx={{ bgcolor: "primary.main" }}>
                   <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Descrição</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Categoria</TableCell>

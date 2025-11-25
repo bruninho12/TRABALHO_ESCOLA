@@ -19,8 +19,14 @@ export function AuthProvider({ children }) {
             response.data.data?.user || response.data.user || response.data
           );
         })
-        .catch(() => {
-          localStorage.removeItem("finance_flow_token");
+        .catch((error) => {
+          // Só remover token se for erro de autenticação, não de conectividade
+          if (
+            error.response?.status === 401 ||
+            error.message !== "API_OFFLINE"
+          ) {
+            localStorage.removeItem("finance_flow_token");
+          }
         })
         .finally(() => {
           setLoading(false);

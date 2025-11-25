@@ -1,6 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+// Detectar se estamos em ambiente local ou rede
+const isNetworkMode = process.env.VITE_NETWORK_MODE === "true";
+const hmrHost = isNetworkMode ? "0.0.0.0" : "localhost";
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -8,12 +12,13 @@ export default defineConfig({
   // Configurações de servidor de desenvolvimento
   server: {
     port: 5173,
-    host: "localhost",
+    host: "0.0.0.0", // Permite acesso de qualquer IP da rede
     cors: true,
     open: false,
     hmr: {
       port: 24678, // Porta específica para HMR
-      host: "localhost", // Host específico para HMR
+      host: hmrHost, // Host dinâmico baseado no modo
+      clientPort: isNetworkMode ? 24678 : undefined, // Porta do cliente quando em rede
     },
     // Configurações de proxy para desenvolvimento
     proxy: {

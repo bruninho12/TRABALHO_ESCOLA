@@ -1,24 +1,48 @@
 const { Notification } = require("../models");
 const { AppError } = require("../middleware/errorHandler");
+const { logger } = require("../utils/logger");
 
-// Listar notificações
+// Listar notificações com filtros e paginação
 exports.getNotifications = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user._id;
+    const { page = 1, limit = 20, isRead, type, priority } = req.query;
 
-    // Buscar notificações do usuário
-    const notifications = await Notification.find({ userId }).sort({
-      createdAt: -1,
+    // Construir filtros
+    const filter = { userId };
+    if (isRead !== undefined) filter.isRead = isRead === "true";
+    if (type) filter.type = type;
+    if (priority) filter.priority = priority;
+
+    // Buscar notificações com paginação
+    const skip = (page - 1) * limit;
+    const notifications = await Notification.find(filter)
+      .sort({ createdAt: -1, priority: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    const total = await Notification.countDocuments(filter);
+    const unreadCount = await Notification.countDocuments({
+      userId,
+      isRead: false,
     });
 
     res.status(200).json({
-      status: "success",
+      success: true,
       data: {
         notifications,
-        unreadCount: notifications.filter((n) => !n.isRead).length,
+        pagination: {
+          current: parseInt(page),
+          total: Math.ceil(total / limit),
+          totalItems: total,
+          limit: parseInt(limit),
+        },
+        unreadCount,
       },
     });
   } catch (error) {
+    logger.error("Error fetching notifications:", error);
     next(error);
   }
 };
