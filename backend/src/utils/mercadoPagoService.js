@@ -38,35 +38,45 @@ class MercadoPagoService {
           },
         ],
         payer: {
+          type: "customer",
           name: paymentData.customer.name,
           email: paymentData.customer.email,
           identification: {
             type: "CPF",
-            number: paymentData.customer.cpf,
-          },
-          address: {
-            street_name: paymentData.customer.address?.street,
-            street_number: paymentData.customer.address?.number,
-            zip_code: paymentData.customer.address?.zipcode,
+            number: String(paymentData.customer.cpf).replace(/\D/g, ""), // Remove formatação
           },
         },
         back_urls: {
-          success: `${process.env.FRONTEND_URL}/payment/success`,
-          failure: `${process.env.FRONTEND_URL}/payment/failure`,
-          pending: `${process.env.FRONTEND_URL}/payment/pending`,
+          success:
+            process.env.MERCADO_PAGO_SUCCESS_URL ||
+            `${process.env.FRONTEND_URL}/payment/success`,
+          failure:
+            process.env.MERCADO_PAGO_FAILURE_URL ||
+            `${process.env.FRONTEND_URL}/payment/failure`,
+          pending:
+            process.env.MERCADO_PAGO_PENDING_URL ||
+            `${process.env.FRONTEND_URL}/payment/pending`,
         },
-        auto_return: "approved",
-        notification_url: `${process.env.BACKEND_URL}/api/payments/mercadopago/webhook`,
+        // auto_return removido - causa erro em ambiente de desenvolvimento
+        // Em produção, pode ser: auto_return: "all"
+        // notification_url omitida para testes locais (MercadoPago exige HTTPS)
+        // Será configurada quando usar ngrok ou em produção
+        // notification_url:
+        //   process.env.MERCADO_PAGO_NOTIFICATION_URL ||
+        //   `${process.env.FRONTEND_URL}/api/payments/webhook/mercadopago`,
         external_reference: paymentData.orderId,
         expires: true,
         expiration_date_from: new Date().toISOString(),
         expiration_date_to: new Date(
           Date.now() + 24 * 60 * 60 * 1000
         ).toISOString(), // 24 hours
+        statement_descriptor: "DESPFINANCE",
+        binary_mode: false,
         payment_methods: {
           excluded_payment_methods: [],
           excluded_payment_types: [],
           installments: 12,
+          default_installments: 1,
         },
       };
 
@@ -108,7 +118,8 @@ class MercadoPagoService {
           },
         },
         external_reference: paymentData.orderId,
-        notification_url: `${process.env.BACKEND_URL}/api/payments/mercadopago/webhook`,
+        // notification_url omitida para testes locais (MercadoPago exige HTTPS)
+        // notification_url: process.env.MERCADO_PAGO_NOTIFICATION_URL,
       };
 
       // Configurações específicas por método de pagamento
@@ -211,10 +222,7 @@ class MercadoPagoService {
   async getPayment(paymentId) {
     try {
       const response = await this.client.get(`/v1/payments/${paymentId}`);
-      return {
-        success: true,
-        payment: response.data,
-      };
+      return response.data; // Retorna diretamente o objeto de pagamento
     } catch (error) {
       console.error(
         "Erro ao buscar pagamento MercadoPago:",

@@ -414,7 +414,7 @@ const Layout = () => {
 
           {/* Lista de navegação - Muito Melhorada */}
           <List sx={{ px: { xs: 1, sm: 2 }, py: { xs: 1, sm: 2 } }}>
-            {menuItems.map((item, index) => {
+            {menuItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <ListItem

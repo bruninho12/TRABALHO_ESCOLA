@@ -5,6 +5,9 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green)](https://www.mongodb.com/)
 [![Security](https://img.shields.io/badge/Security-94%2F100-brightgreen)](docs/security/)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Ready_to_Deploy-success)](CHECKLIST_PUBLICACAO.md)
+[![Frontend](https://img.shields.io/badge/Frontend-0_Vulnerabilities-brightgreen)](#)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 > Uma aplicação web completa para gerenciamento e controle de finanças pessoais com dashboard interativo, análise de gastos, gamificação e sistema de pagamentos integrado.
 
@@ -24,6 +27,19 @@
 - 🌙 **Modo claro/escuro** personalizável
 
 ## 🚀 Quick Start
+
+> 📱 **Quer publicar o projeto?** Escolha sua opção:
+>
+> ### 🟩 **VPS Hostinger - RECOMENDADO** 🏆
+>
+> - 🚀 [**Deploy VPS Profissional**](DEPLOY_VPS_HOSTINGER.md) - R$ 25-49/mês, máxima performance
+> - ⚖️ [**Comparação Completa**](COMPARACAO_DEPLOY.md) - VPS vs Grátis
+>
+> ### 🟦 **Plataformas Gratuitas**
+>
+> - ⚡ [**Deploy Grátis (30min)**](DEPLOY_GUIDE.md) - Vercel + Render (limitado)
+> - 📊 [**Resumo Executivo**](RESUMO_PUBLICACAO.md) - Visão geral
+> - 📋 [**Checklist Completo**](CHECKLIST_PUBLICACAO.md) - Tudo que precisa
 
 ### Pré-requisitos
 
@@ -156,14 +172,29 @@ O projeto implementa as melhores práticas de segurança:
 
 ## 📚 Documentação
 
-### Guias Principais
+### 🚀 Guias de Publicação (NOVO!)
+
+- 📊 [**Resumo Executivo**](RESUMO_PUBLICACAO.md) - O que falta para publicar (COMECE AQUI!)
+- 📋 [**Checklist Completo**](CHECKLIST_PUBLICACAO.md) - Lista detalhada de tudo
+- ⚡ [**Deploy em 30min**](DEPLOY_GUIDE.md) - Guia rápido passo-a-passo
+- 🗺️ [**Roadmap Visual**](ROADMAP_PUBLICACAO.md) - Timeline e diagrama
+- 🆘 [**Troubleshooting**](TROUBLESHOOTING.md) - Problemas comuns e soluções
+- 📚 [**Índice Completo**](INDICE_DOCUMENTACAO.md) - Todos os documentos
+
+### 📖 Guias Principais
 
 - 📖 [Guia de Setup Completo](docs/guides/SETUP_GUIDE.md)
 - 📖 [Guia de Uso](docs/guides/USAGE_GUIDE.md)
 - 🛡️ [Guia de Segurança](docs/security/SECURITY_GUIDE.md)
 - 📊 [Status de Segurança](docs/security/STATUS_SEGURANCA_FINAL.md)
 
-### Checklists e Features
+### 🤝 Contribuição
+
+- 🤝 [Como Contribuir](CONTRIBUTING.md)
+- 📝 [Changelog](CHANGELOG.md)
+- ⚖️ [Licença](LICENSE)
+
+### ✅ Checklists e Features
 
 - ✅ [Checklist de Integração](docs/checklists/INTEGRATION_TEST_CHECKLIST.md)
 - ♿ [Acessibilidade](docs/checklists/ACCESSIBILITY_ARIA_HIDDEN_FIX_v2.md)
@@ -329,11 +360,15 @@ Veja [docs/guides/SETUP_GUIDE.md](docs/guides/SETUP_GUIDE.md) para mais detalhes
 
 ## 🤝 Contribuindo
 
+Contribuições são muito bem-vindas! Por favor, leia o [CONTRIBUTING.md](CONTRIBUTING.md) para detalhes sobre o processo.
+
 1. Fork o projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+3. Commit suas mudanças (`git commit -m 'feat: Add some AmazingFeature'`)
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
+
+Veja também: [CHANGELOG.md](CHANGELOG.md) para histórico de versões.
 
 ## 📄 Licença
 

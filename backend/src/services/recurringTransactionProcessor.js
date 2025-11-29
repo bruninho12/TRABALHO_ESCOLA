@@ -8,7 +8,6 @@ const RecurringTransaction = require("../models/RecurringTransaction");
 const Transaction = require("../models/Transaction");
 const User = require("../models/User");
 const logger = require("../utils/logger");
-const notificationService = require("./notificationService");
 
 class RecurringTransactionProcessor {
   constructor() {
@@ -164,29 +163,19 @@ class RecurringTransactionProcessor {
   /**
    * Notifica usuário sobre transação criada
    */
-  async notifyTransactionCreated(recurring, transaction) {
+  async notifyTransactionCreated(recurring) {
     try {
-      const icon = recurring.type === "income" ? "💰" : "💸";
-      const typeLabel = recurring.type === "income" ? "Receita" : "Despesa";
-
       // Aqui você integraria com seu sistema de notificações
       logger.info(`📧 Notificando usuário ${recurring.userId.email}`);
 
-      // Exemplo de notificação
-      const notification = {
-        userId: recurring.userId._id,
-        title: `${icon} ${typeLabel} Recorrente Registrada`,
-        message: `${recurring.description} - R$ ${transaction.amount.toFixed(
-          2
-        )}`,
-        type: "recurring_transaction",
-        data: {
-          transactionId: transaction._id,
-          recurringId: recurring._id,
-        },
-      };
-
-      // Salvar notificação no banco (se tiver modelo de notificação)
+      // Exemplo de notificação (desabilitado até implementar modelo de Notification)
+      // const notification = {
+      //   userId: recurring.userId._id,
+      //   title: `${icon} ${typeLabel} Recorrente Registrada`,
+      //   message: `${recurring.description} - R$ ${transaction.amount.toFixed(2)}`,
+      //   type: "recurring_transaction",
+      //   data: { transactionId: transaction._id, recurringId: recurring._id },
+      // };
       // await Notification.create(notification);
     } catch (error) {
       logger.error("Erro ao enviar notificação:", error);
@@ -223,23 +212,14 @@ class RecurringTransactionProcessor {
   async sendReminder(recurring) {
     logger.info(`🔔 Enviando lembrete para: ${recurring.userId.email}`);
 
-    const icon = recurring.type === "income" ? "💰" : "💸";
-    const typeLabel = recurring.type === "income" ? "Receita" : "Despesa";
-
-    // Aqui você integraria com seu sistema de notificações/email
-    const reminder = {
-      userId: recurring.userId._id,
-      title: `🔔 Lembrete: ${typeLabel} Recorrente`,
-      message: `${recurring.description} será registrada em ${
-        recurring.daysUntilNext
-      } dia(s) - R$ ${recurring.amount.toFixed(2)}`,
-      type: "reminder",
-      data: {
-        recurringId: recurring._id,
-      },
-    };
-
-    // Salvar notificação
+    // Aqui você integraria com seu sistema de notificações/email (desabilitado)
+    // const reminder = {
+    //   userId: recurring.userId._id,
+    //   title: `🔔 Lembrete: ${typeLabel} Recorrente`,
+    //   message: `${recurring.description} será registrada em ${recurring.daysUntilNext} dia(s) - R$ ${recurring.amount.toFixed(2)}`,
+    //   type: "reminder",
+    //   data: { recurringId: recurring._id },
+    // };
     // await Notification.create(reminder);
   }
 

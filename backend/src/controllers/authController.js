@@ -35,7 +35,7 @@ class AuthController {
   // ===============================
   async register(req, res) {
     try {
-      const { name, email, password, confirmPassword } = req.body;
+      const { name, email, password } = req.body;
 
       // Validação dos campos de cadastro
       const validation = this.validateRequest(authSchemas.register, {
@@ -318,7 +318,7 @@ class AuthController {
   // ===============================
   async resetPassword(req, res) {
     try {
-      const { token, password, confirmPassword } = req.body;
+      const { token, password } = req.body;
 
       const validation = this.validateRequest(authSchemas.resetPassword, {
         token,
@@ -536,56 +536,9 @@ class AuthController {
   }
 }
 
-// ===========================================
-// 🧩 Validador de Autenticação
-// ===========================================
-class AuthValidator {
-  validateRegistration(data) {
-    const errors = [];
-
-    if (!data.name || data.name.trim().length < 2)
-      errors.push("Nome deve ter pelo menos 2 caracteres.");
-
-    if (!data.email || !Utils.validateEmail(data.email))
-      errors.push("Email válido é obrigatório.");
-
-    if (!data.password || data.password.length < 8)
-      errors.push("Senha deve ter pelo menos 8 caracteres.");
-
-    if (data.password !== data.confirmPassword)
-      errors.push("As senhas não coincidem.");
-
-    return { isValid: errors.length === 0, errors };
-  }
-
-  validateLogin(data) {
-    const errors = [];
-    if (!data.email || !Utils.validateEmail(data.email))
-      errors.push("Email válido é obrigatório.");
-    if (!data.password) errors.push("Senha é obrigatória.");
-    return { isValid: errors.length === 0, errors };
-  }
-
-  validatePasswordReset(data) {
-    const errors = [];
-    if (!data.token) errors.push("Token é obrigatório.");
-    if (!data.password || data.password.length < 8)
-      errors.push("Senha deve ter pelo menos 8 caracteres.");
-    if (data.password !== data.confirmPassword)
-      errors.push("As senhas não coincidem.");
-    return { isValid: errors.length === 0, errors };
-  }
-
-  validatePasswordChange(data) {
-    const errors = [];
-    if (!data.currentPassword) errors.push("Senha atual é obrigatória.");
-    if (!data.newPassword || data.newPassword.length < 8)
-      errors.push("Nova senha deve ter pelo menos 8 caracteres.");
-    if (data.newPassword !== data.confirmPassword)
-      errors.push("As senhas não coincidem.");
-    return { isValid: errors.length === 0, errors };
-  }
-}
+// Validações agora são feitas com authSchemas (utils/validationSchemas)
+// A classe AuthValidator foi removida pois não estava sendo utilizada
+// As validações estão no método validateRequest usando Joi schemas
 
 // ===========================================
 // Exportações

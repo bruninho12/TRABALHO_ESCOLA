@@ -164,8 +164,13 @@ const userSchema = new mongoose.Schema(
     subscription: {
       plan: {
         type: String,
-        enum: ["free", "premium", "anual", "vitalicio"],
+        enum: ["free", "bronze", "silver", "gold"],
         default: "free",
+      },
+      status: {
+        type: String,
+        enum: ["active", "cancelled", "expired", "past_due", "trialing"],
+        default: "active",
       },
       startDate: {
         type: Date,
@@ -175,11 +180,75 @@ const userSchema = new mongoose.Schema(
         type: Date,
         default: null,
       },
+      currentPeriodStart: {
+        type: Date,
+        default: null,
+      },
+      currentPeriodEnd: {
+        type: Date,
+        default: null,
+      },
+      cancelAtPeriodEnd: {
+        type: Boolean,
+        default: false,
+      },
+      canceledAt: {
+        type: Date,
+        default: null,
+      },
       isActive: {
         type: Boolean,
         default: true,
       },
+      // Stripe Integration
+      stripeCustomerId: {
+        type: String,
+        default: null,
+        select: false,
+      },
+      stripeSubscriptionId: {
+        type: String,
+        default: null,
+        select: false,
+      },
+      stripePriceId: {
+        type: String,
+        default: null,
+      },
+      // MercadoPago Integration
+      mercadoPagoCustomerId: {
+        type: String,
+        default: null,
+        select: false,
+      },
+      mercadoPagoSubscriptionId: {
+        type: String,
+        default: null,
+        select: false,
+      },
+      mercadoPagoPreferenceId: {
+        type: String,
+        default: null,
+      },
     },
+    paymentHistory: [
+      {
+        paymentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Payment",
+        },
+        amount: Number,
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+        status: String,
+        gateway: {
+          type: String,
+          enum: ["stripe", "mercadopago"],
+        },
+      },
+    ],
   },
   {
     collection: "usuários",
@@ -236,6 +305,119 @@ userSchema.methods.addExperience = function addExperience(amount) {
     this.level = newLevel;
   }
   return this;
+};
+
+// ===== MÉTODOS DE ASSINATURA E PAGAMENTO =====
+
+// Verificar se usuário é Premium
+userSchema.methods.isPremium = function isPremium() {
+  return (
+    this.subscription.plan !== "free" &&
+    this.subscription.status === "active" &&
+    (!this.subscription.currentPeriodEnd ||
+      new Date() < this.subscription.currentPeriodEnd)
+  );
+};
+
+// Verificar se plano específico está ativo
+userSchema.methods.hasPlan = function hasPlan(planName) {
+  return this.subscription.plan === planName && this.isPremium();
+};
+
+// Verificar se assinatura expirou
+userSchema.methods.isSubscriptionExpired = function isSubscriptionExpired() {
+  if (this.subscription.plan === "free") return false;
+  if (!this.subscription.currentPeriodEnd) return false;
+  return new Date() > this.subscription.currentPeriodEnd;
+};
+
+// Ativar plano Premium
+userSchema.methods.activatePremium = function activatePremium(planData) {
+  this.subscription.plan = planData.plan;
+  this.subscription.status = planData.status || "active";
+  this.subscription.currentPeriodStart =
+    planData.currentPeriodStart || new Date();
+  this.subscription.currentPeriodEnd = planData.currentPeriodEnd;
+  this.subscription.isActive = true;
+
+  // Stripe
+  if (planData.stripeCustomerId) {
+    this.subscription.stripeCustomerId = planData.stripeCustomerId;
+  }
+  if (planData.stripeSubscriptionId) {
+    this.subscription.stripeSubscriptionId = planData.stripeSubscriptionId;
+  }
+  if (planData.stripePriceId) {
+    this.subscription.stripePriceId = planData.stripePriceId;
+  }
+
+  // MercadoPago
+  if (planData.mercadoPagoCustomerId) {
+    this.subscription.mercadoPagoCustomerId = planData.mercadoPagoCustomerId;
+  }
+  if (planData.mercadoPagoSubscriptionId) {
+    this.subscription.mercadoPagoSubscriptionId =
+      planData.mercadoPagoSubscriptionId;
+  }
+
+  return this.save();
+};
+
+// Cancelar assinatura
+userSchema.methods.cancelSubscription = function cancelSubscription(
+  immediate = false
+) {
+  if (immediate) {
+    this.subscription.status = "cancelled";
+    this.subscription.canceledAt = new Date();
+    this.subscription.currentPeriodEnd = new Date();
+    this.subscription.isActive = false;
+  } else {
+    this.subscription.cancelAtPeriodEnd = true;
+    this.subscription.canceledAt = new Date();
+  }
+
+  return this.save();
+};
+
+// Reativar assinatura
+userSchema.methods.reactivateSubscription = function reactivateSubscription() {
+  this.subscription.cancelAtPeriodEnd = false;
+  this.subscription.canceledAt = null;
+  this.subscription.status = "active";
+
+  return this.save();
+};
+
+// Expirar assinatura (chamado por cron job)
+userSchema.methods.expireSubscription = function expireSubscription() {
+  this.subscription.status = "expired";
+  this.subscription.isActive = false;
+
+  return this.save();
+};
+
+// Adicionar coins
+userSchema.methods.addCoins = function addCoins(amount) {
+  this.coins = (this.coins || 0) + amount;
+  return this.save();
+};
+
+// Adicionar registro de pagamento
+userSchema.methods.addPaymentHistory = function addPaymentHistory(paymentData) {
+  if (!this.paymentHistory) {
+    this.paymentHistory = [];
+  }
+
+  this.paymentHistory.push({
+    paymentId: paymentData.paymentId,
+    amount: paymentData.amount,
+    status: paymentData.status,
+    gateway: paymentData.gateway,
+    date: new Date(),
+  });
+
+  return this.save();
 };
 
 // Remover senha antes de serializar

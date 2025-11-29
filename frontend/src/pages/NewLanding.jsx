@@ -53,6 +53,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import MercadoPagoCheckout from "../components/MercadoPagoCheckout";
 
 const NewLanding = () => {
   const navigate = useNavigate();
@@ -73,6 +74,34 @@ const NewLanding = () => {
   const [showParticles, setShowParticles] = useState(false);
   const [magneticButtons] = useState(new Set());
   const containerRef = useRef(null);
+
+  // Estados para checkout MercadoPago
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("silver");
+
+  // Abrir modal de checkout
+  const handleOpenCheckout = (plan) => {
+    setSelectedPlan(plan);
+    setCheckoutOpen(true);
+  };
+
+  // Fechar modal de checkout
+  const handleCloseCheckout = () => {
+    setCheckoutOpen(false);
+  };
+
+  // Callback de sucesso do pagamento
+  const handlePaymentSuccess = () => {
+    setCheckoutOpen(false);
+    setSnackbarMessage(
+      "🎉 Pagamento processado com sucesso! Seu plano será ativado em breve."
+    );
+    setShowSnackbar(true);
+    // Redirecionar para dashboard após alguns segundos
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 3000);
+  };
 
   // Componente do Loader como Portal
   const LoaderPortal = () => {
@@ -2160,285 +2189,789 @@ const NewLanding = () => {
         </Box>
 
         {/* Pricing Section */}
-        <Box sx={{ bgcolor: "white", py: 12 }}>
-          <Container maxWidth="lg">
-            <Box textAlign="center" mb={8}>
-              <Chip
-                label="PREÇOS"
-                sx={{
-                  bgcolor: "rgba(245, 158, 11, 0.1)",
-                  color: "#f59e0b",
-                  fontWeight: 700,
-                  mb: 2,
-                }}
-              />
-              <Typography
-                variant="h2"
-                sx={{
-                  fontSize: { xs: "2rem", md: "2.5rem" },
-                  fontWeight: 800,
-                  color: "#0f172a",
-                  mb: 2,
-                }}
-              >
-                Comece grátis, evolua quando quiser
-              </Typography>
-              <Typography
-                variant="h6"
-                color="#64748b"
-                sx={{ maxWidth: 600, mx: "auto" }}
-              >
-                Sem cartão de crédito. Sem compromisso. Cancele quando quiser.
-              </Typography>
-            </Box>
+        <Box
+          sx={{
+            background:
+              "linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)",
+            py: 12,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Background Decorations */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: "10%",
+              right: "-5%",
+              width: 400,
+              height: 400,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%)",
+              filter: "blur(60px)",
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: "5%",
+              left: "-5%",
+              width: 300,
+              height: 300,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(192,192,192,0.1) 0%, transparent 70%)",
+              filter: "blur(60px)",
+            }}
+          />
+
+          <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Box textAlign="center" mb={8}>
+                <motion.div
+                  initial={{ scale: 0.9 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                >
+                  <Chip
+                    label="PREÇOS"
+                    icon={<Star sx={{ color: "#f59e0b !important" }} />}
+                    sx={{
+                      bgcolor: "rgba(245, 158, 11, 0.1)",
+                      color: "#f59e0b",
+                      fontWeight: 700,
+                      mb: 3,
+                      px: 2,
+                      py: 3,
+                      fontSize: "0.9rem",
+                      border: "2px solid rgba(245, 158, 11, 0.2)",
+                    }}
+                  />
+                </motion.div>
+
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontSize: { xs: "2.2rem", md: "3rem" },
+                    fontWeight: 900,
+                    background:
+                      "linear-gradient(135deg, #0f172a 0%, #334155 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    mb: 2,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Comece grátis, evolua quando quiser
+                </Typography>
+
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: "#64748b",
+                    maxWidth: 700,
+                    mx: "auto",
+                    fontSize: { xs: "1rem", md: "1.1rem" },
+                    fontWeight: 400,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Sem cartão de crédito. Sem compromisso. Cancele quando quiser.
+                </Typography>
+              </Box>
+            </motion.div>
 
             <Grid container spacing={4} justifyContent="center">
+              {/* 🥉 BRONZE (Free) */}
               <Grid item xs={12} md={6} lg={4}>
-                <Paper
-                  sx={{
-                    p: 4,
-                    borderRadius: 4,
-                    border: "1px solid #e2e8f0",
-                    height: "100%",
-                    position: "relative",
-                  }}
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  whileHover={{ y: -8 }}
                 >
-                  <Box textAlign="center" mb={4}>
-                    <Typography
-                      variant="h5"
-                      fontWeight={700}
-                      color="#0f172a"
-                      mb={1}
-                    >
-                      Free
-                    </Typography>
-                    <Typography variant="body2" color="white" mb={3}>
-                      Acesso para começar
-                    </Typography>
-                    <Typography variant="h2" fontWeight={800} color="#6366f1">
-                      R$ 0
-                      <Typography component="span" variant="h6" color="white">
-                        /sempre grátis
-                      </Typography>
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="#10b981"
-                      fontWeight={600}
-                    >
-                      💰 Contém anúncios
-                    </Typography>
-                  </Box>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 4,
+                      borderRadius: 4,
+                      border: "2px solid #e2e8f0",
+                      height: "100%",
+                      position: "relative",
+                      background:
+                        "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        borderColor: "#cd7f32",
+                        boxShadow: "0 20px 60px rgba(205, 127, 50, 0.2)",
+                      },
+                    }}
+                  >
+                    {/* Espaçador invisível para alinhar com os badges dos outros cards */}
+                    <Box sx={{ height: 20, mb: 2 }} />
 
-                  <Stack spacing={2} mb={4}>
-                    {[
-                      "Até 50 transações/mês",
-                      "1 meta ativa",
-                      "Gráficos básicos",
-                      "Níveis até 3",
-                      "Dashboard simples",
-                    ].map((feature, index) => (
-                      <Stack
-                        key={index}
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
+                    <Box textAlign="center" mb={4}>
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 80,
+                          height: 80,
+                          borderRadius: "50%",
+                          background:
+                            "linear-gradient(135deg, #cd7f32, #b87333)",
+                          mb: 3,
+                          fontSize: "2.5rem",
+                          boxShadow: "0 10px 30px rgba(205, 127, 50, 0.3)",
+                        }}
                       >
-                        <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                        <Typography variant="body2" color="white">
-                          {feature}
-                        </Typography>
-                      </Stack>
-                    ))}
-                    {[
-                      "Sem anúncios",
-                      "Avatar premium",
-                      "Metas ilimitadas",
-                      "Relatorios PDF",
-                      "Suporte prioritário",
-                    ].map((feature, index) => (
-                      <Stack
-                        key={index}
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
+                        🥉
+                      </Box>
+
+                      <Typography
+                        variant="h4"
+                        fontWeight={800}
+                        color="white"
+                        mb={1}
                       >
-                        <Box
+                        Bronze
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#94a3b8",
+                          mb: 3,
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        Trial 30 dias gratuito
+                      </Typography>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Typography
+                          variant="h2"
+                          fontWeight={900}
                           sx={{
-                            width: 19,
-                            height: 19,
-                            borderRadius: "50%",
-                            bgcolor: "#ef4444",
-                            color: "white",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            mx: "auto",
+                            background:
+                              "linear-gradient(135deg, #cd7f32, #ffd700)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            letterSpacing: "-0.02em",
                           }}
                         >
-                          ✕
-                        </Box>
-                        <Typography variant="body2" color="white">
-                          {feature}
+                          R$ 0
                         </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
-
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    onClick={() => navigate("/register")}
-                    sx={{
-                      background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
-                      py: 1.5,
-                      fontSize: "1.1rem",
-                      fontWeight: 700,
-                      boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
-                      "&:hover": {
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 12px 35px rgba(139, 92, 246, 0.4)",
-                      },
-                    }}
-                  >
-                    Começar Grátis
-                  </Button>
-                </Paper>
-              </Grid>
-
-              <Grid item xs={12} md={6} lg={4}>
-                <Paper
-                  sx={{
-                    p: 4,
-                    borderRadius: 4,
-                    border: "2px solid #8b5cf6",
-                    height: "100%",
-                    position: "relative",
-                    background: "linear-gradient(135deg, #faf5ff, #f3e8ff)",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: -12,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      bgcolor: "#8b5cf6",
-                      color: "white",
-                      px: 3,
-                      py: 1,
-                      borderRadius: 2,
-                      fontSize: "0.875rem",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Mais Popular
-                  </Box>
-
-                  <Box textAlign="center" mb={4}>
-                    <Typography
-                      variant="h5"
-                      fontWeight={700}
-                      color="#0f172a"
-                      mb={1}
-                    >
-                      Premium
-                    </Typography>
-                    <Typography variant="body2" color="#64748b" mb={3}>
-                      Para quem quer o máximo
-                    </Typography>
-                    <Typography variant="h2" fontWeight={800} color="#8b5cf6">
-                      R$ 19,90
-                      <Typography component="span" variant="h6" color="#64748b">
-                        /mês
-                      </Typography>
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="#10b981"
-                      fontWeight={600}
-                    >
-                      💰 Economize 38% no plano anual
-                    </Typography>
-                  </Box>
-
-                  <Stack spacing={2} mb={4}>
-                    {[
-                      "Transações ilimitadas",
-                      "Metas ilimitadas",
-                      "XP avançado (2x)",
-                      "Todos os 10 níveis",
-                      "Conquistas raras",
-                      "Ranking semanal",
-                      "Relatórios PDF",
-                      "Suporte prioritário",
-                      "Avatar premium",
-                      "Sem anúncios",
-                    ].map((feature, index) => (
-                      <Stack
-                        key={index}
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
-                      >
-                        <CheckCircle sx={{ color: "#8b5cf6", fontSize: 20 }} />
                         <Typography
-                          variant="body2"
-                          color="#0f172a"
+                          variant="body1"
+                          color="#94a3b8"
                           fontWeight={500}
                         >
-                          {feature}
+                          /trial grátis
                         </Typography>
-                      </Stack>
-                    ))}
-                  </Stack>
+                      </Box>
 
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    onClick={() => navigate("/register?plan=premium")}
+                      <Chip
+                        label="🎮 Sistema de gamificação"
+                        size="small"
+                        sx={{
+                          bgcolor: "rgba(16, 185, 129, 0.2)",
+                          color: "#10b981",
+                          fontWeight: 600,
+                          border: "1px solid rgba(16, 185, 129, 0.3)",
+                        }}
+                      />
+                    </Box>
+
+                    <Divider
+                      sx={{ mb: 3, borderColor: "rgba(255,255,255,0.1)" }}
+                    />
+
+                    <Stack spacing={2.5} mb={4} sx={{ minHeight: 530 }}>
+                      {[
+                        "Trial 30 dias",
+                        "Funcionalidades básicas",
+                        "Orçamentos limitados",
+                        "Sistema de gamificação",
+                        "Dashboard simples",
+                      ].map((feature, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.1 + index * 0.05 }}
+                        >
+                          <Stack
+                            direction="row"
+                            spacing={2}
+                            alignItems="center"
+                          >
+                            <CheckCircle
+                              sx={{
+                                color: "#cd7f32",
+                                fontSize: 22,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              color="white"
+                              fontWeight={500}
+                            >
+                              {feature}
+                            </Typography>
+                          </Stack>
+                        </motion.div>
+                      ))}
+
+                      {/* Espaçadores invisíveis para igualar altura */}
+                      {[1, 2, 3, 4, 5].map((item) => (
+                        <Box
+                          key={`spacer-${item}`}
+                          sx={{ height: 36.5, visibility: "hidden" }}
+                        />
+                      ))}
+                    </Stack>
+
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      onClick={() => handleOpenCheckout("bronze")}
+                      sx={{
+                        background: "linear-gradient(135deg, #cd7f32, #b87333)",
+                        py: 1.8,
+                        fontSize: "1.1rem",
+                        fontWeight: 700,
+                        borderRadius: 3,
+                        textTransform: "none",
+                        boxShadow: "0 10px 30px rgba(205, 127, 50, 0.4)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-3px)",
+                          boxShadow: "0 15px 40px rgba(205, 127, 50, 0.5)",
+                          background:
+                            "linear-gradient(135deg, #b87333, #cd7f32)",
+                        },
+                      }}
+                    >
+                      Começar Grátis 🚀
+                    </Button>
+                  </Paper>
+                </motion.div>
+              </Grid>
+
+              {/* 🥈 SILVER (R$ 9,90) */}
+              <Grid item xs={12} md={6} lg={4}>
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  whileHover={{ y: -12, scale: 1.02 }}
+                >
+                  <Paper
+                    elevation={8}
                     sx={{
-                      background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
-                      py: 1.5,
-                      fontSize: "1.1rem",
-                      fontWeight: 700,
-                      boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
+                      p: 4,
+                      borderRadius: 4,
+                      border: "3px solid #c0c0c0",
+                      height: "100%",
+                      position: "relative",
+                      background:
+                        "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
+                      boxShadow: "0 20px 60px rgba(192, 192, 192, 0.25)",
+                      transition: "all 0.3s ease",
                       "&:hover": {
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 12px 35px rgba(139, 92, 246, 0.4)",
+                        boxShadow: "0 30px 80px rgba(192, 192, 192, 0.4)",
+                        borderColor: "#a8a9ad",
                       },
                     }}
                   >
-                    Assinar Premium
-                  </Button>
-                </Paper>
+                    {/* Badge Destaque */}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: -16,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        background: "linear-gradient(135deg, #c0c0c0, #a8a9ad)",
+                        color: "white",
+                        px: 4,
+                        py: 1.2,
+                        borderRadius: 3,
+                        fontSize: "0.85rem",
+                        fontWeight: 800,
+                        boxShadow: "0 8px 20px rgba(192, 192, 192, 0.4)",
+                        letterSpacing: "0.5px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      ⭐ Melhor Custo-Benefício
+                    </Box>
+
+                    <Box textAlign="center" mb={4} mt={2}>
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 90,
+                          height: 90,
+                          borderRadius: "50%",
+                          background:
+                            "linear-gradient(135deg, #c0c0c0, #a8a9ad)",
+                          mb: 3,
+                          fontSize: "3rem",
+                          boxShadow: "0 15px 40px rgba(192, 192, 192, 0.4)",
+                          animation: "pulse 2s infinite",
+                          "@keyframes pulse": {
+                            "0%, 100%": { transform: "scale(1)" },
+                            "50%": { transform: "scale(1.05)" },
+                          },
+                        }}
+                      >
+                        🥈
+                      </Box>
+
+                      <Typography
+                        variant="h4"
+                        fontWeight={800}
+                        color="#0f172a"
+                        mb={1}
+                      >
+                        Silver
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#64748b",
+                          mb: 3,
+                          fontSize: "0.95rem",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Recursos premium selecionados
+                      </Typography>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="center"
+                          alignItems="baseline"
+                        >
+                          <Typography
+                            variant="h2"
+                            fontWeight={900}
+                            sx={{
+                              background:
+                                "linear-gradient(135deg, #6c757d, #495057)",
+                              WebkitBackgroundClip: "text",
+                              WebkitTextFillColor: "transparent",
+                              letterSpacing: "-0.02em",
+                            }}
+                          >
+                            R$ 9,90
+                          </Typography>
+                        </Stack>
+                        <Typography
+                          variant="body1"
+                          color="#64748b"
+                          fontWeight={500}
+                        >
+                          /mês
+                        </Typography>
+                      </Box>
+
+                      <Chip
+                        label="🎯 Ideal para começar"
+                        size="small"
+                        sx={{
+                          bgcolor: "rgba(16, 185, 129, 0.15)",
+                          color: "#059669",
+                          fontWeight: 700,
+                          border: "2px solid rgba(16, 185, 129, 0.3)",
+                          px: 1,
+                        }}
+                      />
+                    </Box>
+
+                    <Divider sx={{ mb: 3, borderColor: "#e2e8f0" }} />
+
+                    <Stack spacing={2.5} mb={4} sx={{ minHeight: 530 }}>
+                      {[
+                        "Insights avançados",
+                        "Até 10 orçamentos",
+                        "Exportação CSV",
+                        "Conquistas especiais RPG",
+                        "Níveis até 7",
+                        "Dashboard avançado",
+                        "Notificações personalizadas",
+                      ].map((feature, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.15 + index * 0.05 }}
+                        >
+                          <Stack
+                            direction="row"
+                            spacing={2}
+                            alignItems="center"
+                          >
+                            <CheckCircle
+                              sx={{
+                                color: "#c0c0c0",
+                                fontSize: 22,
+                                flexShrink: 0,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              color="#0f172a"
+                              fontWeight={600}
+                            >
+                              {feature}
+                            </Typography>
+                          </Stack>
+                        </motion.div>
+                      ))}
+
+                      {/* Espaçadores invisíveis para igualar altura */}
+                      {[1, 2, 3].map((item) => (
+                        <Box
+                          key={`spacer-${item}`}
+                          sx={{ height: 36.5, visibility: "hidden" }}
+                        />
+                      ))}
+                    </Stack>
+
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      onClick={() => handleOpenCheckout("silver")}
+                      sx={{
+                        background: "linear-gradient(135deg, #c0c0c0, #a8a9ad)",
+                        py: 1.8,
+                        fontSize: "1.1rem",
+                        fontWeight: 700,
+                        color: "white",
+                        borderRadius: 3,
+                        textTransform: "none",
+                        boxShadow: "0 10px 30px rgba(192, 192, 192, 0.5)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-3px)",
+                          boxShadow: "0 15px 40px rgba(192, 192, 192, 0.6)",
+                          background:
+                            "linear-gradient(135deg, #a8a9ad, #c0c0c0)",
+                        },
+                      }}
+                    >
+                      Assinar Silver ⚡
+                    </Button>
+                  </Paper>
+                </motion.div>
+              </Grid>
+
+              {/* 🥇 GOLD (R$ 19,90) */}
+              <Grid item xs={12} md={6} lg={4}>
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  whileHover={{ y: -8 }}
+                >
+                  <Paper
+                    elevation={6}
+                    sx={{
+                      p: 4,
+                      borderRadius: 4,
+                      border: "3px solid #ffd700",
+                      height: "100%",
+                      position: "relative",
+                      background:
+                        "linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%)",
+                      boxShadow: "0 20px 60px rgba(255, 215, 0, 0.3)",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        boxShadow: "0 30px 80px rgba(255, 215, 0, 0.45)",
+                        borderColor: "#d4af37",
+                      },
+                    }}
+                  >
+                    {/* Badge Popular */}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: -16,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        background: "linear-gradient(135deg, #ffd700, #d4af37)",
+                        color: "#0f172a",
+                        px: 4,
+                        py: 1.2,
+                        borderRadius: 3,
+                        fontSize: "0.85rem",
+                        fontWeight: 800,
+                        boxShadow: "0 8px 25px rgba(255, 215, 0, 0.5)",
+                        letterSpacing: "0.5px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      🏆 Mais Popular
+                    </Box>
+
+                    <Box textAlign="center" mb={4} mt={2}>
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 90,
+                          height: 90,
+                          borderRadius: "50%",
+                          background:
+                            "linear-gradient(135deg, #ffd700, #d4af37)",
+                          mb: 3,
+                          fontSize: "3rem",
+                          boxShadow: "0 15px 45px rgba(255, 215, 0, 0.5)",
+                          animation: "shine 2s infinite",
+                          "@keyframes shine": {
+                            "0%, 100%": {
+                              boxShadow: "0 15px 45px rgba(255, 215, 0, 0.5)",
+                              transform: "scale(1)",
+                            },
+                            "50%": {
+                              boxShadow: "0 20px 60px rgba(255, 215, 0, 0.7)",
+                              transform: "scale(1.05)",
+                            },
+                          },
+                        }}
+                      >
+                        🥇
+                      </Box>
+
+                      <Typography
+                        variant="h4"
+                        fontWeight={800}
+                        color="#0f172a"
+                        mb={1}
+                      >
+                        Gold
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#78716c",
+                          mb: 3,
+                          fontSize: "0.95rem",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Acesso completo a tudo
+                      </Typography>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Typography
+                          variant="h2"
+                          fontWeight={900}
+                          sx={{
+                            background:
+                              "linear-gradient(135deg, #d4af37, #ffd700)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            letterSpacing: "-0.02em",
+                          }}
+                        >
+                          R$ 19,90
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          color="#78716c"
+                          fontWeight={500}
+                        >
+                          /mês
+                        </Typography>
+                      </Box>
+
+                      <Chip
+                        label="⚔️ Avatares e itens exclusivos"
+                        size="small"
+                        sx={{
+                          bgcolor: "rgba(245, 158, 11, 0.2)",
+                          color: "#d97706",
+                          fontWeight: 700,
+                          border: "2px solid rgba(245, 158, 11, 0.4)",
+                          px: 1,
+                        }}
+                      />
+                    </Box>
+
+                    <Divider
+                      sx={{ mb: 3, borderColor: "rgba(212, 175, 55, 0.3)" }}
+                    />
+
+                    <Stack spacing={2.5} mb={4} sx={{ minHeight: 530 }}>
+                      {[
+                        "Tudo do Silver +",
+                        "Orçamentos ilimitados",
+                        "Exportações Excel/PDF",
+                        "Todos os 10 níveis RPG",
+                        "Avatares exclusivos",
+                        "Itens raros RPG",
+                        "Ranking global",
+                        "Suporte prioritário",
+                        "Sem anúncios",
+                        "API de integração",
+                      ].map((feature, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.2 + index * 0.05 }}
+                        >
+                          <Stack
+                            direction="row"
+                            spacing={2}
+                            alignItems="center"
+                          >
+                            <CheckCircle
+                              sx={{
+                                color: "#ffd700",
+                                fontSize: 22,
+                                flexShrink: 0,
+                                filter:
+                                  "drop-shadow(0 2px 4px rgba(255,215,0,0.3))",
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              color="#0f172a"
+                              fontWeight={600}
+                            >
+                              {feature}
+                            </Typography>
+                          </Stack>
+                        </motion.div>
+                      ))}
+                    </Stack>
+
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      onClick={() => handleOpenCheckout("gold")}
+                      sx={{
+                        background: "linear-gradient(135deg, #ffd700, #d4af37)",
+                        py: 1.8,
+                        fontSize: "1.1rem",
+                        fontWeight: 700,
+                        color: "#0f172a",
+                        borderRadius: 3,
+                        textTransform: "none",
+                        boxShadow: "0 10px 35px rgba(255, 215, 0, 0.5)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-3px)",
+                          boxShadow: "0 15px 45px rgba(255, 215, 0, 0.65)",
+                          background:
+                            "linear-gradient(135deg, #d4af37, #ffd700)",
+                        },
+                      }}
+                    >
+                      Assinar Gold 👑
+                    </Button>
+                  </Paper>
+                </motion.div>
               </Grid>
             </Grid>
 
-            <Stack direction="row" justifyContent="center" spacing={3} mt={4}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                <Typography variant="body2" color="black">
-                  7 dias de garantia
-                </Typography>
+            {/* Trust Badges */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+            >
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                justifyContent="center"
+                spacing={{ xs: 2, md: 4 }}
+                mt={6}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.8)",
+                  backdropFilter: "blur(10px)",
+                  p: 3,
+                  borderRadius: 3,
+                  border: "1px solid rgba(0,0,0,0.05)",
+                }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                    sx={{
+                      bgcolor: "rgba(16, 185, 129, 0.1)",
+                      borderRadius: "50%",
+                      p: 1,
+                      display: "flex",
+                    }}
+                  >
+                    <CheckCircle sx={{ color: "#10b981", fontSize: 24 }} />
+                  </Box>
+                  <Typography variant="body2" color="#0f172a" fontWeight={600}>
+                    7 dias de garantia
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                    sx={{
+                      bgcolor: "rgba(16, 185, 129, 0.1)",
+                      borderRadius: "50%",
+                      p: 1,
+                      display: "flex",
+                    }}
+                  >
+                    <CheckCircle sx={{ color: "#10b981", fontSize: 24 }} />
+                  </Box>
+                  <Typography variant="body2" color="#0f172a" fontWeight={600}>
+                    Cancele quando quiser
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <Box
+                    sx={{
+                      bgcolor: "rgba(16, 185, 129, 0.1)",
+                      borderRadius: "50%",
+                      p: 1,
+                      display: "flex",
+                    }}
+                  >
+                    <CheckCircle sx={{ color: "#10b981", fontSize: 24 }} />
+                  </Box>
+                  <Typography variant="body2" color="#0f172a" fontWeight={600}>
+                    Suporte dedicado
+                  </Typography>
+                </Stack>
               </Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                <Typography variant="body2" color="black">
-                  Cancele quando quiser
-                </Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <CheckCircle sx={{ color: "#10b981", fontSize: 20 }} />
-                <Typography variant="body2" color="black">
-                  Suporte dedicado
-                </Typography>
-              </Stack>
-            </Stack>
+            </motion.div>
           </Container>
         </Box>
 
@@ -3447,6 +3980,14 @@ const NewLanding = () => {
             {snackbarMessage}
           </Alert>
         </Snackbar>
+
+        {/* Modal de Checkout MercadoPago */}
+        <MercadoPagoCheckout
+          open={checkoutOpen}
+          onClose={handleCloseCheckout}
+          plan={selectedPlan}
+          onSuccess={handlePaymentSuccess}
+        />
       </Box>
     </>
   );

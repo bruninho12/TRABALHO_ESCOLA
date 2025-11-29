@@ -33,7 +33,6 @@ class ExportService {
       const {
         startDate = new Date(new Date().setMonth(new Date().getMonth() - 1)),
         endDate = new Date(),
-        includeCharts = true,
         includeGoals = true,
         includeBudgets = true,
       } = options;
@@ -341,7 +340,7 @@ class ExportService {
     doc.moveDown(1);
 
     let y = doc.y;
-    budgets.forEach((budget, index) => {
+    budgets.forEach((budget) => {
       if (y > 700) {
         doc.addPage();
         y = 50;
@@ -382,7 +381,7 @@ class ExportService {
     doc.moveDown(1);
 
     let y = doc.y;
-    goals.forEach((goal, index) => {
+    goals.forEach((goal) => {
       if (y > 700) {
         doc.addPage();
         y = 50;
@@ -425,7 +424,7 @@ class ExportService {
     doc.moveDown(1);
 
     let y = doc.y;
-    transactions.forEach((transaction, index) => {
+    transactions.forEach((transaction) => {
       if (y > 720) {
         doc.addPage();
         y = 50;

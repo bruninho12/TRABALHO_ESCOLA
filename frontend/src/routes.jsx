@@ -17,6 +17,9 @@ const RPG = React.lazy(() => import("./pages/RPG"));
 const Insights = React.lazy(() => import("./pages/Insights"));
 const Landing = React.lazy(() => import("./pages/NewLanding"));
 const ResponsiveTest = React.lazy(() => import("./pages/ResponsiveTest"));
+const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
+const PaymentFailure = React.lazy(() => import("./pages/PaymentFailure"));
+const PaymentPending = React.lazy(() => import("./pages/PaymentPending"));
 
 // Wrapper para Suspense
 const SuspenseWrapper = ({ children }) => (
@@ -128,6 +131,30 @@ export const router = createBrowserRouter(
       element: (
         <SuspenseWrapper>
           <Register />
+        </SuspenseWrapper>
+      ),
+    },
+    {
+      path: "/payment/success",
+      element: (
+        <SuspenseWrapper>
+          <PaymentSuccess />
+        </SuspenseWrapper>
+      ),
+    },
+    {
+      path: "/payment/failure",
+      element: (
+        <SuspenseWrapper>
+          <PaymentFailure />
+        </SuspenseWrapper>
+      ),
+    },
+    {
+      path: "/payment/pending",
+      element: (
+        <SuspenseWrapper>
+          <PaymentPending />
         </SuspenseWrapper>
       ),
     },

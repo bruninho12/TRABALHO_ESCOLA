@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import { transactionService } from "../services/api";
 
@@ -161,39 +161,24 @@ export function useTransactions() {
   // Interface compatível com a nova página
   const createTransaction = useCallback(
     async (transactionData) => {
-      try {
-        await createTransactionMutation.mutateAsync(transactionData);
-      } catch (error) {
-        // Mock fallback já é tratado no onError
-        throw error;
-      }
+      await createTransactionMutation.mutateAsync(transactionData);
     },
     [createTransactionMutation]
   );
 
   const updateTransaction = useCallback(
     async (id, transactionData) => {
-      try {
-        await updateTransactionMutation.mutateAsync({
-          id,
-          transaction: transactionData,
-        });
-      } catch (error) {
-        // Mock fallback já é tratado no onError
-        throw error;
-      }
+      await updateTransactionMutation.mutateAsync({
+        id,
+        transaction: transactionData,
+      });
     },
     [updateTransactionMutation]
   );
 
   const deleteTransaction = useCallback(
     async (id) => {
-      try {
-        await deleteTransactionMutation.mutateAsync(id);
-      } catch (error) {
-        // Mock fallback já é tratado no onError
-        throw error;
-      }
+      await deleteTransactionMutation.mutateAsync(id);
     },
     [deleteTransactionMutation]
   );

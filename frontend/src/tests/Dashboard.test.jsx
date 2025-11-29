@@ -2,6 +2,7 @@
 // 🧪 Exemplo de Teste - Dashboard Component
 // Demonstração de testes unitários com Vitest
 // ==========================================
+/* eslint-env node */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, fireEvent } from "@testing-library/react";
@@ -25,10 +26,12 @@ describe("Dashboard Component", () => {
     vi.clearAllMocks();
 
     // Mock das APIs
+    // eslint-disable-next-line no-undef
     const {
       getTransactions,
       getMonthlyStatistics,
     } = require("@services/transactionService");
+    // eslint-disable-next-line no-undef
     const { getUserGoals } = require("@services/goalService");
 
     getTransactions.mockResolvedValue({

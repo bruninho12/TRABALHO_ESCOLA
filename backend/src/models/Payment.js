@@ -40,6 +40,7 @@ const paymentSchema = new mongoose.Schema(
       enum: [
         "stripe",
         "mercadopago",
+        "mercadopago_pix",
         "credit_card",
         "debit_card",
         "pix",
@@ -65,10 +66,16 @@ const paymentSchema = new mongoose.Schema(
     item: {
       type: {
         type: String,
-        enum: ["premium_subscription", "coins_pack", "feature_unlock"],
+        enum: [
+          "premium_subscription",
+          "subscription",
+          "coins_pack",
+          "feature_unlock",
+        ],
       },
       name: String,
       quantity: Number,
+      planType: String,
     },
     metadata: {
       ipAddress: String,

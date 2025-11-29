@@ -7,8 +7,8 @@ import React from "react";
 import Swal from "sweetalert2";
 
 /**
- * Exibe modal de upgrade de plano com opções: Premium, Anual, Vitalício
- * @param {Function} onSelectPlan - Callback ao selecionar um plano (recebe valor: 'premium' | 'anual' | 'vitalicio')
+ * Exibe modal de upgrade de plano com opções: Silver (R$ 9,90), Gold (R$ 19,90)
+ * @param {Function} onSelectPlan - Callback ao selecionar um plano (recebe valor: 'silver' | 'gold')
  * @param {Object} options - Opções customizáveis
  * @returns {Promise<boolean>} true se selecionou um plano, false se cancelou
  */
@@ -30,9 +30,8 @@ export async function showPricingDialog(onSelectPlan, options = {}) {
       `</div>`,
     input: "radio",
     inputOptions: {
-      premium: "💎 Premium — R$ 4,90/mês",
-      anual: "📅 Anual — R$ 39,90/ano (32% de desconto)",
-      vitalicio: "⭐ Vitalício — R$ 79,90 (pague uma vez)",
+      silver: "🥈 Silver — R$ 9,90/mês (Recursos premium selecionados)",
+      gold: "🥇 Gold — R$ 19,90/mês (Acesso completo + Avatares exclusivos)",
     },
     inputValidator: (v) => (!v ? "Selecione uma opção ou Cancelar" : undefined),
     confirmButtonText: "Escolher plano",
@@ -65,10 +64,11 @@ export async function showPlanSuccessDialog() {
     html:
       `<p style="margin-bottom:8px">Você agora tem acesso a:</p>` +
       `<ul style="text-align:left; display:inline-block">` +
-      `<li>✓ Transações ilimitadas</li>` +
-      `<li>✓ Metas avançadas</li>` +
-      `<li>✓ Exportações completas</li>` +
-      `<li>✓ Avatares premium</li>` +
+      `<li>✓ Insights avançados</li>` +
+      `<li>✓ Orçamentos ilimitados (Gold)</li>` +
+      `<li>✓ Exportações Excel/PDF</li>` +
+      `<li>✓ Avatares e itens exclusivos RPG</li>` +
+      `<li>✓ Suporte prioritário</li>` +
       `</ul>`,
     timer: 1500,
     showConfirmButton: false,

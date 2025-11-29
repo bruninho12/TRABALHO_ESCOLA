@@ -99,10 +99,6 @@ class ExportController {
       if (type) query.type = type;
       if (category) query.categoryId = category;
 
-      const transactions = await Transaction.find(query)
-        .populate("categoryId", "name")
-        .sort({ date: -1 });
-
       const result = await exportService.generateExcelReport(userId, {
         startDate: startDate ? new Date(startDate) : undefined,
         endDate: endDate ? new Date(endDate) : undefined,
@@ -143,68 +139,7 @@ class ExportController {
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59);
 
-      // Buscar transações do período
-      const transactions = await Transaction.find({
-        userId,
-        date: { $gte: startDate, $lte: endDate },
-      }).populate("categoryId", "name");
-
-      // Calcular totais
-      const totalIncome = transactions
-        .filter((t) => t.type === "income")
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const totalExpenses = transactions
-        .filter((t) => t.type === "expense")
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      // Despesas por categoria
-      const expensesByCategory = await Transaction.aggregate([
-        {
-          $match: {
-            userId,
-            type: "expense",
-            date: { $gte: startDate, $lte: endDate },
-          },
-        },
-        {
-          $group: {
-            _id: "$categoryId",
-            total: { $sum: "$amount" },
-          },
-        },
-        {
-          $lookup: {
-            from: "categories",
-            localField: "_id",
-            foreignField: "_id",
-            as: "category",
-          },
-        },
-        {
-          $unwind: "$category",
-        },
-        {
-          $project: {
-            name: "$category.name",
-            total: 1,
-            percentage: {
-              $multiply: [{ $divide: ["$total", totalExpenses] }, 100],
-            },
-          },
-        },
-        {
-          $sort: { total: -1 },
-        },
-      ]);
-
-      // Top transações
-      const topTransactions = transactions
-        .filter((t) => t.type === "expense")
-        .sort((a, b) => b.amount - a.amount)
-        .slice(0, 10);
-
-      // Gerar PDF usando o novo serviço
+      // Gerar PDF usando o novo serviço (cálculos e busca de transações feitos dentro do serviço)
       const result = await exportService.generatePDFReport(userId, {
         startDate,
         endDate,
@@ -235,8 +170,6 @@ class ExportController {
   async exportGoalsPDF(req, res) {
     try {
       const userId = req.user._id;
-
-      const goals = await Goal.find({ userId }).populate("categoryId", "name");
 
       // Usar o serviço de exportação genérico
       const result = await exportService.generatePDFReport(userId, {

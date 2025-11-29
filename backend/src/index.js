@@ -65,7 +65,28 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Parser para JSON
+// ===== WEBHOOK RAW BODY PARSER =====
+// Webhooks do Stripe precisam do raw body para validar assinatura
+app.use(
+  "/api/payments/webhook/stripe",
+  express.raw({ type: "application/json" }),
+  (req, res, next) => {
+    req.rawBody = req.body;
+    next();
+  }
+);
+
+// MercadoPago usa JSON normal, mas salvamos o raw body também
+app.use(
+  "/api/payments/webhook/mercadopago",
+  express.json(),
+  (req, res, next) => {
+    req.rawBody = JSON.stringify(req.body);
+    next();
+  }
+);
+
+// Parser para JSON (rotas normais)
 app.use(express.json());
 
 // Parser para dados de formulários

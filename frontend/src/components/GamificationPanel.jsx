@@ -180,7 +180,7 @@ const GamificationPanel = ({ userStats = {} }) => {
                 {stats.points} / {stats.nextLevelPoints} pontos
               </Typography>
               <Typography variant="caption">
-                {safeProgress(progressPercent).toFixed(0)}%
+                {Math.min(progressPercent, 100).toFixed(0)}%
               </Typography>
             </Box>
           </Box>

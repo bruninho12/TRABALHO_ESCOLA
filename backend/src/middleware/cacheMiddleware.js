@@ -15,8 +15,8 @@ class CacheMiddleware {
   /**
    * Cache para WorldMap - dados raramente mudam
    */
-  static worldMapCache(ttl = 600) {
-    // 10 minutos
+  static worldMapCache() {
+    // 10 minutos (TTL configurado no NodeCache)
     return async (req, res, next) => {
       const cacheKey = "worldmap_all";
 
@@ -42,8 +42,8 @@ class CacheMiddleware {
   /**
    * Cache para avatar do usuário
    */
-  static avatarCache(ttl = 180) {
-    // 3 minutos
+  static avatarCache() {
+    // 3 minutos (TTL configurado no NodeCache)
     return async (req, res, next) => {
       const userId = req.user.id;
       const cacheKey = `avatar_${userId}`;

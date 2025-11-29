@@ -26,7 +26,6 @@ const testTheme = createTheme({
 export function renderWithProviders(
   ui,
   {
-    preloadedState = {},
     // Automatically create a store instance if no store was passed in
     route = "/",
     theme = testTheme,

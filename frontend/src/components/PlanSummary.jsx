@@ -25,36 +25,55 @@ export function PlanSummary({
 }) {
   const planInfo = {
     free: {
-      label: "Plano Gratuito",
+      label: "Bronze (Free)",
       color: "default",
       limit: 50,
-      emoji: "🎯",
+      emoji: "🥉",
       features: [
-        "Até 50 transações/mês",
-        "Categorias básicas",
-        "Score financeiro",
+        "Trial 30 dias",
+        "Funcionalidades básicas",
+        "Sistema de gamificação",
+      ],
+    },
+    bronze: {
+      label: "Bronze (Free)",
+      color: "default",
+      limit: 50,
+      emoji: "🥉",
+      features: [
+        "Trial 30 dias",
+        "Funcionalidades básicas",
+        "Sistema de gamificação",
+      ],
+    },
+    silver: {
+      label: "Silver",
+      color: "info",
+      emoji: "🥈",
+      features: [
+        "Insights avançados",
+        "Até 10 orçamentos",
+        "Conquistas especiais RPG",
+      ],
+    },
+    gold: {
+      label: "Gold",
+      color: "warning",
+      emoji: "🥇",
+      features: [
+        "Orçamentos ilimitados",
+        "Avatares exclusivos",
+        "Suporte prioritário",
       ],
     },
     premium: {
-      label: "Premium",
-      color: "primary",
-      emoji: "💎",
-      features: ["Transações ilimitadas", "Metas avançadas", "Exportação PDF"],
-    },
-    anual: {
-      label: "Anual",
-      color: "info",
-      emoji: "📅",
-      features: ["Transações ilimitadas", "Tudo do Premium", "32% economia"],
-    },
-    vitalicio: {
-      label: "Vitalício",
-      color: "success",
-      emoji: "⭐",
+      label: "Gold (Premium)",
+      color: "warning",
+      emoji: "🥇",
       features: [
-        "Acesso ilimitado",
+        "Orçamentos ilimitados",
+        "Avatares exclusivos",
         "Suporte prioritário",
-        "Futuras melhorias",
       ],
     },
   };

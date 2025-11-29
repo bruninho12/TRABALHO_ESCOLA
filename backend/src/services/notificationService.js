@@ -4,7 +4,6 @@
  */
 
 const Notification = require("../models/Notification");
-const User = require("../models/User");
 const logger = require("../utils/logger");
 
 class NotificationService {

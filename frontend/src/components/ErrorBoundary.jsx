@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     // Atualiza o state para exibir a UI de erro
     return {
       hasError: true,
@@ -54,7 +54,7 @@ class ErrorBoundary extends React.Component {
     this.logError(error, errorInfo);
   }
 
-  logError = (error, errorInfo) => {
+  logError(error, errorInfo) {
     const errorData = {
       message: error.message,
       stack: error.stack,
@@ -67,11 +67,13 @@ class ErrorBoundary extends React.Component {
     };
 
     // Em desenvolvimento, apenas console.error
+    // eslint-disable-next-line no-undef
     if (process.env.NODE_ENV === "development") {
       console.error("🔥 Error Boundary caught an error:", errorData);
     }
 
     // Em produção, enviar para serviço de monitoramento (exemplo: Sentry)
+    // eslint-disable-next-line no-undef
     if (process.env.NODE_ENV === "production") {
       try {
         // Implementar envio para serviço de monitoramento aqui
@@ -93,14 +95,14 @@ class ErrorBoundary extends React.Component {
         console.error("Failed to log error:", logError);
       }
     }
-  };
+  }
 
-  handleRefresh = () => {
+  handleRefresh() {
     // Recarregar a página
     window.location.reload();
-  };
+  }
 
-  handleReset = () => {
+  handleReset() {
     // Reset do estado do ErrorBoundary
     this.setState({
       hasError: false,
@@ -109,16 +111,16 @@ class ErrorBoundary extends React.Component {
       showDetails: false,
       errorId: null,
     });
-  };
+  }
 
-  handleGoHome = () => {
+  handleGoHome() {
     // Navegar para home
     window.location.href = "/dashboard";
-  };
+  }
 
-  toggleDetails = () => {
+  toggleDetails() {
     this.setState((prev) => ({ showDetails: !prev.showDetails }));
-  };
+  }
 
   render() {
     if (this.state.hasError) {
@@ -247,6 +249,7 @@ class ErrorBoundary extends React.Component {
               </Stack>
 
               {/* Detalhes técnicos (apenas em desenvolvimento) */}
+              {/* eslint-disable-next-line no-undef */}
               {process.env.NODE_ENV === "development" && error && (
                 <>
                   <Button

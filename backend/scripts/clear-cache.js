@@ -2,7 +2,6 @@
  * Script para limpar cache problemático e testar avatar
  */
 
-const mongoose = require("mongoose");
 const CacheMiddleware = require("../src/middleware/cacheMiddleware");
 
 async function clearProblematicCache() {

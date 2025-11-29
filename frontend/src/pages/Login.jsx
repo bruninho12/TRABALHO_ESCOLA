@@ -563,8 +563,7 @@ const Login = () => {
               options={
                 formData.email.includes("@")
                   ? suggestedEmails.map(
-                      (domain, index) =>
-                        `${formData.email.split("@")[0]}${domain}`
+                      (domain) => `${formData.email.split("@")[0]}${domain}`
                     )
                   : suggestedEmails.map((domain) => `usuario${domain}`)
               }

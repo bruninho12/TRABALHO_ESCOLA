@@ -63,6 +63,7 @@ import {
   ResponsiveCard,
   useResponsive,
 } from "../components/ResponsiveComponents";
+import MercadoPagoCheckout from "../components/MercadoPagoCheckout";
 
 // Registrar componentes do Chart.js
 ChartJS.register(
@@ -94,6 +95,8 @@ const Dashboard = () => {
   const [chartPeriod, setChartPeriod] = useState("6");
   const [refreshing, setRefreshing] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("silver");
 
   // Dados computados com memoização
   const computedMetrics = useMemo(() => {
@@ -322,28 +325,52 @@ const Dashboard = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <Button
-            variant="contained"
-            startIcon={<InsightsIcon />}
-            endIcon={<ArrowForwardIcon />}
-            onClick={() => navigate("./insights")}
-            sx={{
-              background: gradients.purpleBlue,
-              color: "white",
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: 2,
-              boxShadow: "0 8px 20px rgba(99, 102, 241, 0.3)",
-              "&:hover": {
-                transform: "translateY(-2px)",
-                boxShadow: "0 12px 28px rgba(99, 102, 241, 0.4)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            Ver Insights com IA
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="outlined"
+              color="success"
+              startIcon={<CreditCardIcon />}
+              onClick={() => {
+                setSelectedPlan("silver");
+                setCheckoutOpen(true);
+              }}
+              sx={{
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: 2,
+                borderWidth: 2,
+                "&:hover": {
+                  borderWidth: 2,
+                  transform: "translateY(-2px)",
+                },
+              }}
+            >
+              Testar Pagamento
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<InsightsIcon />}
+              endIcon={<ArrowForwardIcon />}
+              onClick={() => navigate("./insights")}
+              sx={{
+                background: gradients.purpleBlue,
+                color: "white",
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: 2,
+                boxShadow: "0 8px 20px rgba(99, 102, 241, 0.3)",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 12px 28px rgba(99, 102, 241, 0.4)",
+                },
+                transition: "all 0.3s ease",
+              }}
+            >
+              Ver Insights com IA
+            </Button>
+          </Stack>
         </motion.div>
       </Box>
 
@@ -1157,6 +1184,17 @@ const Dashboard = () => {
           </IconButton>
         </span>
       </Tooltip>
+
+      {/* Modal de Checkout MercadoPago */}
+      <MercadoPagoCheckout
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        plan={selectedPlan}
+        onSuccess={() => {
+          setCheckoutOpen(false);
+          refreshData();
+        }}
+      />
     </Box>
   );
 };

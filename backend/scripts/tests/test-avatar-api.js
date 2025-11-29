@@ -7,8 +7,6 @@ const http = require("http");
 // Token fake só para teste da estrutura
 const fakeToken = "Bearer test123";
 
-const postData = JSON.stringify({});
-
 const options = {
   hostname: "localhost",
   port: 3001,

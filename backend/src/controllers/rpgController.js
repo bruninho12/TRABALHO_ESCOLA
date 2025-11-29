@@ -94,6 +94,7 @@ class RPGController {
 
       // CACHE TEMPORARIAMENTE DESABILITADO - Bug de serialização
       // TODO: Reabilitar após correção completa
+      // eslint-disable-next-line no-constant-condition
       if (false && req.cachedAvatar) {
         console.log("🚀 [CACHE] Avatar servido do cache para usuário:", userId);
         console.log(

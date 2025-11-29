@@ -13,7 +13,6 @@ export default function ConnectivityStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [apiStatus, setApiStatus] = useState("checking"); // checking, online, offline
   const [showNotification, setShowNotification] = useState(false);
-  const [lastStatusChange, setLastStatusChange] = useState(Date.now());
 
   // Verificar status da API
   const checkApiStatus = async () => {
@@ -31,7 +30,6 @@ export default function ConnectivityStatus() {
       if (response.ok) {
         if (apiStatus !== "online") {
           setApiStatus("online");
-          setLastStatusChange(Date.now());
           if (apiStatus === "offline") {
             setShowNotification(true);
           }
@@ -42,7 +40,6 @@ export default function ConnectivityStatus() {
     } catch (error) {
       if (apiStatus !== "offline") {
         setApiStatus("offline");
-        setLastStatusChange(Date.now());
         setShowNotification(true);
       }
     }

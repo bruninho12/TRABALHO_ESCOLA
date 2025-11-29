@@ -1,5 +1,6 @@
+/* eslint-env node */
 import "@testing-library/jest-dom";
-import { expect, afterEach, vi } from "vitest";
+import { afterEach, vi, beforeAll, afterAll } from "vitest";
 import { cleanup } from "@testing-library/react";
 
 // Cleanup após cada teste
@@ -8,14 +9,16 @@ afterEach(() => {
 });
 
 // Mock do IntersectionObserver
-global.IntersectionObserver = vi.fn(() => ({
+if (typeof global !== "undefined") {
+  global.IntersectionObserver = vi.fn(() => ({
   disconnect: vi.fn(),
   observe: vi.fn(),
   unobserve: vi.fn(),
 }));
 
 // Mock do ResizeObserver
-global.ResizeObserver = vi.fn(() => ({
+if (typeof global !== "undefined") {
+  global.ResizeObserver = vi.fn(() => ({
   disconnect: vi.fn(),
   observe: vi.fn(),
   unobserve: vi.fn(),
@@ -43,7 +46,9 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-global.localStorage = localStorageMock;
+if (typeof global !== "undefined") {
+  global.localStorage = localStorageMock;
+}
 
 // Mock do Chart.js
 vi.mock("chart.js", () => ({
@@ -67,7 +72,9 @@ vi.mock("chart.js", () => ({
 
 // Configurar console para testes
 const originalError = console.error;
-beforeAll(() => {
+
+if (typeof beforeAll !== "undefined") {
+  beforeAll(() => {
   console.error = (...args) => {
     if (
       typeof args[0] === "string" &&
@@ -78,7 +85,10 @@ beforeAll(() => {
     originalError.call(console, ...args);
   };
 });
+}
 
-afterAll(() => {
-  console.error = originalError;
-});
+if (typeof afterAll !== "undefined") {
+  afterAll(() => {
+    console.error = originalError;
+  });
+}
