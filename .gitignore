@@ -1,3 +1,32 @@
+# Node.js
+node_modules/
+.env
+.env.*
+dist/
+build/
+logs/
+*.log
+
+# Vite/React
+frontend/dist/
+frontend/.env
+frontend/.DS_Store
+
+# Backend
+backend/node_modules/
+backend/.env
+backend/logs/
+backend/dist/
+backend/.DS_Store
+
+# Outros
+*.sqlite
+*.db
+*.bak
+*.tmp
+*.swp
+.DS_Store
+.vscode/
 # Dependências
 node_modules/
 /node_modules
