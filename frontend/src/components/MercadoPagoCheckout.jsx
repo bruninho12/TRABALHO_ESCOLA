@@ -33,13 +33,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import api from "../services/api";
 
-const MercadoPagoCheckout = ({
-  open,
-  onClose,
-  plan = "silver",
-  amount,
-  onSuccess,
-}) => {
+const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState(0);
@@ -120,7 +114,7 @@ const MercadoPagoCheckout = ({
       // Novo formato: response.data.id, response.data.sandboxInitPoint, response.data.initPoint
       const preferenceId = response.data.id;
       const url =
-        process.env.NODE_ENV === "development"
+        import.meta.env.MODE === "development"
           ? response.data.sandboxInitPoint
           : response.data.initPoint;
 
