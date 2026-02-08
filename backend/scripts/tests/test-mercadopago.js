@@ -4,7 +4,7 @@
  */
 
 require("dotenv").config();
-const MercadoPagoService = require("../src/utils/mercadoPagoService");
+const MercadoPagoService = require("../../src/utils/mercadoPagoService");
 
 async function testMercadoPago() {
   console.log("🔄 Testando integração MercadoPago...\n");

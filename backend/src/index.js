@@ -86,13 +86,23 @@ app.use(
   }
 );
 
-// Parser para JSON (rotas normais)
-app.use(express.json());
+app.use(
+  express.json({
+    limit: "50mb",
+    strict: false,
+    type: "application/json",
+  })
+);
 
-// Parser para dados de formulários
-app.use(express.urlencoded({ extended: true }));
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "50mb",
+    parameterLimit: 50000,
+  })
+);
 
-// Logs de requisições em ambiente de desenvolvimento
+// Logs de dev
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -100,10 +110,12 @@ if (process.env.NODE_ENV === "development") {
 // Rate limiting para prevenir abusos
 let rateLimitEnabled = true;
 if (
-  process.env.NODE_ENV === "production" &&
-  process.env.RATE_LIMIT_DISABLE === "true"
+  process.env.NODE_ENV === "development" ||
+  (process.env.NODE_ENV === "production" &&
+    process.env.RATE_LIMIT_DISABLE === "true")
 ) {
   rateLimitEnabled = false;
+  console.log("⚠️ Rate limiting DESATIVADO (ambiente de desenvolvimento)");
 }
 
 if (rateLimitEnabled) {

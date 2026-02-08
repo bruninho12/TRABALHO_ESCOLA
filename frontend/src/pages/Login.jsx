@@ -243,7 +243,13 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Erro no login:", err);
-      if (err.response?.status === 401) {
+      if (
+        err.response?.status === 403 &&
+        err.response?.data?.error === "Sua conta foi bloqueada"
+      ) {
+        const reason = err.response?.data?.reason || "Motivo não informado";
+        setError(`🚫 Sua conta foi bloqueada.\n\nMotivo: ${reason}`);
+      } else if (err.response?.status === 401) {
         setError("E-mail ou senha incorretos.");
       } else if (err.response?.status === 429) {
         setError("Muitas tentativas. Tente novamente em alguns minutos.");

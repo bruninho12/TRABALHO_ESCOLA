@@ -1,11 +1,12 @@
+// controllers/PaymentsController.js
 const Payment = require("../models/Payment");
 const User = require("../models/User");
 const logger = require("../utils/logger");
 const mongoose = require("mongoose");
-const stripeService = require("../utils/stripeService");
-const mercadoPagoService = require("../utils/mercadoPagoService");
+const MercadoPagoService = require("../utils/mercadoPagoService");
 const NotificationService = require("../services/notificationService");
-const emailService = require("../utils/emailService");
+
+// ===================== PAGAMENTOS =====================
 
 // Obter todos os pagamentos do usuário
 exports.getPayments = async (req, res) => {
@@ -13,13 +14,13 @@ exports.getPayments = async (req, res) => {
     const userId = req.user.id;
     const { status, paymentMethod, limit = 20, page = 1 } = req.query;
 
-    let filter = { userId };
+    const filter = { userId };
     if (status) filter.status = status;
     if (paymentMethod) filter.paymentMethod = paymentMethod;
 
     const skip = (page - 1) * limit;
 
-    const [payments, total] = await Promise.all([
+    const [payments, total] = await Promise.all([   
       Payment.find(filter)
         .sort({ createdAt: -1 })
         .limit(parseInt(limit))
@@ -60,10 +61,7 @@ exports.getPaymentById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: payment,
-    });
+    res.status(200).json({ success: true, data: payment });
   } catch (error) {
     logger.error("Erro ao obter pagamento:", error);
     res.status(500).json({
@@ -85,12 +83,8 @@ exports.createPayment = async (req, res) => {
       item,
     } = req.body;
 
-    // Validação básica
     if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Valor inválido",
-      });
+      return res.status(400).json({ success: false, error: "Valor inválido" });
     }
 
     const payment = new Payment({
@@ -101,10 +95,7 @@ exports.createPayment = async (req, res) => {
       type,
       item,
       status: "pending",
-      metadata: {
-        ipAddress: req.ip,
-        userAgent: req.headers["user-agent"],
-      },
+      metadata: { ipAddress: req.ip, userAgent: req.headers["user-agent"] },
     });
 
     await payment.save();
@@ -130,158 +121,22 @@ exports.confirmPayment = async (req, res) => {
     const { paymentId, externalId, data } = req.body;
 
     const payment = await Payment.findOne({ _id: paymentId, userId });
+    if (!payment)
+      return res
+        .status(404)
+        .json({ success: false, error: "Pagamento não encontrado" });
 
-    if (!payment) {
-      return res.status(404).json({
-        success: false,
-        error: "Pagamento não encontrado",
-      });
-    }
-
-    // Marcar pagamento como sucesso
     payment.markSuccess(externalId, data);
     await payment.save();
 
-    // ===== PROCESSAMENTO DO PAGAMENTO =====
     const user = await User.findById(userId);
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, error: "Usuário não encontrado" });
 
-    if (!user) {
-      logger.error(`Usuário ${userId} não encontrado ao processar pagamento`);
-      return res.status(404).json({
-        success: false,
-        error: "Usuário não encontrado",
-      });
-    }
-
-    // Processar baseado no tipo de pagamento
-    if (payment.type === "subscription") {
-      // Ativar assinatura Premium
-      // bronze = Free, silver = FreePremium, gold = Premium
-      const plan = payment.item?.name || payment.description;
-      const planId =
-        plan.toLowerCase().includes("bronze") ||
-        plan.toLowerCase().includes("free")
-          ? "bronze"
-          : plan.toLowerCase().includes("silver") ||
-            plan.toLowerCase().includes("freepremium")
-          ? "silver"
-          : plan.toLowerCase().includes("gold") ||
-            plan.toLowerCase().includes("premium")
-          ? "gold"
-          : "bronze";
-
-      // Calcular período (30 dias)
-      const currentPeriodStart = new Date();
-      const currentPeriodEnd = new Date();
-      currentPeriodEnd.setDate(currentPeriodEnd.getDate() + 30);
-
-      await user.activatePremium({
-        plan: planId,
-        status: "active",
-        currentPeriodStart,
-        currentPeriodEnd,
-        stripeCustomerId: payment.stripeData?.chargeId
-          ? user.subscription.stripeCustomerId
-          : null,
-        stripeSubscriptionId: payment.stripeData?.paymentIntentId || null,
-        stripePriceId: payment.stripeData?.sessionId || null,
-        mercadoPagoCustomerId: payment.mercadopagoData?.collectorId || null,
-        mercadoPagoSubscriptionId: payment.mercadopagoData?.paymentId || null,
-      });
-
-      logger.info(`✅ Assinatura ${planId} ativada para usuário ${userId}`);
-
-      // Adicionar ao histórico
-      await user.addPaymentHistory({
-        paymentId: payment._id,
-        amount: payment.amount,
-        status: "completed",
-        gateway: payment.paymentMethod.includes("stripe")
-          ? "stripe"
-          : "mercadopago",
-      });
-
-      // Enviar notificação
-      await NotificationService.createNotification(
-        userId,
-        "subscription_activated",
-        "🎉 Assinatura Premium Ativada!",
-        `Seu plano ${planId.toUpperCase()} foi ativado com sucesso. Aproveite todos os recursos premium!`,
-        { plan: planId, paymentId: payment._id }
-      );
-
-      // Enviar email de confirmação
-      try {
-        await emailService.sendEmailFromTemplate(
-          user.email,
-          "Assinatura Premium Ativada - DespFinance",
-          "subscription-activated",
-          {
-            name: user.fullName || user.username,
-            plan: planId.toUpperCase(),
-            amount: payment.amount.toFixed(2),
-            expiresAt: currentPeriodEnd.toLocaleDateString("pt-BR"),
-          }
-        );
-      } catch (emailError) {
-        logger.error("Erro ao enviar email de confirmação:", emailError);
-        // Não bloqueia o processo se email falhar
-      }
-    } else if (
-      payment.type === "purchase" &&
-      payment.item?.type === "coins_pack"
-    ) {
-      // Processar compra de moedas
-      const coinAmount = payment.item.quantity || 1000;
-      await user.addCoins(coinAmount);
-
-      logger.info(`💰 ${coinAmount} coins adicionados para usuário ${userId}`);
-
-      // Adicionar ao histórico
-      await user.addPaymentHistory({
-        paymentId: payment._id,
-        amount: payment.amount,
-        status: "completed",
-        gateway: payment.paymentMethod.includes("stripe")
-          ? "stripe"
-          : "mercadopago",
-      });
-
-      // Enviar notificação
-      await NotificationService.createNotification(
-        userId,
-        "coins_purchased",
-        "💰 Coins Adicionados!",
-        `${coinAmount} coins foram adicionados à sua conta!`,
-        { coins: coinAmount, paymentId: payment._id }
-      );
-    } else if (payment.type === "refund") {
-      // Processar reembolso
-      if (payment.metadata?.originalPaymentId) {
-        const originalPayment = await Payment.findById(
-          payment.metadata.originalPaymentId
-        );
-
-        if (originalPayment && originalPayment.type === "subscription") {
-          // Cancelar assinatura se foi reembolso de subscription
-          await user.cancelSubscription(true);
-
-          logger.info(
-            `🔄 Assinatura cancelada devido a reembolso para usuário ${userId}`
-          );
-        }
-      }
-
-      await NotificationService.createNotification(
-        userId,
-        "refund_processed",
-        "💸 Reembolso Processado",
-        `Seu reembolso de R$ ${payment.amount.toFixed(
-          2
-        )} foi processado com sucesso.`,
-        { paymentId: payment._id }
-      );
-    }
+    // Processamento baseado no tipo de pagamento
+    await processUserPayment(user, payment);
 
     res.status(200).json({
       success: true,
@@ -306,13 +161,10 @@ exports.cancelPayment = async (req, res) => {
     const { reason } = req.body;
 
     const payment = await Payment.findOne({ _id: id, userId });
-
-    if (!payment) {
-      return res.status(404).json({
-        success: false,
-        error: "Pagamento não encontrado",
-      });
-    }
+    if (!payment)
+      return res
+        .status(404)
+        .json({ success: false, error: "Pagamento não encontrado" });
 
     if (payment.status === "completed") {
       return res.status(400).json({
@@ -325,11 +177,9 @@ exports.cancelPayment = async (req, res) => {
     payment.notes = reason || "Cancelado pelo usuário";
     await payment.save();
 
-    res.status(200).json({
-      success: true,
-      data: payment,
-      message: "Pagamento cancelado",
-    });
+    res
+      .status(200)
+      .json({ success: true, data: payment, message: "Pagamento cancelado" });
   } catch (error) {
     logger.error("Erro ao cancelar pagamento:", error);
     res.status(500).json({
@@ -339,11 +189,64 @@ exports.cancelPayment = async (req, res) => {
   }
 };
 
+// ===================== ASSINATURAS =====================
+
 // Obter assinatura do usuário
-exports.getSubscription = async (req, res) => {
+// Atualizar assinatura (upgrade/downgrade)
+exports.updateSubscription = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { plan } = req.body;
 
+    if (!["bronze", "silver", "gold", "platinum"].includes(plan)) {
+      return res.status(400).json({
+        success: false,
+        error: "Plano inválido",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "Usuário não encontrado",
+      });
+    }
+
+    // Atualizar plano
+    user.subscription.plan = plan;
+    user.subscription.status = "active";
+    user.subscription.isActive = true;
+
+    // Se não for bronze (gratuito), definir período
+    if (plan !== "bronze") {
+      const now = new Date();
+      user.subscription.currentPeriodStart = now;
+      user.subscription.currentPeriodEnd = new Date(
+        now.getTime() + 30 * 24 * 60 * 60 * 1000
+      ); // 30 dias
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: user.subscription,
+      message: `Plano alterado para ${plan.toUpperCase()} com sucesso`,
+    });
+  } catch (error) {
+    logger.error("Erro ao atualizar assinatura:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao atualizar assinatura",
+    });
+  }
+};
+
+// Cancelar assinatura
+exports.cancelSubscription = async (req, res) => {
+  try {
+    const userId = req.user.id;
     const user = await User.findById(userId);
 
     if (!user) {
@@ -353,45 +256,33 @@ exports.getSubscription = async (req, res) => {
       });
     }
 
-    // Verificar se tem assinatura ativa
-    const subscription = await Payment.findOne({
-      userId,
-      type: "subscription",
-      status: "completed",
-      createdAt: {
-        $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // últimos 30 dias
-      },
-    });
+    // Voltar para plano bronze (gratuito)
+    user.subscription.plan = "bronze";
+    user.subscription.status = "active";
+    user.subscription.isActive = true;
+    user.subscription.cancelAtPeriodEnd = false;
+    user.subscription.currentPeriodStart = new Date();
+    user.subscription.currentPeriodEnd = null;
+    user.subscription.canceledAt = new Date();
 
-    if (!subscription) {
-      return res.status(200).json({
-        success: true,
-        data: null,
-        message: "Nenhuma assinatura ativa",
-      });
-    }
+    await user.save();
 
     res.status(200).json({
       success: true,
-      data: {
-        plan: subscription.item?.name || "Premium",
-        nextBillingDate: new Date(
-          subscription.createdAt.getTime() + 30 * 24 * 60 * 60 * 1000
-        ),
-        status: "active",
-        amount: subscription.amount,
-      },
+      data: user.subscription,
+      message:
+        "Assinatura cancelada. Você foi movido para o plano Bronze gratuito.",
     });
   } catch (error) {
-    logger.error("Erro ao obter assinatura:", error);
+    logger.error("Erro ao cancelar assinatura:", error);
     res.status(500).json({
       success: false,
-      error: error.message || "Erro ao obter assinatura",
+      error: error.message || "Erro ao cancelar assinatura",
     });
   }
 };
 
-// Obter estatísticas de pagamentos
+// ===================== ESTATÍSTICAS =====================
 exports.getPaymentStats = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -421,10 +312,7 @@ exports.getPaymentStats = async (req, res) => {
       { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
 
-    res.status(200).json({
-      success: true,
-      data: stats,
-    });
+    res.status(200).json({ success: true, data: stats });
   } catch (error) {
     logger.error("Erro ao obter estatísticas de pagamentos:", error);
     res.status(500).json({
@@ -434,7 +322,7 @@ exports.getPaymentStats = async (req, res) => {
   }
 };
 
-// Reembolsar pagamento
+// ===================== REEMBOLSO =====================
 exports.refundPayment = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -442,13 +330,10 @@ exports.refundPayment = async (req, res) => {
     const { reason } = req.body;
 
     const payment = await Payment.findOne({ _id: id, userId });
-
-    if (!payment) {
-      return res.status(404).json({
-        success: false,
-        error: "Pagamento não encontrado",
-      });
-    }
+    if (!payment)
+      return res
+        .status(404)
+        .json({ success: false, error: "Pagamento não encontrado" });
 
     if (payment.status !== "completed") {
       return res.status(400).json({
@@ -476,36 +361,25 @@ exports.refundPayment = async (req, res) => {
 };
 
 // ===================== MERCADO PAGO =====================
-
-// Criar preferência de pagamento (Checkout Pro)
 exports.createMercadoPagoPreference = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: "Usuário não encontrado",
-      });
-    }
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, error: "Usuário não encontrado" });
 
     const {
       amount,
       description,
-      planType = "silver", // bronze, silver, gold
+      planType = "silver",
       type = "subscription",
     } = req.body;
 
-    // Validação
-    if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Valor inválido",
-      });
-    }
+    if (!amount || amount <= 0)
+      return res.status(400).json({ success: false, error: "Valor inválido" });
 
-    // Criar pagamento no banco
     const payment = new Payment({
       userId,
       amount,
@@ -513,22 +387,15 @@ exports.createMercadoPagoPreference = async (req, res) => {
         description || `Plano ${planType.toUpperCase()} - DespFinance`,
       paymentMethod: "mercadopago",
       type,
-      item: {
-        name: `Plano ${planType.toUpperCase()}`,
-        type: type === "subscription" ? "subscription" : "purchase",
-        planType,
-      },
+      item: { name: `Plano ${planType.toUpperCase()}`, type, planType },
       status: "pending",
     });
 
     await payment.save();
 
-    // Instanciar serviço MercadoPago
-    const mercadoPago = new mercadoPagoService();
+    const mercadoPago = new MercadoPagoService();
 
-    // Dados para MercadoPago
-    // Usar CPF de teste válido: 12345678909 (CPF de teste do MercadoPago)
-    const paymentData = {
+    const preferenceData = {
       title: `DespFinance - Plano ${planType.toUpperCase()}`,
       description:
         description ||
@@ -538,7 +405,7 @@ exports.createMercadoPagoPreference = async (req, res) => {
       customer: {
         name: user.fullName || user.username || "Test User",
         email: user.email,
-        cpf: user.cpf || "12345678909", // CPF de teste válido do MercadoPago
+        cpf: user.cpf || "12345678909",
         address: {
           street: user.address?.street || "Av Paulista",
           number: user.address?.number || "1000",
@@ -547,10 +414,10 @@ exports.createMercadoPagoPreference = async (req, res) => {
       },
     };
 
-    // Criar preferência no MercadoPago
-    const preference = await mercadoPago.createPaymentPreference(paymentData);
+    const preference = await mercadoPago.createPaymentPreference(
+      preferenceData
+    );
 
-    // Salvar dados do MercadoPago no pagamento
     payment.mercadopagoData = {
       preferenceId: preference.preferenceId,
       initPoint: preference.initPoint,
@@ -558,12 +425,8 @@ exports.createMercadoPagoPreference = async (req, res) => {
     };
     await payment.save();
 
-    logger.info(
-      `✅ Preferência MercadoPago criada: ${preference.preferenceId} para usuário ${userId}`
-    );
-
-    // Retorno padrão MercadoPago: { id: ... }
     res.status(201).json({
+      success: true,
       id: preference.preferenceId,
       initPoint: preference.initPoint,
       sandboxInitPoint: preference.sandboxInitPoint,
@@ -571,10 +434,17 @@ exports.createMercadoPagoPreference = async (req, res) => {
       message: "Preferência de pagamento criada com sucesso",
     });
   } catch (error) {
-    logger.error("Erro ao criar preferência MercadoPago:", error);
+    logger.error("Erro ao criar preferência MercadoPago:", {
+      error: error,
+      stack: error.stack,
+      body: req.body,
+      userId: req.user?.id,
+    });
+    console.error("[MercadoPagoPreference] Erro detalhado:", error);
     res.status(500).json({
       success: false,
       error: error.message || "Erro ao processar pagamento",
+      details: error,
     });
   }
 };
@@ -584,37 +454,26 @@ exports.createMercadoPagoDirectPayment = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: "Usuário não encontrado",
-      });
-    }
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, error: "Usuário não encontrado" });
 
     const {
       amount,
       description,
-      paymentMethodId = "pix", // Default para PIX
+      paymentMethodId = "pix",
       planType,
-      plan, // Aceitar tanto planType quanto plan
+      plan,
       type = "subscription",
-      card, // dados do cartão se necessário
+      card,
       installments = 1,
     } = req.body;
-
-    // Determinar o plano
     const selectedPlan = planType || plan || "silver";
 
-    // Validação
-    if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Valor inválido",
-      });
-    }
+    if (!amount || amount <= 0)
+      return res.status(400).json({ success: false, error: "Valor inválido" });
 
-    // Criar pagamento no banco
     const payment = new Payment({
       userId,
       amount,
@@ -624,7 +483,7 @@ exports.createMercadoPagoDirectPayment = async (req, res) => {
       type,
       item: {
         name: `Plano ${selectedPlan.toUpperCase()}`,
-        type: type === "subscription" ? "subscription" : "purchase",
+        type,
         planType: selectedPlan,
       },
       status: "pending",
@@ -632,14 +491,10 @@ exports.createMercadoPagoDirectPayment = async (req, res) => {
 
     await payment.save();
 
-    // Instanciar serviço MercadoPago
-    const mercadoPago = new mercadoPagoService();
-
-    // Dados para pagamento direto
+    const mercadoPago = new MercadoPagoService();
     const paymentData = {
       amount,
-      description:
-        description || `Plano ${selectedPlan.toUpperCase()} - DespFinance`,
+      description: payment.description,
       paymentMethodId,
       orderId: payment._id.toString(),
       installments,
@@ -654,10 +509,8 @@ exports.createMercadoPagoDirectPayment = async (req, res) => {
       card,
     };
 
-    // Criar pagamento direto no MercadoPago
     const mpPayment = await mercadoPago.createDirectPayment(paymentData);
 
-    // Salvar dados do MercadoPago no pagamento
     payment.mercadopagoData = {
       paymentId: mpPayment.paymentId,
       status: mpPayment.status,
@@ -667,36 +520,27 @@ exports.createMercadoPagoDirectPayment = async (req, res) => {
       pixCopyPaste: mpPayment.pixCopyPaste,
     };
 
-    // Atualizar status baseado na resposta do MercadoPago
-    if (mpPayment.status === "approved") {
-      payment.status = "completed";
-    } else if (mpPayment.status === "pending") {
-      payment.status = "pending";
-    } else {
-      payment.status = "failed";
-    }
-
+    payment.status = ["approved", "pending"].includes(mpPayment.status)
+      ? mpPayment.status === "approved"
+        ? "completed"
+        : "pending"
+      : "failed";
     await payment.save();
-
-    logger.info(
-      `✅ Pagamento direto MercadoPago criado: ${mpPayment.paymentId} para usuário ${userId}`
-    );
 
     const responseData = {
       paymentId: payment._id,
       mercadoPagoId: mpPayment.paymentId,
       status: mpPayment.status,
       paymentMethod: mpPayment.paymentMethod,
+      pix:
+        paymentMethodId === "pix"
+          ? {
+              qrCode: mpPayment.qrCode,
+              qrCodeBase64: mpPayment.qrCodeBase64,
+              copyPaste: mpPayment.pixCopyPaste,
+            }
+          : undefined,
     };
-
-    // Adicionar dados específicos do PIX se for PIX
-    if (paymentMethodId === "pix") {
-      responseData.pix = {
-        qrCode: mpPayment.qrCode,
-        qrCodeBase64: mpPayment.qrCodeBase64,
-        copyPaste: mpPayment.pixCopyPaste,
-      };
-    }
 
     res.status(201).json({
       success: true,
@@ -715,73 +559,33 @@ exports.createMercadoPagoDirectPayment = async (req, res) => {
 // Webhook do MercadoPago
 exports.mercadoPagoWebhook = async (req, res) => {
   try {
-    logger.info("📨 Webhook MercadoPago recebido:", req.body);
-
-    const { type, data, action } = req.body;
-
-    // Validar se é um webhook válido
-    if (!type || !data || !data.id) {
-      return res.status(400).json({
-        success: false,
-        error: "Webhook inválido",
-      });
-    }
-
-    // Instanciar serviço MercadoPago
-    const mercadoPago = new mercadoPagoService();
-
-    // Processar webhook
+    const mercadoPago = new MercadoPagoService();
     const webhookResult = await mercadoPago.processWebhook(req.body);
 
     if (webhookResult.type === "payment") {
-      // Buscar pagamento no banco pelo external_reference
       const payment = await Payment.findById(webhookResult.externalReference);
+      if (!payment)
+        return res
+          .status(404)
+          .json({ success: false, error: "Pagamento não encontrado" });
 
-      if (!payment) {
-        logger.warn(
-          `⚠️ Pagamento não encontrado no webhook: ${webhookResult.externalReference}`
-        );
-        return res.status(404).json({
-          success: false,
-          error: "Pagamento não encontrado",
-        });
-      }
-
-      // Atualizar status do pagamento
       const oldStatus = payment.status;
-
-      switch (webhookResult.status) {
-        case "approved":
-          payment.status = "completed";
-          break;
-        case "pending":
-          payment.status = "pending";
-          break;
-        case "rejected":
-        case "cancelled":
-          payment.status = "failed";
-          break;
-        default:
-          payment.status = "pending";
-      }
-
-      // Atualizar dados do MercadoPago
+      payment.status =
+        webhookResult.status === "approved"
+          ? "completed"
+          : webhookResult.status === "pending"
+          ? "pending"
+          : "failed";
       payment.mercadopagoData = {
         ...payment.mercadopagoData,
         paymentId: webhookResult.paymentId,
         status: webhookResult.status,
         paymentMethod: webhookResult.paymentMethod,
-        lastWebhookAction: action,
+        lastWebhookAction: webhookResult.action,
         lastWebhookDate: new Date(),
       };
-
       await payment.save();
 
-      logger.info(
-        `🔄 Pagamento ${payment._id} atualizado: ${oldStatus} → ${payment.status}`
-      );
-
-      // Processar pagamento aprovado (ativar premium, etc.)
       if (payment.status === "completed" && oldStatus !== "completed") {
         await processCompletedPayment(payment);
       }
@@ -790,102 +594,17 @@ exports.mercadoPagoWebhook = async (req, res) => {
     res.status(200).json({ success: true });
   } catch (error) {
     logger.error("Erro ao processar webhook MercadoPago:", error);
-    res.status(500).json({
-      success: false,
-      error: "Erro ao processar webhook",
-    });
+    res
+      .status(500)
+      .json({ success: false, error: "Erro ao processar webhook" });
   }
 };
 
-// Função auxiliar para processar pagamento concluído
-async function processCompletedPayment(payment) {
-  try {
-    const user = await User.findById(payment.userId);
-
-    if (!user) {
-      logger.error(
-        `Usuário ${payment.userId} não encontrado ao processar pagamento`
-      );
-      return;
-    }
-
-    if (payment.type === "subscription") {
-      // Ativar premium baseado no plano
-      const planType = payment.item?.planType || "silver";
-
-      const currentPeriodStart = new Date();
-      const currentPeriodEnd = new Date();
-      currentPeriodEnd.setDate(currentPeriodEnd.getDate() + 30); // 30 dias
-
-      await user.activatePremium({
-        plan: planType,
-        status: "active",
-        currentPeriodStart,
-        currentPeriodEnd,
-        mercadoPagoCustomerId: payment.mercadopagoData?.payerId || null,
-        mercadoPagoSubscriptionId: payment.mercadopagoData?.paymentId || null,
-      });
-
-      logger.info(
-        `✅ Premium ${planType} ativado para usuário ${payment.userId}`
-      );
-
-      // Enviar notificação
-      await NotificationService.createNotification(
-        payment.userId,
-        "subscription_activated",
-        "🎉 Assinatura Premium Ativada!",
-        `Seu plano ${planType.toUpperCase()} foi ativado com sucesso via MercadoPago!`,
-        { plan: planType, paymentId: payment._id }
-      );
-
-      // Adicionar ao histórico
-      await user.addPaymentHistory({
-        paymentId: payment._id,
-        amount: payment.amount,
-        status: "completed",
-        gateway: "mercadopago",
-      });
-    } else if (
-      payment.type === "purchase" &&
-      payment.item?.type === "coins_pack"
-    ) {
-      // Processar compra de moedas
-      const coinAmount = payment.item.quantity || 1000;
-      await user.addCoins(coinAmount);
-
-      logger.info(
-        `💰 ${coinAmount} coins adicionados para usuário ${payment.userId} via MercadoPago`
-      );
-
-      // Enviar notificação
-      await NotificationService.createNotification(
-        payment.userId,
-        "coins_purchased",
-        "💰 Coins Adicionados!",
-        `${coinAmount} coins foram adicionados à sua conta via MercadoPago!`,
-        { coins: coinAmount, paymentId: payment._id }
-      );
-
-      // Adicionar ao histórico
-      await user.addPaymentHistory({
-        paymentId: payment._id,
-        amount: payment.amount,
-        status: "completed",
-        gateway: "mercadopago",
-      });
-    }
-  } catch (error) {
-    logger.error("Erro ao processar pagamento concluído:", error);
-  }
-}
-
-// Buscar métodos de pagamento do MercadoPago
+// Buscar métodos de pagamento MercadoPago
 exports.getMercadoPagoPaymentMethods = async (req, res) => {
   try {
-    const mercadoPago = new mercadoPagoService();
+    const mercadoPago = new MercadoPagoService();
     const result = await mercadoPago.getPaymentMethods();
-
     res.status(200).json({
       success: true,
       data: result.paymentMethods,
@@ -899,3 +618,348 @@ exports.getMercadoPagoPaymentMethods = async (req, res) => {
     });
   }
 };
+
+// ===================== FUNÇÕES AUXILIARES =====================
+async function processUserPayment(user, payment) {
+  try {
+    if (payment.type === "subscription") {
+      const plan = payment.item?.planType || "silver";
+      const currentPeriodStart = new Date();
+      const currentPeriodEnd = new Date();
+      currentPeriodEnd.setDate(currentPeriodEnd.getDate() + 30);
+
+      await user.activatePremium({
+        plan,
+        status: "active",
+        currentPeriodStart,
+        currentPeriodEnd,
+        mercadoPagoCustomerId: payment.mercadopagoData?.payerId || null,
+        mercadoPagoSubscriptionId: payment.mercadopagoData?.paymentId || null,
+      });
+
+      await NotificationService.createNotification(
+        user._id,
+        "subscription_activated",
+        "🎉 Assinatura Premium Ativada!",
+        `Seu plano ${plan.toUpperCase()} foi ativado com sucesso!`,
+        { plan, paymentId: payment._id }
+      );
+      await user.addPaymentHistory({
+        paymentId: payment._id,
+        amount: payment.amount,
+        status: "completed",
+        gateway: payment.paymentMethod.includes("mercadopago")
+          ? "mercadopago"
+          : "stripe",
+      });
+    } else if (
+      payment.type === "purchase" &&
+      payment.item?.type === "coins_pack"
+    ) {
+      const coins = payment.item.quantity || 1000;
+      await user.addCoins(coins);
+      await NotificationService.createNotification(
+        user._id,
+        "coins_purchased",
+        "💰 Coins Adicionados!",
+        `${coins} coins foram adicionados à sua conta!`,
+        { coins, paymentId: payment._id }
+      );
+      await user.addPaymentHistory({
+        paymentId: payment._id,
+        amount: payment.amount,
+        status: "completed",
+        gateway: "mercadopago",
+      });
+    }
+  } catch (error) {
+    logger.error("Erro ao processar pagamento do usuário:", error);
+  }
+}
+
+async function processCompletedPayment(payment) {
+  const user = await User.findById(payment.userId);
+  if (!user) return;
+  await processUserPayment(user, payment);
+}
+
+// ===================== MÉTODOS DE PAGAMENTO =====================
+
+// Obter métodos de pagamento do usuário
+exports.getPaymentMethods = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("paymentMethods");
+
+    res.status(200).json({
+      success: true,
+      data: user?.paymentMethods || [],
+    });
+  } catch (error) {
+    logger.error("Erro ao obter métodos de pagamento:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao obter métodos de pagamento",
+    });
+  }
+};
+
+// Adicionar método de pagamento
+exports.addPaymentMethod = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { number, name, expiry, cvv, type = "card" } = req.body;
+
+    // Validação básica
+    if (!number || !name || !expiry || !cvv) {
+      return res.status(400).json({
+        success: false,
+        error: "Todos os campos são obrigatórios",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "Usuário não encontrado",
+      });
+    }
+
+    // Criar método de pagamento
+    const paymentMethod = {
+      id: new mongoose.Types.ObjectId(),
+      type,
+      last4: number.slice(-4),
+      brand: getBrandFromNumber(number),
+      expiryMonth: expiry.split("/")[0],
+      expiryYear: `20${expiry.split("/")[1]}`,
+      isDefault: (user.paymentMethods || []).length === 0,
+      createdAt: new Date(),
+    };
+
+    if (!user.paymentMethods) {
+      user.paymentMethods = [];
+    }
+
+    user.paymentMethods.push(paymentMethod);
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      data: paymentMethod,
+    });
+  } catch (error) {
+    logger.error("Erro ao adicionar método de pagamento:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao adicionar método de pagamento",
+    });
+  }
+};
+
+// Remover método de pagamento
+exports.removePaymentMethod = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { methodId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "Usuário não encontrado",
+      });
+    }
+
+    user.paymentMethods = user.paymentMethods.filter(
+      (method) => method.id.toString() !== methodId
+    );
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Método de pagamento removido com sucesso",
+    });
+  } catch (error) {
+    logger.error("Erro ao remover método de pagamento:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao remover método de pagamento",
+    });
+  }
+};
+
+// Definir método de pagamento padrão
+exports.setDefaultPaymentMethod = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { methodId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "Usuário não encontrado",
+      });
+    }
+
+    // Remover padrão de todos e definir o novo
+    user.paymentMethods.forEach((method) => {
+      method.isDefault = method.id.toString() === methodId;
+    });
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Método de pagamento padrão definido com sucesso",
+    });
+  } catch (error) {
+    logger.error("Erro ao definir método padrão:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao definir método padrão",
+    });
+  }
+};
+
+// ===================== HISTÓRICO DE PAGAMENTOS =====================
+
+// Obter histórico de pagamentos
+exports.getBillingHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { limit = 10, page = 1 } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    const [payments, total] = await Promise.all([
+      Payment.find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(parseInt(limit))
+        .skip(skip)
+        .select("amount status description createdAt type paymentMethod"),
+      Payment.countDocuments({ userId }),
+    ]);
+
+    const billingHistory = payments.map((payment) => ({
+      id: payment._id,
+      amount: payment.amount,
+      status: payment.status,
+      description: payment.description || `Pagamento ${payment.type}`,
+      date: payment.createdAt,
+      method: payment.paymentMethod,
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: billingHistory,
+      pagination: {
+        total,
+        page: parseInt(page),
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    logger.error("Erro ao obter histórico:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao obter histórico",
+    });
+  }
+};
+
+// ===================== ASSINATURA =====================
+
+// Obter assinatura atual
+exports.getSubscription = async (req, res) => {
+  try {
+    console.log(
+      "🔍 [getSubscription] Rota acionada para usuário:",
+      req.user._id
+    );
+    const userId = req.user._id;
+    const user = await User.findById(userId).select(
+      "subscription plan premiumFeatures"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "Usuário não encontrado",
+      });
+    }
+
+    const subscription = {
+      plan: user.plan || "bronze",
+      status: user.subscription?.status || "inactive",
+      isActive: user.subscription?.isActive || false,
+      nextBilling: user.subscription?.nextBilling,
+      features: user.premiumFeatures || {},
+    };
+
+    res.status(200).json({
+      success: true,
+      data: subscription,
+    });
+  } catch (error) {
+    logger.error("Erro ao obter assinatura:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao obter assinatura",
+    });
+  }
+};
+
+// Atualizar renovação automática
+exports.updateAutoRenewal = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { enabled } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "Usuário não encontrado",
+      });
+    }
+
+    if (!user.subscription) {
+      user.subscription = {};
+    }
+
+    user.subscription.autoRenewal = enabled;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Renovação automática ${
+        enabled ? "ativada" : "desativada"
+      } com sucesso`,
+    });
+  } catch (error) {
+    logger.error("Erro ao atualizar renovação automática:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Erro ao atualizar renovação automática",
+    });
+  }
+};
+
+// Função auxiliar para detectar bandeira do cartão
+function getBrandFromNumber(number) {
+  const firstDigit = number.charAt(0);
+  const firstTwoDigits = number.substring(0, 2);
+  const firstFourDigits = number.substring(0, 4);
+
+  if (firstDigit === "4") return "Visa";
+  if (["51", "52", "53", "54", "55"].includes(firstTwoDigits))
+    return "Mastercard";
+  if (["34", "37"].includes(firstTwoDigits)) return "American Express";
+  if (firstFourDigits === "6011") return "Discover";
+
+  return "Desconhecido";
+}

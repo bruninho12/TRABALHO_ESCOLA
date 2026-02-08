@@ -25,14 +25,21 @@ const createRateLimitConfig = () => {
 
   // Rate limiting geral para API
   const generalLimiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || 15) * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX || 100),
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || 1) * 60 * 1000, // 1 minuto em dev
+    max: parseInt(
+      process.env.RATE_LIMIT_MAX ||
+        (process.env.NODE_ENV === "development" ? 500 : 100)
+    ),
     message: {
       status: 429,
       message: "Muitas requisições. Tente novamente mais tarde.",
     },
     standardHeaders: true,
     legacyHeaders: false,
+    // Skip completamente em desenvolvimento local
+    skip: (req) =>
+      (process.env.NODE_ENV === "development" && req.ip === "::1") ||
+      req.ip === "127.0.0.1",
   });
 
   // Rate limiting para upload de arquivos

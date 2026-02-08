@@ -1,3 +1,15 @@
+// Função para filtrar erros 404 do Mercado Pago Sandbox
+const filterSandbox404 = (err) => {
+  if (
+    err?.response?.status === 404 &&
+    typeof err?.config?.url === "string" &&
+    err.config.url.includes("sandbox.mercadopago.com.br/jms/lgz/background")
+  ) {
+    // Ignora erro 404 do sandbox
+    return true;
+  }
+  return false;
+};
 /**
  * MercadoPagoCheckout - Componente de Checkout MercadoPago
  * Integração completa com PIX, Cartão e Checkout Pro
@@ -31,7 +43,7 @@ import {
   CheckCircle as CheckIcon,
 } from "@mui/icons-material";
 import { QRCodeSVG } from "qrcode.react";
-import api from "../services/api";
+import paymentApi from "../services/paymentApi";
 
 const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
   const [loading, setLoading] = useState(false);
@@ -58,18 +70,12 @@ const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
     setPixData(null);
 
     try {
-      const response = await api.post(
-        "/payments/mercadopago/create-pix",
-        {
-          plan,
-          amount: finalAmount,
-        },
-        {
-          timeout: 30000, // 30 segundos para criação de pagamento
-        }
-      );
+      const response = await paymentApi.createPixPayment({
+        plan,
+        amount: finalAmount,
+      });
 
-      if (response.data.success) {
+      if (response.success) {
         setPixData(response.data);
       } else {
         setError("Erro ao gerar QR Code PIX");
@@ -97,39 +103,26 @@ const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
     setLoading(true);
     setError("");
     try {
-      const response = await api.post(
-        "/payments/mercadopago/create-preference",
-        {
-          amount: finalAmount,
-          planType: plan,
-          type: "subscription",
-        },
-        {
-          timeout: 30000, // 30 segundos para criação de preferência
-        }
-      );
+      const response = await paymentApi.createMercadoPagoPreference({
+        amount: finalAmount,
+        planType: plan,
+        type: "subscription",
+      });
 
-      console.log("Response completa:", response.data);
-
-      // Novo formato: response.data.id, response.data.sandboxInitPoint, response.data.initPoint
-      const preferenceId = response.data.id;
-      const url =
-        import.meta.env.MODE === "development"
-          ? response.data.sandboxInitPoint
-          : response.data.initPoint;
+      // Sempre usar initPoint para garantir ambiente live
+      const preferenceId = response.data?.id;
+      const url = response.data?.initPoint;
 
       // Validação extra para garantir que preferenceId e URL existem
-      if (
-        !preferenceId ||
-        !(response.data.sandboxInitPoint || response.data.initPoint)
-      ) {
-        console.error("Preference ou URL nula!", response.data);
-        setError("Erro ao criar preferência de pagamento. Tente novamente.");
+      if (!preferenceId || !url) {
+        setError(
+          response.data?.message ||
+            "Não foi possível criar a preferência de pagamento. Verifique os dados e tente novamente."
+        );
+        setCheckoutUrl("");
         return;
       }
 
-      console.log("PreferenceId recebido:", preferenceId);
-      console.log("URL do checkout:", url);
       setCheckoutUrl(url);
 
       if (url) {
@@ -140,15 +133,22 @@ const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
       // Opcional: polling para verificar se pagamento foi aprovado
       // startPaymentPolling(preferenceId);
     } catch (err) {
-      console.error("Erro ao criar preferência:", err);
+      if (filterSandbox404(err)) {
+        // Ignora erro 404 do sandbox
+        return;
+      }
       // Mensagem de erro mais específica
       if (err.code === "ECONNABORTED") {
         setError("Tempo de espera excedido. Tente novamente.");
       } else if (err.response?.status === 401) {
         setError("Sessão expirada. Faça login novamente.");
       } else {
-        setError(err.response?.data?.message || "Erro ao criar checkout");
+        setError(
+          err.response?.data?.message ||
+            "Erro ao criar checkout. Verifique os dados enviados ou tente novamente."
+        );
       }
+      setCheckoutUrl("");
     } finally {
       setLoading(false);
     }
@@ -221,6 +221,14 @@ const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
             {error}
+          </Alert>
+        )}
+        {/* Mensagem para ambiente sandbox */}
+        {import.meta.env.MODE === "development" && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Atenção: Erros 404 do Mercado Pago Sandbox são normais e não afetam
+            o funcionamento do checkout. No ambiente de produção, esses erros
+            não aparecem.
           </Alert>
         )}
 
@@ -411,7 +419,8 @@ const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
               </Button>
             )}
 
-            {checkoutUrl && (
+            {/* Validação extra para garantir que checkoutUrl existe antes de renderizar o alerta */}
+            {checkoutUrl ? (
               <Alert severity="success">
                 <Typography variant="body2" fontWeight={600}>
                   Checkout aberto em nova janela!
@@ -427,10 +436,10 @@ const MercadoPagoCheckout = ({ open, onClose, plan = "silver", amount }) => {
                   </a>
                 </Typography>
               </Alert>
-            )}
+            ) : null}
 
-            <Box sx={{ mt: 2, p: 2, bgcolor: "#f9fafb", borderRadius: 2 }}>
-              <Typography variant="caption" color="text.secondary">
+            <Box sx={{ mt: 2, p: 2, bgcolor: "white", borderRadius: 2 }}>
+              <Typography variant="caption" color="black">
                 <strong>💳 Métodos aceitos:</strong>
                 <br />
                 • Cartão de Crédito (Visa, Mastercard, Elo, etc.)

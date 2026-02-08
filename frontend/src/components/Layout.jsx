@@ -24,6 +24,7 @@ import {
   Dashboard as DashboardIcon,
   AccountBalance as TransactionsIcon,
   Payment as PaymentIcon,
+  Star as PricingIcon,
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
@@ -34,6 +35,7 @@ import {
   Lightbulb as InsightsIcon,
   Menu as MenuIcon,
   Close as CloseIcon,
+  AdminPanelSettings as AdminIcon,
 } from "@mui/icons-material";
 import { useThemeContext } from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -102,8 +104,16 @@ const Layout = () => {
     { path: "/dashboard/goals", label: "Metas", icon: <GoalsIcon /> },
     { path: "/dashboard/insights", label: "Insights", icon: <InsightsIcon /> },
     { path: "/dashboard/payments", label: "Pagamentos", icon: <PaymentIcon /> },
+    {
+      path: "/dashboard/pricing",
+      label: "Planos Premium",
+      icon: <PricingIcon />,
+    },
     { path: "/dashboard/reports", label: "Relatórios", icon: <ReportsIcon /> },
     { path: "/dashboard/rpg", label: "RPG", icon: <RPGIcon /> },
+    ...(user?.isAdmin
+      ? [{ path: "/dashboard/admin", label: "Admin", icon: <AdminIcon /> }]
+      : []),
   ];
 
   return (
@@ -312,6 +322,15 @@ const Layout = () => {
             <MenuItem onClick={handleSettings}>
               <SettingsIcon sx={{ mr: 1 }} />
               Configurações
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                navigate("/dashboard/payment-settings");
+              }}
+            >
+              <PaymentIcon sx={{ mr: 1 }} />
+              Pagamento
             </MenuItem>
             <MenuItem onClick={handleLogout}>Sair</MenuItem>
           </Menu>

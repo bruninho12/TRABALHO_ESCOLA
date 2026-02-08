@@ -1,22 +1,25 @@
-const { User } = require("../models");
+const User = require("../models/User");
 const { AppError } = require("../middleware/errorHandler");
 
 // Perfil do usuário
 exports.getProfile = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-
-    // Buscar usuário
-    const user = await User.findById(userId).select("-password");
+    // req.user já contém o usuário completo do middleware de autenticação
+    const user = req.user;
 
     if (!user) {
-      return next(new AppError("Usuário não encontrado", 404));
+      return next(new AppError("Usuário não autenticado", 401));
     }
+
+    // Remover campos sensíveis
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.twoFactorSecret;
 
     res.status(200).json({
       status: "success",
       data: {
-        user,
+        user: userObj,
       },
     });
   } catch (error) {

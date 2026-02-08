@@ -1,3 +1,8 @@
+import {
+  getTransactions,
+  getMonthlyStatistics,
+} from "@services/transactionService";
+import { getUserGoals } from "@services/goalService";
 // ==========================================
 // 🧪 Exemplo de Teste - Dashboard Component
 // Demonstração de testes unitários com Vitest
@@ -25,14 +30,7 @@ describe("Dashboard Component", () => {
     // Reset mocks antes de cada teste
     vi.clearAllMocks();
 
-    // Mock das APIs
-    // eslint-disable-next-line no-undef
-    const {
-      getTransactions,
-      getMonthlyStatistics,
-    } = require("@services/transactionService");
-    // eslint-disable-next-line no-undef
-    const { getUserGoals } = require("@services/goalService");
+    // Mock das APIs já importados no topo
 
     getTransactions.mockResolvedValue({
       data: { transactions: mockTransactions },
@@ -98,7 +96,6 @@ describe("Dashboard Component", () => {
 
   it("deve exibir mensagem de erro quando falha ao carregar dados", async () => {
     // Mock de erro na API
-    const { getTransactions } = require("@services/transactionService");
     getTransactions.mockRejectedValue(new Error("Erro na API"));
 
     renderWithProviders(<Dashboard />);
@@ -119,7 +116,6 @@ describe("Dashboard Component", () => {
     fireEvent.change(periodSelect, { target: { value: "7days" } });
 
     // Verificar se nova requisição foi feita
-    const { getMonthlyStatistics } = require("@services/transactionService");
     expect(getMonthlyStatistics).toHaveBeenCalledWith("7days");
   });
 

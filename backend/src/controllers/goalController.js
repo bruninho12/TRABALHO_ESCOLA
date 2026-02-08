@@ -8,7 +8,6 @@ class GoalValidator {
   validate(data) {
     const errors = [];
 
-    // Required fields
     if (!data.title || data.title.trim().length === 0) {
       errors.push("Title is required");
     }
@@ -59,30 +58,23 @@ class GoalController {
       let filters = {};
       let userId = null;
 
-      console.log(
-        "🔍 DEBUG getAll - req.user:",
-        req.user ? { id: req.user.id, email: req.user.email } : "null"
-      );
+      if (req.user && (req.user._id || req.user.id)) {
+        userId = req.user._id || req.user.id;
 
-      if (req.user && req.user.id) {
-        // Authenticated user - return their goals
-        userId = req.user.id;
         filters = {
           userId: new mongoose.Types.ObjectId(userId),
           ...(status && { status }),
           ...(category && { category }),
         };
-        console.log("✅ Filtros de goal:", filters);
+        console.log("✅ Filtros de goal para usuário", userId, ":", filters);
       } else {
-        // Unauthenticated - return only public goals
         filters = {
           isPublic: true,
           ...(status && { status }),
           ...(category && { category }),
         };
+        console.log("🌍 Filtros de goal públicos:", filters);
       }
-
-      console.log("🔍 DEBUG - Buscando goals com filtros:", filters);
 
       const sort = {};
       sort[sortBy] = sortOrder === "desc" ? -1 : 1;
@@ -97,7 +89,7 @@ class GoalController {
 
       const total = await Goal.countDocuments(filters);
 
-      const response = {
+      return res.status(200).json({
         success: true,
         data: goals,
         meta: {
@@ -106,9 +98,7 @@ class GoalController {
           total,
           pages: Math.ceil(total / parseInt(limit)),
         },
-      };
-
-      return res.status(200).json(response);
+      });
     } catch (error) {
       logger.error("Erro ao buscar goals:", error);
       return res.status(500).json({
@@ -132,9 +122,12 @@ class GoalController {
         });
       }
 
-      // Check if user can access this goal
-      if (req.user && req.user.id) {
-        if (goal.userId._id.toString() !== req.user.id && !goal.isPublic) {
+      if (req.user && (req.user._id || req.user.id)) {
+        const userId = req.user._id || req.user.id;
+        if (
+          goal.userId._id.toString() !== userId.toString() &&
+          !goal.isPublic
+        ) {
           return res.status(403).json({
             success: false,
             message: "Acesso negado a esta meta",
@@ -164,17 +157,21 @@ class GoalController {
   // POST /api/goals
   async create(req, res) {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user || (!req.user._id && !req.user.id)) {
         return res.status(401).json({
           success: false,
           message: "Usuário não autenticado",
         });
       }
 
+      const userId = req.user._id || req.user.id;
+
       const goalData = {
         ...req.body,
-        userId: new mongoose.Types.ObjectId(req.user.id),
+        userId: new mongoose.Types.ObjectId(userId),
       };
+
+      console.log("🎯 Criando meta para usuário:", userId, "dados:", goalData);
 
       const errors = this.validator.validate(goalData);
       if (errors.length > 0) {
@@ -206,7 +203,7 @@ class GoalController {
   // PUT /api/goals/:id
   async update(req, res) {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user || (!req.user._id && !req.user.id)) {
         return res.status(401).json({
           success: false,
           message: "Usuário não autenticado",
@@ -214,6 +211,7 @@ class GoalController {
       }
 
       const { id } = req.params;
+      const userId = req.user._id || req.user.id;
       const goal = await Goal.findById(id);
 
       if (!goal) {
@@ -223,8 +221,7 @@ class GoalController {
         });
       }
 
-      // Check ownership
-      if (goal.userId.toString() !== req.user.id) {
+      if (goal.userId.toString() !== userId.toString()) {
         return res.status(403).json({
           success: false,
           message: "Acesso negado a esta meta",
@@ -254,7 +251,7 @@ class GoalController {
   // DELETE /api/goals/:id
   async delete(req, res) {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user || (!req.user._id && !req.user.id)) {
         return res.status(401).json({
           success: false,
           message: "Usuário não autenticado",
@@ -262,6 +259,7 @@ class GoalController {
       }
 
       const { id } = req.params;
+      const userId = req.user._id || req.user.id;
       const goal = await Goal.findById(id);
 
       if (!goal) {
@@ -271,8 +269,7 @@ class GoalController {
         });
       }
 
-      // Check ownership
-      if (goal.userId.toString() !== req.user.id) {
+      if (goal.userId.toString() !== userId.toString()) {
         return res.status(403).json({
           success: false,
           message: "Acesso negado a esta meta",
@@ -298,7 +295,7 @@ class GoalController {
   // POST /api/goals/:id/add-value
   async addValue(req, res) {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user || (!req.user._id && !req.user.id)) {
         return res.status(401).json({
           success: false,
           message: "Usuário não autenticado",
@@ -307,6 +304,7 @@ class GoalController {
 
       const { id } = req.params;
       const { amount } = req.body;
+      const userId = req.user._id || req.user.id;
 
       if (!amount || typeof amount !== "number" || amount <= 0) {
         return res.status(400).json({
@@ -323,7 +321,7 @@ class GoalController {
         });
       }
 
-      if (goal.userId.toString() !== req.user.id) {
+      if (goal.userId.toString() !== userId.toString()) {
         return res.status(403).json({
           success: false,
           message: "Acesso negado a esta meta",
@@ -332,7 +330,6 @@ class GoalController {
 
       goal.currentAmount = (goal.currentAmount || 0) + amount;
 
-      // Check if goal is completed
       if (goal.currentAmount >= goal.targetAmount) {
         goal.status = "completed";
         goal.completedAt = new Date();
@@ -358,14 +355,14 @@ class GoalController {
   // GET /api/goals/summary
   async getSummary(req, res) {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user || (!req.user.id && !req.user._id)) {
         return res.status(401).json({
           success: false,
           message: "Usuário não autenticado",
         });
       }
 
-      const userId = req.user.id;
+      const userId = req.user.id || req.user._id;
 
       const summary = await Goal.aggregate([
         { $match: { userId: new mongoose.Types.ObjectId(userId) } },
@@ -396,7 +393,6 @@ class GoalController {
               totalCurrentAmount: 0,
             };
 
-      // Calculate progress percentage
       result.progressPercentage =
         result.totalTargetAmount > 0
           ? Math.round(
@@ -421,14 +417,14 @@ class GoalController {
   // GET /api/goals/deadlines
   async getUpcomingDeadlines(req, res) {
     try {
-      if (!req.user || !req.user.id) {
+      if (!req.user || (!req.user._id && !req.user.id)) {
         return res.status(401).json({
           success: false,
           message: "Usuário não autenticado",
         });
       }
 
-      const userId = req.user.id;
+      const userId = req.user._id || req.user.id;
       const today = new Date();
       const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -464,13 +460,9 @@ class GoalController {
 
 // Export
 if (typeof module !== "undefined" && module.exports) {
-  // Criar instância do dataManager
   const dataManager = new MongoDataManager();
-
-  // Criar instância do controller
   const goalControllerInstance = new GoalController(dataManager);
 
-  // Exportar métodos do controller como funções para compatibilidade com as rotas
   module.exports = {
     getAll: goalControllerInstance.getAll.bind(goalControllerInstance),
     getById: goalControllerInstance.getById.bind(goalControllerInstance),

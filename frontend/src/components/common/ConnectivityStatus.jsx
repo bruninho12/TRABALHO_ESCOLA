@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Snackbar, Alert, IconButton } from "@mui/material";
 import {
   Close as CloseIcon,
@@ -15,7 +15,7 @@ export default function ConnectivityStatus() {
   const [showNotification, setShowNotification] = useState(false);
 
   // Verificar status da API
-  const checkApiStatus = async () => {
+  const checkApiStatus = useCallback(async () => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -43,7 +43,7 @@ export default function ConnectivityStatus() {
         setShowNotification(true);
       }
     }
-  };
+  }, [apiStatus]);
 
   // Monitorar conectividade de rede
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function ConnectivityStatus() {
       window.removeEventListener("offline", handleOffline);
       clearInterval(interval);
     };
-  }, [apiStatus]);
+  }, [checkApiStatus, apiStatus]);
 
   // Auto-fechar notificação após 5 segundos se a conexão foi restaurada
   useEffect(() => {

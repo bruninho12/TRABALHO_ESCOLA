@@ -53,7 +53,7 @@ const InsightsPanel = ({ userId }) => {
       const data = await getInsights();
       setInsights(data.data || []);
     } catch (error) {
-      console.error("Erro ao carregar insights:", error);
+      console.error("Erro ao carregar insights, usuário nãp é Premium:", error);
       setInsights([]);
     } finally {
       setLoading(false);

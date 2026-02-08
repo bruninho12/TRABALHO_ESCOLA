@@ -9,20 +9,28 @@ afterEach(() => {
 });
 
 // Mock do IntersectionObserver
-if (typeof global !== "undefined") {
-  global.IntersectionObserver = vi.fn(() => ({
-  disconnect: vi.fn(),
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-}));
+if (typeof globalThis !== "undefined") {
+  globalThis.IntersectionObserver = vi.fn(() => ({
+    disconnect: vi.fn(),
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+  }));
 
-// Mock do ResizeObserver
-if (typeof global !== "undefined") {
-  global.ResizeObserver = vi.fn(() => ({
-  disconnect: vi.fn(),
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-}));
+  // Mock do ResizeObserver
+  globalThis.ResizeObserver = vi.fn(() => ({
+    disconnect: vi.fn(),
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+  }));
+
+  // Mock do localStorage
+  globalThis.localStorage = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  };
+}
 
 // Mock do matchMedia
 Object.defineProperty(window, "matchMedia", {
@@ -46,8 +54,8 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-if (typeof global !== "undefined") {
-  global.localStorage = localStorageMock;
+if (typeof globalThis !== "undefined") {
+  globalThis.localStorage = localStorageMock;
 }
 
 // Mock do Chart.js
@@ -75,16 +83,16 @@ const originalError = console.error;
 
 if (typeof beforeAll !== "undefined") {
   beforeAll(() => {
-  console.error = (...args) => {
-    if (
-      typeof args[0] === "string" &&
-      args[0].includes("Warning: ReactDOM.render is no longer supported")
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
-});
+    console.error = (...args) => {
+      if (
+        typeof args[0] === "string" &&
+        args[0].includes("Warning: ReactDOM.render is no longer supported")
+      ) {
+        return;
+      }
+      originalError.call(console, ...args);
+    };
+  });
 }
 
 if (typeof afterAll !== "undefined") {

@@ -1,5 +1,5 @@
 /**
- * Script para criar usuário de teste rápido
+ * Script para criar usuário Premium corretamente
  */
 
 const mongoose = require("mongoose");
@@ -11,54 +11,40 @@ async function createTestUser() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ Conectado ao MongoDB");
 
-    // E-mail de teste do MercadoPago (não precisa de verificação real)
-    const testEmail = "test_user_92801501@testuser.com";
+    const testEmail = "souzacostabruno008@gmail.com";
 
-    // Verificar se usuário já existe
-    const existingUser = await User.findOne({
-      email: testEmail,
-    });
+    let user = await User.findOne({ email: testEmail });
 
-    if (existingUser) {
-      console.log("✅ Usuário de teste já existe!");
-      console.log(`\n📧 Email: ${testEmail}`);
-      console.log("🔑 Senha: Teste@123");
-      console.log("\n🌐 Acesse: http://localhost:5173/login");
-      console.log("\n💡 Este é um e-mail de teste do MercadoPago");
-      console.log(
-        "   Códigos de verificação funcionam automaticamente no sandbox"
-      );
-      process.exit(0);
+    if (user) {
+      console.log("⚠️ Usuário já existe, convertendo para PREMIUM...");
+    } else {
+      user = new User({
+        username: "Bruno Souza",
+        email: testEmail,
+        password: "Bruninho007@",
+        fullName: "Bruno Souza",
+        emailVerified: true,
+      });
+      await user.save();
     }
 
-    // Criar novo usuário
-    const testUser = new User({
-      username: "testuser_mp",
-      email: testEmail,
-      password: "Teste@123",
-      fullName: "Test User",
-      isVerified: true,
-      subscription: {
-        plan: "bronze",
-        status: "active",
-        startDate: new Date(),
-      },
+    // ATIVAÇÃO PREMIUM CORRETA
+    await user.activatePremium({
+      plan: "gold",
+      status: "active",
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 dias premium
     });
 
-    await testUser.save();
-
-    console.log("✅ Usuário de teste criado com sucesso!");
-    console.log(`\n📧 Email: ${testEmail}`);
-    console.log("🔑 Senha: Teste@123");
-    console.log("\n🌐 Acesse: http://localhost:5173/login");
-    console.log("\n💡 Este é um e-mail de teste do MercadoPago");
-    console.log(
-      "   Códigos de verificação funcionam automaticamente no sandbox"
-    );
+    console.log("\n🎉 Usuário Premium criado/atualizado com sucesso!");
+    console.log("📧 Email:", testEmail);
+    console.log("🔑 Senha: Bruninho007@");
+    console.log("💎 Plano:", user.subscription.plan);
+    console.log("📅 Expira em:", user.subscription.currentPeriodEnd);
 
     process.exit(0);
   } catch (error) {
-    console.error("❌ Erro:", error.message);
+    console.error("❌ Erro:", error);
     process.exit(1);
   }
 }

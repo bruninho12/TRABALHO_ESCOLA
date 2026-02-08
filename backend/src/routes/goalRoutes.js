@@ -4,7 +4,7 @@ const { authenticate } = require("../controllers/authController");
 
 const router = express.Router();
 
-// Middleware para desabilitar cache nas rotas de goals
+// Evitar cache
 router.use((req, res, next) => {
   res.setHeader(
     "Cache-Control",
@@ -15,30 +15,25 @@ router.use((req, res, next) => {
   next();
 });
 
-// Aplicar middleware de autenticação em todas as rotas
+// Autenticação obrigatória
 router.use(authenticate);
 
-// Rotas específicas devem vir ANTES das rotas com parâmetros dinâmicos
-// Resumo das metas
+// Rotas específicas **ANTES** das dinâmicas
 router.get("/summary", goalController.getSummary);
-
-// Prazos próximos
 router.get("/deadlines", goalController.getUpcomingDeadlines);
-
-// Progresso das metas (alias para summary)
 router.get("/progress", goalController.getGoalsProgress);
+
+// Criar meta (POST precisa vir ANTES de GET "/")
+router.post("/", goalController.create);
 
 // Listar metas
 router.get("/", goalController.getAll);
 
-// Adicionar valor à meta
+// Adicionar valor
 router.post("/:id/add-value", goalController.addValue);
 
 // Obter meta por ID
 router.get("/:id", goalController.getById);
-
-// Criar meta
-router.post("/", goalController.create);
 
 // Atualizar meta
 router.put("/:id", goalController.update);

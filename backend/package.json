@@ -19,7 +19,7 @@
     "db:clean": "node scripts/database/clean-database.js",
     "db:migrate": "node scripts/database/migrate-database.js",
     "db:backup": "node scripts/database/backup-database.js",
-    "db:check": "node scripts/database/check-databases.js",
+    "db:check": "node src/utils/database/checkDatabases.js",
     "db:test": "node scripts/database/test-connection.js",
     "rpg:setup": "node scripts/setup/setup-rpg-system.js",
     "seed": "node src/seeders/index.js",
@@ -51,6 +51,7 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
+    "@mercadopago/sdk-js": "^0.0.3",
     "@sentry/node": "^10.25.0",
     "@sentry/tracing": "^7.120.4",
     "axios": "^1.13.2",

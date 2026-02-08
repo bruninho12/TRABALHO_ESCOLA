@@ -1,826 +1,375 @@
-// ===========================================
-// 🔐 Controller de Autenticação (AuthController)
-// ===========================================
-// Responsável por gerenciar o registro, login, logout,
-// atualização de perfil, troca e recuperação de senha,
-// e validações de segurança relacionadas à autenticação.
-// ===========================================
-
-const Utils = require("../utils/utils");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 const logger = require("../utils/logger");
-const TokenManager = require("../utils/tokenManager");
-const { authSchemas } = require("../utils/validationSchemas");
 
-// Classe principal de controle de autenticação
-class AuthController {
-  constructor(dataManager) {
-    this.dataManager = dataManager;
-    this.tokenManager = new TokenManager();
-  }
-
-  // Método auxiliar para validação
-  validateRequest(schema, data) {
-    const { error, value } = schema.validate(data);
-    return {
-      isValid: !error,
-      errors: error?.details?.map((detail) => detail.message) || [],
-      data: value,
-    };
-  }
-
-  // ===============================
-  // 🧩 Registro de novo usuário
-  // ===============================
-  async register(req, res) {
-    try {
-      const { name, email, password } = req.body;
-
-      // Validação dos campos de cadastro
-      const validation = this.validateRequest(authSchemas.register, {
-        name,
-        email,
-        password,
-      });
-
-      if (!validation.isValid) {
-        return res.status(400).json({
-          success: false,
-          message: "Erro de validação",
-          detalhes: validation.errors,
-        });
-      }
-
-      // Verifica se já existe usuário com o mesmo email
-      const existingUser = await this.dataManager.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(409).json({
-          success: false,
-          message: "Já existe um usuário com este email.",
-        });
-      }
-
-      // Cria e armazena o novo usuário
-      const hashedPassword = await this.hashPassword(password);
-      const userData = {
-        name,
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        emailVerified: false,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      };
-
-      const user = await this.dataManager.createUser(userData);
-
-      // Gera tokens de autenticação
-      const tokens = await this.tokenManager.generateTokenPair({
-        id: user._id,
-        email: user.email,
-        name: user.name,
-      });
-
-      // Envia email de boas-vindas (simulado)
-      await this.sendWelcomeEmail(user);
-
-      return res.status(201).json({
-        success: true,
-        message: "Cadastro realizado com sucesso!",
-        data: {
-          user: this.sanitizeUser(user),
-          token: tokens.accessToken,
-        },
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao registrar usuário.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 🔑 Login de usuário
-  // ===============================
-  async login(req, res) {
-    try {
-      const { email, password, rememberMe } = req.body;
-
-      // Log detalhado para debug mobile
-      console.log("🔐 [LOGIN DEBUG] Tentativa de login:");
-      console.log("📧 Email:", email);
-      console.log(
-        "🔑 Senha fornecida:",
-        password ? `${password.substring(0, 3)}***` : "não fornecida"
-      );
-      console.log("🌐 IP:", req.ip);
-      console.log("📱 User-Agent:", req.get("User-Agent"));
-      console.log("🔗 Origin:", req.get("Origin"));
-
-      // Valida dados de login
-      const validation = this.validateRequest(authSchemas.login, {
-        email,
-        password,
-        rememberMe,
-      });
-      if (!validation.isValid) {
-        console.log("❌ [LOGIN DEBUG] Erro de validação:", validation.errors);
-        return res.status(400).json({
-          success: false,
-          message: "Erro de validação",
-          detalhes: validation.errors,
-        });
-      }
-
-      // Busca usuário no banco
-      console.log("🔍 [LOGIN DEBUG] Buscando usuário:", email.toLowerCase());
-      const user = await this.dataManager.getUserByEmail(email.toLowerCase());
-      if (!user) {
-        console.log("❌ [LOGIN DEBUG] Usuário não encontrado:", email);
-        return res.status(401).json({
-          success: false,
-          message: "Credenciais inválidas",
-        });
-      }
-
-      console.log("👤 [LOGIN DEBUG] Usuário encontrado:", {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-        fullName: user.fullName,
-        hasPassword: !!user.password,
-      });
-
-      // Verifica senha
-      console.log("🔑 [LOGIN DEBUG] Verificando senha...");
-      const senhaValida = await this.verifyPassword(password, user.password);
-      console.log(
-        `🔑 [LOGIN DEBUG] Senha ${senhaValida ? "VÁLIDA" : "INVÁLIDA"}`
-      );
-
-      if (!senhaValida) {
-        await this.logFailedLoginAttempt(user._id, req.ip);
-        console.log("❌ [LOGIN DEBUG] Login rejeitado - senha inválida");
-        return res.status(401).json({
-          success: false,
-          message: "Credenciais inválidas",
-        });
-      }
-
-      // Gera novos tokens
-      console.log("🎫 [LOGIN DEBUG] Gerando tokens...");
-      const tokens = await this.tokenManager.generateTokenPair(
-        {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-        },
-        rememberMe ? { longLived: true } : {}
-      );
-
-      // Atualiza último login
-      console.log("📅 [LOGIN DEBUG] Atualizando último login...");
-      await this.dataManager.updateUser(user._id, {
-        lastLogin: new Date().toISOString(),
-      });
-
-      await this.logLoginActivity(user._id, req.ip);
-
-      console.log("✅ [LOGIN DEBUG] Login realizado com sucesso!");
-      return res.status(200).json({
-        success: true,
-        message: "Login realizado com sucesso!",
-        data: {
-          user: this.sanitizeUser(user),
-          token: tokens.accessToken,
-        },
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao efetuar login.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 🚪 Logout
-  // ===============================
-  async logout(req, res) {
-    try {
-      const token = req.headers.authorization?.replace("Bearer ", "");
-      if (token) await this.tokenManager.blacklistToken(token);
-
-      await this.logLogoutActivity(req.user._id, req.ip);
-
-      return res.status(200).json({
-        success: true,
-        message: "Logout realizado com sucesso.",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao sair da conta.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // ♻️ Atualizar token (refresh)
-  // ===============================
-  async refreshToken(req, res) {
-    try {
-      const { refreshToken } = req.body;
-      if (!refreshToken) {
-        return res.status(400).json({
-          success: false,
-          message: "Token de atualização é obrigatório.",
-        });
-      }
-
-      const tokenData = await this.tokenManager.verifyRefreshToken(
-        refreshToken
-      );
-      if (!tokenData) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Token de atualização inválido." });
-      }
-
-      const newTokens = await this.tokenManager.generateTokenPair(tokenData);
-      await this.tokenManager.blacklistToken(refreshToken);
-
-      return res.status(200).json({
-        success: true,
-        message: "Token renovado com sucesso!",
-        data: { tokens: newTokens },
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao renovar token.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 🔄 Esqueci minha senha
-  // ===============================
-  async forgotPassword(req, res) {
-    try {
-      const { email } = req.body;
-
-      if (!email || !Utils.validateEmail(email)) {
-        return res.status(400).json({
-          success: false,
-          message: "Email válido é obrigatório.",
-        });
-      }
-
-      const user = await this.dataManager.getUserByEmail(email.toLowerCase());
-      if (!user) {
-        return res.status(200).json({
-          success: true,
-          message: "Se o email existir, um link de redefinição será enviado.",
-        });
-      }
-
-      const resetToken = this.tokenManager.generateResetToken();
-      const resetExpiry = new Date(Date.now() + 3600000); // 1h
-
-      await this.dataManager.updateUser(user._id, {
-        resetToken,
-        resetTokenExpiry: resetExpiry.toISOString(),
-      });
-
-      await this.sendPasswordResetEmail(user, resetToken);
-
-      return res.status(200).json({
-        success: true,
-        message: "Email de recuperação enviado com sucesso.",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao processar recuperação de senha.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 🆕 Redefinir senha com token
-  // ===============================
-  async resetPassword(req, res) {
-    try {
-      const { token, password } = req.body;
-
-      const validation = this.validateRequest(authSchemas.resetPassword, {
-        token,
-        newPassword: password,
-      });
-
-      if (!validation.isValid) {
-        return res.status(400).json({
-          success: false,
-          message: "Erro de validação",
-          detalhes: validation.errors,
-        });
-      }
-
-      const user = await this.dataManager.getUserByResetToken(token);
-      if (!user || new Date(user.resetTokenExpiry) < new Date()) {
-        return res.status(400).json({
-          success: false,
-          message: "Token inválido ou expirado.",
-        });
-      }
-
-      const hashedPassword = await this.hashPassword(password);
-
-      await this.dataManager.updateUser(user._id, {
-        password: hashedPassword,
-        resetToken: null,
-        resetTokenExpiry: null,
-      });
-
-      await this.sendPasswordChangedEmail(user);
-
-      return res.status(200).json({
-        success: true,
-        message: "Senha redefinida com sucesso.",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao redefinir senha.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 🔁 Alterar senha autenticado
-  // ===============================
-  async changePassword(req, res) {
-    try {
-      const { currentPassword, newPassword, confirmPassword } = req.body;
-      const userId = req.user._id;
-
-      const validation = this.validateRequest(authSchemas.changePassword, {
-        currentPassword,
-        newPassword,
-        confirmPassword,
-      });
-
-      if (!validation.isValid) {
-        return res.status(400).json({
-          success: false,
-          message: "Erro de validação",
-          detalhes: validation.errors,
-        });
-      }
-
-      const user = await this.dataManager.getUserById(userId);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "Usuário não encontrado.",
-        });
-      }
-
-      const senhaValida = await this.verifyPassword(
-        currentPassword,
-        user.password
-      );
-      if (!senhaValida) {
-        return res.status(400).json({
-          success: false,
-          message: "Senha atual incorreta.",
-        });
-      }
-
-      const hashedPassword = await this.hashPassword(newPassword);
-      await this.dataManager.updateUser(userId, { password: hashedPassword });
-      await this.sendPasswordChangedEmail(user);
-
-      return res.status(200).json({
-        success: true,
-        message: "Senha alterada com sucesso.",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao alterar senha.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 👤 Atualizar perfil do usuário
-  // ===============================
-  async updateProfile(req, res) {
-    try {
-      const userId = req.user._id;
-      const { name, email } = req.body;
-
-      if (!name || !email) {
-        return res.status(400).json({
-          success: false,
-          message: "Nome e email são obrigatórios.",
-        });
-      }
-
-      const updatedUser = await this.dataManager.updateUser(userId, {
-        name,
-        email: email.toLowerCase(),
-        updatedAt: new Date().toISOString(),
-      });
-
-      if (!updatedUser) {
-        return res.status(404).json({
-          success: false,
-          message: "Usuário não encontrado.",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: "Perfil atualizado com sucesso.",
-        data: this.sanitizeUser(updatedUser),
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao atualizar perfil.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 🧾 Obter perfil logado
-  // ===============================
-  async getProfile(req, res) {
-    try {
-      const user = await this.dataManager.getUserById(req.user._id);
-      if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Usuário não encontrado." });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: this.sanitizeUser(user),
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao buscar perfil.",
-        error: error.message,
-      });
-    }
-  }
-
-  // ===============================
-  // 🧰 Métodos auxiliares
-  // ===============================
-  async hashPassword(password) {
-    const saltRounds = 10;
-    return await bcrypt.hash(password, saltRounds);
-  }
-
-  async verifyPassword(password, hashedPassword) {
-    return await bcrypt.compare(password, hashedPassword);
-  }
-
-  sanitizeUser(user) {
-    // eslint-disable-next-line no-unused-vars
-    const { password, resetToken, resetTokenExpiry, ...sanitized } = user;
-    return sanitized;
-  }
-
-  async sendWelcomeEmail(user) {
-    console.log(`📧 Email de boas-vindas enviado para ${user.email}`);
-  }
-
-  async sendPasswordResetEmail(user, token) {
-    console.log(
-      `📧 Email de redefinição enviado para ${user.email} com token: ${token}`
-    );
-  }
-
-  async sendPasswordChangedEmail(user) {
-    console.log(`📧 Notificação de senha alterada enviada para ${user.email}`);
-  }
-
-  async logFailedLoginAttempt(userId, ip) {
-    console.log(
-      `❌ Tentativa de login falhou para o usuário ${userId} de ${ip}`
-    );
-  }
-
-  async logLoginActivity(userId, ip) {
-    console.log(`✅ Usuário ${userId} fez login de ${ip}`);
-  }
-
-  async logLogoutActivity(userId, ip) {
-    console.log(`🚪 Usuário ${userId} fez logout de ${ip}`);
-  }
-}
-
-// Validações agora são feitas com authSchemas (utils/validationSchemas)
-// A classe AuthValidator foi removida pois não estava sendo utilizada
-// As validações estão no método validateRequest usando Joi schemas
-
-// ===========================================
-// Exportações
-// ===========================================
-// Criar método de login simplificado sem dependências de classe
-const login = async (req, res) => {
+/**
+ * Gerar token JWT
+ */
+const generateToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  });
+};
+
+/**
+ * Sanitizar dados do usuário
+ */
+const sanitizeUser = (user) => {
+  const userObj = user.toObject();
+  delete userObj.password;
+  delete userObj.twoFactorSecret;
+  return userObj;
+};
+
+/**
+ * Login de usuário
+ */
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Log para debug
+    console.log("🔐 [LOGIN] Tentativa de login:");
+    console.log("📧 Email:", email);
+    console.log("🌐 IP:", req.ip);
 
     // Validação básica
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email e senha são obrigatórios",
+        error: "Email e senha são obrigatórios",
       });
     }
 
-    // Buscar usuário no banco de dados
-    const User = require("../models/User");
-    const user = await User.findOne({ email: email.toLowerCase() }).select(
-      "+password"
-    );
+    // Buscar usuário no banco
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+    }).select("+password");
 
     if (!user) {
+      console.log("❌ [LOGIN] Usuário não encontrado:", email);
       return res.status(401).json({
         success: false,
-        message: "Credenciais inválidas",
+        error: "Credenciais inválidas",
       });
     }
 
-    // Comparar senha
-    let isPasswordValid;
-    try {
-      isPasswordValid = await user.comparePassword(password);
-    } catch (compareError) {
-      logger.error("Password comparison error:", compareError);
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao validar credenciais",
-        error: compareError.message,
-      });
-    }
+    console.log("👤 [LOGIN] Usuário encontrado:", {
+      id: user._id,
+      email: user.email,
+      username: user.username,
+    });
+
+    // Verificar senha
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
+      console.log("❌ [LOGIN] Senha inválida para:", email);
       return res.status(401).json({
         success: false,
-        message: "Credenciais inválidas",
+        error: "Credenciais inválidas",
       });
     }
 
-    // Gerar token JWT
-    const token = jwt.sign(
-      { email: user.email, id: user._id, username: user.username },
-      process.env.JWT_SECRET ||
-        "chave_secreta_muito_segura_para_autenticacao_jwt",
-      { expiresIn: "24h" }
-    );
+    // Verificar se a conta está ativa
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        error: "Conta desativada",
+      });
+    }
+
+    // Verificar se o usuário está bloqueado
+    if (user.isBlocked) {
+      console.log("❌ [LOGIN] Usuário bloqueado:", email);
+      return res.status(403).json({
+        success: false,
+        error: "Sua conta foi bloqueada",
+        reason: user.blockReason || "Motivo não informado",
+      });
+    }
+
+    // Gerar token
+    const tokenPayload = {
+      id: user._id,
+      email: user.email,
+      username: user.username,
+      isAdmin: user.isAdmin,
+      role: user.role,
+    };
+
+    const token = generateToken(tokenPayload);
 
     // Atualizar último login
     user.lastLogin = new Date();
     await user.save();
 
+    console.log("✅ [LOGIN] Login realizado com sucesso para:", email);
+
+    // Log de segurança
+    logger.info(`Login realizado com sucesso: ${email}`, {
+      userId: user._id,
+      ip: req.ip,
+      userAgent: req.get("User-Agent"),
+    });
+
     return res.status(200).json({
       success: true,
-      message: "Login realizado com sucesso!",
+      message: "Login realizado com sucesso",
       data: {
-        token,
-        user: {
-          email: user.email,
-          username: user.username,
-          fullName: user.fullName,
-        },
+        user: sanitizeUser(user),
+        token: token,
       },
     });
   } catch (error) {
-    logger.error("Login error:", error);
+    console.error("❌ [LOGIN] Erro:", error);
+    logger.error("Erro no login:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Erro ao fazer login",
-      error: error.message,
+      error: "Erro interno do servidor",
     });
   }
 };
 
-const register = async (req, res) => {
+/**
+ * Registro de novo usuário
+ */
+exports.register = async (req, res) => {
   try {
-    const { name, email, password, confirmPassword, username } = req.body;
+    const { username, email, fullName, password } = req.body;
 
-    // Validações
-    if (!email || !password || !name) {
+    // Validação básica
+    if (!username || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Nome, email e senha são obrigatórios",
+        error: "Username, email e senha são obrigatórios",
       });
     }
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "As senhas não coincidem",
-      });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: "Senha deve ter no mínimo 8 caracteres",
-      });
-    }
-
-    // Verificar se usuário já existe
-    const User = require("../models/User");
+    // Verificar se já existe usuário
     const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { username: username || email }],
+      $or: [
+        { email: email.toLowerCase() },
+        { username: username.toLowerCase() },
+      ],
     });
 
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: "Usuário com este email ou username já existe",
+        error: "Email ou username já está em uso",
       });
     }
 
-    // Criar novo usuário
+    // Hash da senha
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Criar usuário
     const newUser = new User({
+      username: username.toLowerCase(),
       email: email.toLowerCase(),
-      username: username || email.split("@")[0],
-      password: password,
-      fullName: name,
+      fullName: fullName || username,
+      password: hashedPassword,
+      isActive: true,
+      emailVerified: true, // Por simplicidade, vamos considerar verificado
+      subscription: {
+        plan: "free",
+        status: "active",
+      },
     });
 
     await newUser.save();
 
-    // Gerar token JWT
-    const token = jwt.sign(
-      { email: newUser.email, id: newUser._id, username: newUser.username },
-      process.env.JWT_SECRET ||
-        "chave_secreta_muito_segura_para_autenticacao_jwt",
-      { expiresIn: "24h" }
-    );
+    // Gerar token
+    const tokenPayload = {
+      id: newUser._id,
+      email: newUser.email,
+      username: newUser.username,
+      isAdmin: newUser.isAdmin,
+      role: newUser.role,
+    };
+
+    const token = generateToken(tokenPayload);
+
+    logger.info(`Novo usuário registrado: ${email}`, {
+      userId: newUser._id,
+      ip: req.ip,
+    });
 
     return res.status(201).json({
       success: true,
-      message: "Cadastro realizado com sucesso!",
+      message: "Usuário criado com sucesso",
       data: {
-        token,
-        user: {
-          email: newUser.email,
-          username: newUser.username,
-          fullName: newUser.fullName,
-        },
+        user: sanitizeUser(newUser),
+        token: token,
       },
     });
   } catch (error) {
-    logger.error("Register error:", error);
+    console.error("❌ [REGISTER] Erro:", error);
+    logger.error("Erro no registro:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Erro ao registrar",
-      error: error.message,
+      error: "Erro interno do servidor",
     });
   }
 };
 
-const logout = (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Logout realizado com sucesso",
-  });
-};
-
-const refreshToken = (req, res) => {
+/**
+ * Logout (placeholder)
+ */
+exports.logout = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-      return res.status(400).json({
-        success: false,
-        message: "Refresh token é obrigatório",
-      });
-    }
-
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_SECRET ||
-        "chave_secreta_muito_segura_para_autenticacao_jwt"
-    );
-
-    const newToken = jwt.sign(
-      { email: decoded.email, id: decoded.id },
-      process.env.JWT_SECRET ||
-        "chave_secreta_muito_segura_para_autenticacao_jwt",
-      { expiresIn: "24h" }
-    );
-
-    res.json({ success: true, token: newToken });
-  } catch (error) {
-    res.status(401).json({ success: false, message: "Token inválido" });
-  }
-};
-
-const forgotPassword = (req, res) => {
-  res.json({
-    success: true,
-    message: "Email de recuperação será implementado em breve",
-  });
-};
-
-const resetPassword = (req, res) => {
-  res.json({
-    success: true,
-    message: "Reset de senha será implementado em breve",
-  });
-};
-
-const verifyAccount = (req, res) => {
-  res.json({
-    success: true,
-    message: "Verificação de email será implementada em breve",
-  });
-};
-
-// Obter perfil do usuário autenticado
-const getProfile = async (req, res) => {
-  try {
-    const User = require("../models/User");
-
-    // O middleware authenticate já adicionou req.user
-    const userId = req.user.id || req.user._id;
-
-    const user = await User.findById(userId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Usuário não encontrado",
-      });
-    }
+    // Para JWT, o logout é principalmente do lado do cliente
+    // Aqui podemos implementar uma blacklist de tokens se necessário
 
     return res.status(200).json({
       success: true,
-      data: user,
+      message: "Logout realizado com sucesso",
     });
   } catch (error) {
-    logger.error("Get profile error:", error);
+    console.error("❌ [LOGOUT] Erro:", error);
+
     return res.status(500).json({
       success: false,
-      message: "Erro ao carregar perfil",
-      error: error.message,
+      error: "Erro interno do servidor",
     });
   }
 };
 
-// Middleware de autenticação
-const authenticate = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Token não fornecido" });
-  }
-
+/**
+ * Refresh Token (placeholder)
+ */
+exports.refreshToken = async (req, res) => {
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET ||
-        "chave_secreta_muito_segura_para_autenticacao_jwt"
-    );
-    req.user = decoded;
-    next();
+    // Implementar lógica de refresh token se necessário
+
+    return res.status(501).json({
+      success: false,
+      error: "Não implementado",
+    });
   } catch (error) {
-    return res.status(401).json({ success: false, message: "Token inválido" });
+    return res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor",
+    });
   }
 };
 
-module.exports = {
-  AuthController,
-  authenticate,
-  login,
-  register,
-  logout,
-  refreshToken,
-  forgotPassword,
-  resetPassword,
-  verifyAccount,
-  getProfile,
+/**
+ * Esqueci a senha (placeholder)
+ */
+exports.forgotPassword = async (req, res) => {
+  return res.status(501).json({
+    success: false,
+    error: "Funcionalidade não implementada",
+  });
+};
+
+/**
+ * Redefinir senha (placeholder)
+ */
+exports.resetPassword = async (req, res) => {
+  return res.status(501).json({
+    success: false,
+    error: "Funcionalidade não implementada",
+  });
+};
+
+/**
+ * Verificar conta (placeholder)
+ */
+exports.verifyAccount = async (req, res) => {
+  return res.status(501).json({
+    success: false,
+    error: "Funcionalidade não implementada",
+  });
+};
+
+/**
+ * Middleware de autenticação
+ */
+exports.authenticate = async (req, res, next) => {
+  try {
+    const authorization = req.headers.authorization;
+
+    if (!authorization) {
+      return res.status(401).json({
+        success: false,
+        error: "Token de acesso requerido",
+      });
+    }
+
+    const token = authorization.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: "Token de acesso requerido",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: "Usuário não encontrado",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        error: "Conta desativada",
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("❌ [AUTH] Erro:", error);
+
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        error: "Token inválido",
+      });
+    }
+
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        error: "Token expirado",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor",
+    });
+  }
+};
+
+/**
+ * Obter perfil do usuário
+ */
+exports.getProfile = async (req, res) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      data: sanitizeUser(req.user),
+    });
+  } catch (error) {
+    console.error("❌ [PROFILE] Erro:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor",
+    });
+  }
 };

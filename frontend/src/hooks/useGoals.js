@@ -4,9 +4,7 @@
  */
 
 import { useState, useCallback } from "react";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+import api from "../services/api";
 
 export const useGoals = () => {
   const [goals, setGoals] = useState([]);
@@ -14,106 +12,83 @@ export const useGoals = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Obter token de autorização
-  const getAuthHeader = useCallback(() => {
-    const token = localStorage.getItem("finance_flow_token");
-    return {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
+  // Listar metas
+  const listGoals = useCallback(async (filters = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams();
+      if (filters.status) params.append("status", filters.status);
+      if (filters.sortBy) params.append("sortBy", filters.sortBy);
+
+      const response = await api.get(
+        `/goals${params.toString() ? "?" + params.toString() : ""}`
+      );
+
+      if (response.data.data) {
+        const goalsData = Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
+        setGoals(goalsData);
+      }
+
+      return response.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message;
+      setError(errorMsg);
+      console.error("Erro ao listar metas:", errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Listar metas
-  const listGoals = useCallback(
-    async (filters = {}) => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const params = new URLSearchParams();
-        if (filters.status) params.append("status", filters.status);
-        if (filters.sortBy) params.append("sortBy", filters.sortBy);
-
-        const response = await axios.get(
-          `${API_URL}/goals${params.toString() ? "?" + params.toString() : ""}`,
-          { headers: getAuthHeader() }
-        );
-
-        if (response.data.data) {
-          const goalsData = Array.isArray(response.data.data)
-            ? response.data.data
-            : [];
-          setGoals(goalsData);
-        }
-
-        return response.data;
-      } catch (err) {
-        const errorMsg = err.response?.data?.message || err.message;
-        setError(errorMsg);
-        console.error("Erro ao listar metas:", errorMsg);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getAuthHeader]
-  );
-
   // Criar meta
-  const createGoal = useCallback(
-    async (goalData) => {
-      try {
-        setLoading(true);
-        setError(null);
+  const createGoal = useCallback(async (goalData) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await axios.post(`${API_URL}/goals`, goalData, {
-          headers: getAuthHeader(),
-        });
+      const response = await api.post("/goals", goalData);
 
-        if (response.data.data) {
-          setGoals((prev) => [...prev, response.data.data]);
-        }
-
-        return response.data;
-      } catch (err) {
-        const errorMsg = err.response?.data?.message || err.message;
-        setError(errorMsg);
-        console.error("Erro ao criar meta:", errorMsg);
-        throw err;
-      } finally {
-        setLoading(false);
+      if (response.data.data) {
+        setGoals((prev) => [...prev, response.data.data]);
       }
-    },
-    [getAuthHeader]
-  );
+
+      return response.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message;
+      setError(errorMsg);
+      console.error("Erro ao criar meta:", errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Obter meta por ID
-  const getGoal = useCallback(
-    async (goalId) => {
-      try {
-        setLoading(true);
-        setError(null);
+  const getGoal = useCallback(async (goalId) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await axios.get(`${API_URL}/goals/${goalId}`, {
-          headers: getAuthHeader(),
-        });
+      const response = await api.get(`/goals/${goalId}`);
 
-        if (response.data.data) {
-          setCurrentGoal(response.data.data);
-        }
-
-        return response.data;
-      } catch (err) {
-        const errorMsg = err.response?.data?.message || err.message;
-        setError(errorMsg);
-        console.error("Erro ao obter meta:", errorMsg);
-        throw err;
-      } finally {
-        setLoading(false);
+      if (response.data.data) {
+        setCurrentGoal(response.data.data);
       }
-    },
-    [getAuthHeader]
-  );
+
+      return response.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message;
+      setError(errorMsg);
+      console.error("Erro ao obter meta:", errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Atualizar meta
   const updateGoal = useCallback(
@@ -122,11 +97,7 @@ export const useGoals = () => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.put(
-          `${API_URL}/goals/${goalId}`,
-          updateData,
-          { headers: getAuthHeader() }
-        );
+        const response = await api.put(`/goals/${goalId}`, updateData);
 
         if (response.data.data) {
           setGoals((prev) =>
@@ -152,7 +123,7 @@ export const useGoals = () => {
         setLoading(false);
       }
     },
-    [currentGoal, getAuthHeader]
+    [currentGoal]
   );
 
   // Deletar meta
@@ -162,9 +133,7 @@ export const useGoals = () => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.delete(`${API_URL}/goals/${goalId}`, {
-          headers: getAuthHeader(),
-        });
+        const response = await api.delete(`/goals/${goalId}`);
 
         setGoals((prev) =>
           prev.filter((g) => g._id !== goalId && g.id !== goalId)
@@ -187,7 +156,7 @@ export const useGoals = () => {
         setLoading(false);
       }
     },
-    [currentGoal, getAuthHeader]
+    [currentGoal]
   );
 
   // Adicionar contribuição à meta
@@ -197,11 +166,9 @@ export const useGoals = () => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.post(
-          `${API_URL}/goals/${goalId}/contribute`,
-          { amount },
-          { headers: getAuthHeader() }
-        );
+        const response = await api.post(`/goals/${goalId}/contribute`, {
+          amount,
+        });
 
         if (response.data.data) {
           setGoals((prev) =>
@@ -227,7 +194,7 @@ export const useGoals = () => {
         setLoading(false);
       }
     },
-    [currentGoal, getAuthHeader]
+    [currentGoal]
   );
 
   // Marcar meta como concluída
@@ -237,11 +204,7 @@ export const useGoals = () => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.post(
-          `${API_URL}/goals/${goalId}/complete`,
-          {},
-          { headers: getAuthHeader() }
-        );
+        const response = await api.post(`/goals/${goalId}/complete`, {});
 
         if (response.data.data) {
           setGoals((prev) =>
@@ -267,7 +230,7 @@ export const useGoals = () => {
         setLoading(false);
       }
     },
-    [currentGoal, getAuthHeader]
+    [currentGoal]
   );
 
   // Calcular progresso em percentual
@@ -283,9 +246,7 @@ export const useGoals = () => {
       setLoading(true);
       setError(null);
 
-      const response = await axios.get(`${API_URL}/goals/stats`, {
-        headers: getAuthHeader(),
-      });
+      const response = await api.get("/goals/stats");
 
       return response.data;
     } catch (err) {
@@ -296,7 +257,7 @@ export const useGoals = () => {
     } finally {
       setLoading(false);
     }
-  }, [getAuthHeader]);
+  }, []);
 
   return {
     goals,

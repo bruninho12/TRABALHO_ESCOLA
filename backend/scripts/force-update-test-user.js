@@ -12,9 +12,9 @@ async function forceUpdateTestUser() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ Conectado ao MongoDB");
 
-    const testEmail = "test_user_92801501@testuser.com";
-    const testUsername = "testuser_mp";
-    const testPassword = "Teste@123";
+    const testEmail = "souzacostabruno008@gmail.com";
+    const testUsername = "Bruno Souza";
+    const testPassword = "Bruninho007@";
 
     let user = await User.findOne({
       $or: [{ email: testEmail }, { username: testUsername }],
@@ -25,9 +25,9 @@ async function forceUpdateTestUser() {
       user.email = testEmail;
       user.password = testPassword;
       user.isVerified = true;
-      user.fullName = "Usuário de Teste MercadoPago";
+      user.fullName = "Bruno Souza";
       user.subscription = {
-        plan: "bronze",
+        plan: "gold",
         status: "active",
         startDate: new Date(),
       };
@@ -38,10 +38,10 @@ async function forceUpdateTestUser() {
         username: testUsername,
         email: testEmail,
         password: testPassword,
-        fullName: "Usuário de Teste MercadoPago",
+        fullName: "Bruno Souza",
         isVerified: true,
         subscription: {
-          plan: "bronze",
+          plan: "gold",
           status: "active",
           startDate: new Date(),
         },
