@@ -5,10 +5,7 @@
 const express = require("express");
 const exportController = require("../controllers/exportController");
 const { authenticate } = require("../controllers/authController");
-const {
-  checkPremium,
-  addSubscriptionInfo,
-} = require("../middleware/checkPremium");
+const { checkPremium } = require("../middleware/checkPremium");
 
 const router = express.Router();
 

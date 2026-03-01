@@ -31,7 +31,6 @@ const PaymentSuccess = () => {
   }, []);
 
   const paymentId = searchParams.get("payment_id");
-  const preferenceId = searchParams.get("preference_id");
 
   return (
     <Box

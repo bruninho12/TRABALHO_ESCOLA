@@ -11,9 +11,12 @@ const logger = require("../utils/logger");
  */
 const checkPremium = async (req, res, next) => {
   try {
-    const userId = req.user.id || req.user._id;
-
+    const userId = req.user._id;
     const user = await User.findById(userId);
+
+    // Log detalhado do usuário e assinatura
+    console.log("[checkPremium] user:", user);
+    console.log("[checkPremium] subscription:", user?.subscription);
 
     if (!user) {
       return res.status(404).json({

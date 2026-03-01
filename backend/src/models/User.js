@@ -161,11 +161,37 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // Campos de administração
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin", "super_admin"],
+      default: "user",
+    },
+    adminNotes: {
+      type: String,
+      default: null,
+    },
+    lastAdminAction: {
+      action: String,
+      performedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      date: {
+        type: Date,
+        default: null,
+      },
+      details: String,
+    },
     subscription: {
       plan: {
         type: String,
-        enum: ["free", "bronze", "silver", "gold"],
-        default: "free",
+        enum: ["free", "bronze", "silver", "gold", "platinum"],
+        default: "bronze",
       },
       status: {
         type: String,
@@ -231,6 +257,31 @@ const userSchema = new mongoose.Schema(
         default: null,
       },
     },
+    paymentMethods: [
+      {
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          default: () => new mongoose.Types.ObjectId(),
+        },
+        type: {
+          type: String,
+          enum: ["card", "pix"],
+          default: "card",
+        },
+        last4: String,
+        brand: String,
+        expiryMonth: String,
+        expiryYear: String,
+        isDefault: {
+          type: Boolean,
+          default: false,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     paymentHistory: [
       {
         paymentId: {
@@ -265,7 +316,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Índices para performance (removidos duplicados de campos unique)
+// Índices para performance
 // userSchema.index({ username: 1 }); // Já é unique no schema
 userSchema.index({ createdAt: -1 });
 userSchema.index({ level: -1, score: -1 }); // Para leaderboards

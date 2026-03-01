@@ -15,12 +15,22 @@ exports.authenticate = async (req, res, next) => {
       return res.status(401).json({ message: "Token não fornecido" });
     }
 
-    // Verificar se o token é válido
-    const decoded = jwt.verify(
-      token,
+    // Resolver segredo JWT (não permitir fallback em produção)
+    const jwtSecret =
       process.env.JWT_SECRET ||
-        "chave_secreta_muito_segura_para_autenticacao_jwt"
-    );
+      (process.env.NODE_ENV !== "production"
+        ? "chave_secreta_muito_segura_para_autenticacao_jwt"
+        : null);
+
+    if (!jwtSecret) {
+      return res.status(500).json({
+        message:
+          "Configuração de segurança inválida: JWT_SECRET não definido",
+      });
+    }
+
+    // Verificar se o token é válido
+    const decoded = jwt.verify(token, jwtSecret);
     if (!decoded) {
       return res.status(401).json({ message: "Token inválido" });
     }
@@ -31,7 +41,17 @@ exports.authenticate = async (req, res, next) => {
       return res.status(401).json({ message: "Usuário não encontrado" });
     }
 
+    // Verificar se o usuário está bloqueado
+    if (user.isBlocked) {
+      return res.status(403).json({
+        message: "Sua conta foi bloqueada",
+        reason: user.blockReason || "Motivo não informado",
+      });
+    }
+
     // Adicionar o usuário ao objeto da requisição
+    // Garantir consistência entre `_id` (ObjectId) e `id` (string)
+    user.id = user._id.toString();
     req.user = user;
     next();
   } catch (error) {
@@ -46,3 +66,4 @@ exports.authenticate = async (req, res, next) => {
       .json({ message: "Erro na autenticação", error: error.message });
   }
 };
+

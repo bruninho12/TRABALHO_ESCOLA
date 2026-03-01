@@ -6,35 +6,11 @@
 version: "3.8"
 
 services:
-  # 📊 MongoDB Database
-  mongodb:
-    image: mongo:7.0-jammy
-    container_name: despfinancee-mongodb
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
-      MONGO_INITDB_DATABASE: despfinancee
-    volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-      - ./backend/scripts/database/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    networks:
-      - despfinancee-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-
-  # 🔧 Backend API
+  # � Backend API
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
       target: ${NODE_ENV:-development}
     container_name: despfinancee-backend
     restart: unless-stopped
@@ -43,17 +19,13 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3001
-      MONGO_URI: mongodb://mongodb:27017/despfinancee
       JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_change_in_production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your_refresh_secret}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
     volumes:
-      - ./backend:/app
+      - ../../backend:/app
       - /app/node_modules
       - backend_logs:/app/logs
-    depends_on:
-      mongodb:
-        condition: service_healthy
     networks:
       - despfinancee-network
     healthcheck:
@@ -66,8 +38,8 @@ services:
   # 🎨 Frontend React
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: ../../frontend
+      dockerfile: ../deployment/docker/Dockerfile.frontend
       target: ${NODE_ENV:-development}
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
@@ -78,7 +50,7 @@ services:
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
     volumes:
-      - ./frontend:/app
+      - ../../frontend:/app
       - /app/node_modules
       - /app/dist
     depends_on:
@@ -118,7 +90,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      - ../../deployment/docker/ssl:/etc/nginx/ssl:ro
       - frontend_dist:/usr/share/nginx/html
     depends_on:
       - frontend
@@ -129,10 +101,6 @@ services:
       - production
 
 volumes:
-  mongodb_data:
-    driver: local
-  mongodb_config:
-    driver: local
   backend_logs:
     driver: local
   redis_data:

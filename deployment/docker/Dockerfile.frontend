@@ -4,7 +4,7 @@
 # ==========================================
 
 # Stage 1: Base image
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 WORKDIR /app
 
 # Instalar dependências do sistema
@@ -27,7 +27,6 @@ RUN npm ci
 FROM dev-dependencies AS development
 COPY . .
 EXPOSE 5173
-USER node
 CMD ["dumb-init", "npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
 # Stage 5: Build

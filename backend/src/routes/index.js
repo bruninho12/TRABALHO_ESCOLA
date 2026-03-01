@@ -14,6 +14,7 @@ const notificationRoutes = require("./notificationRoutes");
 const recurringTransactionRoutes = require("./recurringTransactionRoutes");
 // const emailVerificationRoutes = require("./emailVerification");
 const feedbackRoutes = require("./feedbackRoutes"); // Importa a nova rota
+const adminRoutes = require("./adminRoutes"); // Rotas administrativas
 
 const router = express.Router();
 
@@ -43,5 +44,6 @@ router.use("/notifications", notificationRoutes);
 router.use("/recurring", recurringTransactionRoutes);
 // router.use("/email", emailVerificationRoutes);
 router.use("/feedback", feedbackRoutes); // Usa a nova rota
+router.use("/admin", adminRoutes); // Painel administrativo
 
 module.exports = router;

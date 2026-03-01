@@ -10,12 +10,11 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
 import process from "process";
 
 // Compatibilidade ESM
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 console.log("🚀 Iniciando DespFinancee...\n");
 

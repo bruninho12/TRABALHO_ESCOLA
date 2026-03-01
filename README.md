@@ -1,13 +1,5 @@
 # 💰 DespFinancee - Gerenciador de Finanças Pessoais
 
-[![Node.js](https://img.shields.io/badge/Node.js-16%2B-green)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green)](https://www.mongodb.com/)
-[![Security](https://img.shields.io/badge/Security-94%2F100-brightgreen)](docs/security/)
-[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Ready_to_Deploy-success)](CHECKLIST_PUBLICACAO.md)
-[![Frontend](https://img.shields.io/badge/Frontend-0_Vulnerabilities-brightgreen)](#)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 > Uma aplicação web completa para gerenciamento e controle de finanças pessoais com dashboard interativo, análise de gastos, gamificação e sistema de pagamentos integrado.
 
@@ -59,7 +51,7 @@ cd DespFinancee
 ```bash
 cd backend
 npm install
-cp .env.example .env
+cp ../config/.env.backend.example .env
 # Configure suas variáveis no .env
 npm run db:setup
 npm run seed
@@ -71,7 +63,7 @@ npm run dev
 ```bash
 cd frontend
 npm install
-cp .env.example .env
+cp ../config/.env.frontend.example .env
 # Configure VITE_API_URL no .env
 npm run dev
 ```
@@ -91,7 +83,7 @@ npm run dev
 
 ```
 DespFinancee/
-├── 📁 config/                  # Configurações centralizadas
+├── 📁 config/                  # Configurações centralizadas (.env.example)
 ├── 📁 docs/                    # Documentação completa
 │   ├── 📁 guides/              # Guias de setup e uso
 │   ├── 📁 security/            # Documentação de segurança
@@ -107,13 +99,16 @@ DespFinancee/
 │   │   ├── 📁 middleware/      # Middlewares (auth, validation, security)
 │   │   ├── 📁 models/          # Modelos Mongoose
 │   │   ├── 📁 routes/          # Rotas da API
+│   │   ├── 📁 services/        # Serviços de negócio (insights, etc)
 │   │   ├── 📁 utils/           # Utilitários (logger, email, validation)
 │   │   └── 📁 swagger/         # Documentação API
 │   ├── 📁 scripts/             # Scripts de manutenção
 │   │   ├── 📁 database/        # Scripts de banco de dados
-│   │   └── 📁 setup/           # Scripts de configuração
-│   ├── 📁 logs/                # Logs da aplicação
-│   └── 📁 templates/           # Templates de email
+│   │   ├── 📁 setup/           # Scripts de configuração
+│   │   ├── 📁 rpg/             # Scripts do sistema RPG
+│   │   └── 📁 tests/           # Scripts de teste
+│   ├── 📁 logs/                # Logs do sistema (apenas README)
+│   └── 📁 exports/             # Exports temporários
 └── 📁 frontend/                # React + Vite
     ├── 📁 src/                 # Código fonte
     │   ├── 📁 components/      # Componentes React
@@ -124,11 +119,11 @@ DespFinancee/
     │   ├── 📁 config/          # Configurações do cliente
     │   ├── 📁 utils/           # Funções auxiliares
     │   ├── 📁 styles/          # Estilos globais
-    │   ├── 📁 tests/           # Testes
+    │   ├── 📁 tests/           # Testes (incluindo scripts movidos)
     │   └── 📁 assets/          # Assets estáticos
     │       ├── 📁 images/      # Imagens
     │       └── 📁 icons/       # Ícones
-    └── 📁 public/              # Arquivos públicos
+    └── 📁 public/              # Arquivos públicos (PWA)
 ```
 
 ## 🛠️ Stack Tecnológico

@@ -196,8 +196,8 @@ checkPackageJson("frontend/package.json", [
 
 // 8. VARIÁVEIS DE AMBIENTE
 log.title("🔐 8. VARIÁVEIS DE AMBIENTE (Exemplos)");
-checkFileExists("backend/.env.example", "Backend .env.example");
-checkFileExists("frontend/.env.example", "Frontend .env.example");
+checkFileExists("config/.env.backend.example", "Backend .env.example");
+checkFileExists("config/.env.frontend.example", "Frontend .env.example");
 
 log.info("Verificando variáveis obrigatórias no .env.example...");
 const backendRequiredVars = [
@@ -208,7 +208,7 @@ const backendRequiredVars = [
   "CORS_ORIGIN",
 ];
 
-checkEnvVariables("backend/.env.example", backendRequiredVars);
+checkEnvVariables("config/.env.backend.example", backendRequiredVars);
 
 // 9. LINT E BUILD
 log.title("🔍 9. QUALIDADE DE CÓDIGO");

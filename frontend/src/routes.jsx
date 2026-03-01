@@ -5,21 +5,24 @@ import { PrivateRoute } from "./components/PrivateRoute";
 import LoadingSpinner from "./components/LoadingSpinner";
 
 // Lazy loading das páginas para otimização de bundle
-const Dashboard = React.lazy(() => import("./pages/Dashboard"));
-const Transactions = React.lazy(() => import("./pages/Transactions"));
-const Login = React.lazy(() => import("./pages/Login"));
-const Register = React.lazy(() => import("./pages/Register"));
-const Goals = React.lazy(() => import("./pages/Goals"));
-const Payments = React.lazy(() => import("./pages/Payments"));
-const Reports = React.lazy(() => import("./pages/Reports"));
-const Settings = React.lazy(() => import("./pages/Settings"));
-const RPG = React.lazy(() => import("./pages/RPG"));
-const Insights = React.lazy(() => import("./pages/Insights"));
-const Landing = React.lazy(() => import("./pages/NewLanding"));
-const ResponsiveTest = React.lazy(() => import("./pages/ResponsiveTest"));
-const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
-const PaymentFailure = React.lazy(() => import("./pages/PaymentFailure"));
-const PaymentPending = React.lazy(() => import("./pages/PaymentPending"));
+const Dashboard = React.lazy(() => import("@pages/Dashboard"));
+const Transactions = React.lazy(() => import("@pages/Transactions"));
+const Login = React.lazy(() => import("@pages/Login"));
+const Register = React.lazy(() => import("@pages/Register"));
+const Goals = React.lazy(() => import("@pages/Goals"));
+const Payments = React.lazy(() => import("@pages/Payments"));
+const Pricing = React.lazy(() => import("@pages/Pricing"));
+const Reports = React.lazy(() => import("@pages/Reports"));
+const Settings = React.lazy(() => import("@pages/Settings"));
+const RPG = React.lazy(() => import("@pages/RPG"));
+const Insights = React.lazy(() => import("@pages/Insights"));
+const Landing = React.lazy(() => import("@pages/NewLanding"));
+const ResponsiveTest = React.lazy(() => import("@pages/ResponsiveTest"));
+const PaymentSuccess = React.lazy(() => import("@pages/PaymentSuccess"));
+const PaymentFailure = React.lazy(() => import("@pages/PaymentFailure"));
+const PaymentSettings = React.lazy(() => import("@pages/PaymentSettings"));
+const PaymentPending = React.lazy(() => import("@pages/PaymentPending"));
+const AdminPanel = React.lazy(() => import("@pages/AdminPanel/AdminPanel"));
 
 // Wrapper para Suspense
 const SuspenseWrapper = ({ children }) => (
@@ -77,6 +80,14 @@ export const router = createBrowserRouter(
           ),
         },
         {
+          path: "pricing",
+          element: (
+            <SuspenseWrapper>
+              <Pricing />
+            </SuspenseWrapper>
+          ),
+        },
+        {
           path: "reports",
           element: (
             <SuspenseWrapper>
@@ -109,10 +120,26 @@ export const router = createBrowserRouter(
           ),
         },
         {
+          path: "payment-settings",
+          element: (
+            <SuspenseWrapper>
+              <PaymentSettings />
+            </SuspenseWrapper>
+          ),
+        },
+        {
           path: "responsive-test",
           element: (
             <SuspenseWrapper>
               <ResponsiveTest />
+            </SuspenseWrapper>
+          ),
+        },
+        {
+          path: "admin",
+          element: (
+            <SuspenseWrapper>
+              <AdminPanel />
             </SuspenseWrapper>
           ),
         },

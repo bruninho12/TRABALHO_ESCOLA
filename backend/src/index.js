@@ -22,28 +22,38 @@ app.use(helmet());
 // Compressão para reduzir tamanho das respostas
 app.use(compression());
 
+// Resolve lista de origens permitidas a partir das variáveis de ambiente
+const getAllowedOrigins = () => {
+  if (process.env.CORS_ORIGIN) {
+    return process.env.CORS_ORIGIN.split(",")
+      .map((o) => o.trim())
+      .filter(Boolean);
+  }
+
+  return [
+    "http://localhost:5173", // Vite dev server
+    "http://127.0.0.1:5173", // Vite dev server
+    "http://192.168.100.7:5173", // Vite dev server via rede
+    "http://localhost:8080",
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "http://127.0.0.1:1500",
+    "http://localhost:1500",
+    "http://localhost:3000", // React dev server alternativo
+  ];
+};
+
 // Configuração de CORS
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Lista de origens permitidas
-    const allowedOrigins = [
-      "http://localhost:5173", // Vite dev server
-      "http://127.0.0.1:5173", // Vite dev server
-      "http://192.168.100.7:5173", // Vite dev server via rede
-      "http://localhost:8080",
-      "http://127.0.0.1:5500",
-      "http://localhost:5500",
-      "http://127.0.0.1:1500",
-      "http://localhost:1500",
-      "http://localhost:3000", // React dev server alternativo
-    ];
-
-    // Em modo de desenvolvimento, aceitar todas as origens
+  origin(origin, callback) {
+    // Em modo de desenvolvimento, aceitar todas as origens (ou requisições sem origin, ex: Postman)
     if (process.env.NODE_ENV === "development" || !origin) {
       return callback(null, true);
     }
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    const allowedOrigins = getAllowedOrigins();
+
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.warn(`Origem bloqueada pelo CORS: ${origin}`);
@@ -86,13 +96,23 @@ app.use(
   }
 );
 
-// Parser para JSON (rotas normais)
-app.use(express.json());
+app.use(
+  express.json({
+    limit: "50mb",
+    strict: false,
+    type: "application/json",
+  })
+);
 
-// Parser para dados de formulários
-app.use(express.urlencoded({ extended: true }));
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "50mb",
+    parameterLimit: 50000,
+  })
+);
 
-// Logs de requisições em ambiente de desenvolvimento
+// Logs de dev
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -100,10 +120,12 @@ if (process.env.NODE_ENV === "development") {
 // Rate limiting para prevenir abusos
 let rateLimitEnabled = true;
 if (
-  process.env.NODE_ENV === "production" &&
-  process.env.RATE_LIMIT_DISABLE === "true"
+  process.env.NODE_ENV === "development" ||
+  (process.env.NODE_ENV === "production" &&
+    process.env.RATE_LIMIT_DISABLE === "true")
 ) {
   rateLimitEnabled = false;
+  console.log("⚠️ Rate limiting DESATIVADO (ambiente de desenvolvimento)");
 }
 
 if (rateLimitEnabled) {
@@ -131,9 +153,10 @@ app.use("/api", routes);
 
 // Servir arquivos estáticos em produção (frontend)
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../../frontend-react/dist")));
+  const frontendDistPath = path.join(__dirname, "../../frontend/dist");
+  app.use(express.static(frontendDistPath));
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend-react/dist/index.html"));
+    res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
 
@@ -147,3 +170,4 @@ connectDB().catch((err) => {
 });
 
 module.exports = app;
+

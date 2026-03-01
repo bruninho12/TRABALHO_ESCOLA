@@ -111,7 +111,7 @@ ChartJS.register(
   Title,
   ChartTooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 // Interface customizada para TabPanel
@@ -399,7 +399,7 @@ const PaymentsPage = () => {
           nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           status: "active",
           amount: 29.9,
-        }
+        },
       );
     } catch (error) {
       console.error("Erro ao carregar assinatura:", error);
@@ -465,7 +465,7 @@ const PaymentsPage = () => {
             `${apiUrl}/payments/subscription`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           setSubscription(
             subscriptionResponse.data.data || {
@@ -473,7 +473,7 @@ const PaymentsPage = () => {
               nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
               status: "active",
               amount: 29.9,
-            }
+            },
           );
         } catch (error) {
           console.error("Erro ao carregar assinatura:", error);
@@ -620,7 +620,7 @@ const PaymentsPage = () => {
         });
       }
     },
-    [payments]
+    [payments],
   );
 
   // Filtros aplicados
@@ -972,11 +972,14 @@ const PaymentsPage = () => {
               </Typography>
               <Typography variant={isMobile ? "body2" : "body1"}>
                 <strong>Próxima cobrança:</strong>{" "}
-                {format(
-                  new Date(subscription.nextBillingDate),
-                  "dd 'de' MMMM 'de' yyyy",
-                  { locale: ptBR }
-                )}
+                {subscription?.nextBillingDate &&
+                !isNaN(new Date(subscription.nextBillingDate).getTime())
+                  ? format(
+                      new Date(subscription.nextBillingDate),
+                      "dd 'de' MMMM 'de' yyyy",
+                      { locale: ptBR },
+                    )
+                  : "Data não disponível"}
               </Typography>
             </Box>
             <ResponsiveButton
@@ -1424,9 +1427,14 @@ const PaymentsPage = () => {
                     .map((payment) => (
                       <TableRow key={payment._id} hover>
                         <TableCell>
-                          {format(new Date(payment.date), "dd/MM/yyyy", {
-                            locale: ptBR,
-                          })}
+                          {(() => {
+                            const dateObj = payment.date
+                              ? new Date(payment.date)
+                              : null;
+                            return dateObj && !isNaN(dateObj)
+                              ? format(dateObj, "dd/MM/yyyy", { locale: ptBR })
+                              : "Data inválida";
+                          })()}
                         </TableCell>
                         <TableCell>{payment.description}</TableCell>
                         <TableCell>
@@ -1453,8 +1461,8 @@ const PaymentsPage = () => {
                               payment.status === "completed"
                                 ? "success"
                                 : payment.status === "pending"
-                                ? "warning"
-                                : "error"
+                                  ? "warning"
+                                  : "error"
                             }
                             icon={
                               payment.status === "completed" ? (

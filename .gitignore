@@ -41,8 +41,8 @@ config/.env.frontend
 
 # Manter os arquivos .example no controle de versão
 !.env.example
-!backend/.env.example
-!frontend/.env.example
+!config/.env.backend.example
+!config/.env.frontend.example
 !config/.env.backend.example
 !config/.env.frontend.example
 

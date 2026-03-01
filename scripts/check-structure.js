@@ -31,11 +31,8 @@ const expectedStructure = {
   "backend/": "directory",
   "backend/package.json": "file",
   "backend/server.js": "file",
-  "backend/.env.example": "file",
   "backend/src/": "directory",
   "backend/scripts/": "directory",
-  "backend/scripts/database/": "directory",
-  "backend/scripts/setup/": "directory",
   "backend/logs/": "directory",
   "frontend/": "directory",
   "frontend/package.json": "file",
@@ -44,7 +41,6 @@ const expectedStructure = {
   "frontend/src/assets/": "directory",
   "frontend/src/assets/icons/": "directory",
   "frontend/src/assets/images/": "directory",
-  "frontend/src/tests/": "directory",
 };
 
 function checkStructure() {
@@ -85,6 +81,10 @@ function checkStructure() {
     "scripts",
     "backend",
     "frontend",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "INDICE_DOCUMENTACAO.md",
+    "LICENSE",
     ".git",
     "node_modules",
     "package.json",

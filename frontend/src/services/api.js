@@ -5,15 +5,24 @@ import {
   DEFAULT_HEADERS,
   findWorkingApiUrl,
 } from "../config/api";
+import { SESSION_CONFIG } from "../config/security";
 
-// Detectar automaticamente a melhor API no carregamento
-let dynamicBaseURL = getApiUrl();
+// ---------------------------
+// 1. Criar Axios imediatamente
+// ---------------------------
+const api = axios.create({
+  baseURL: getApiUrl(), // Valor inicial
+  timeout: API_CONFIG.timeout,
+  headers: DEFAULT_HEADERS,
+});
 
-// Tentar encontrar API funcionando em background
+// ---------------------------
+// 2. Atualizar baseURL dinamicamente (ASSÍNCRONO)
+//    sem recriar o Axios
+// ---------------------------
 findWorkingApiUrl()
   .then((workingUrl) => {
-    if (workingUrl !== dynamicBaseURL) {
-      dynamicBaseURL = workingUrl;
+    if (workingUrl && workingUrl !== api.defaults.baseURL) {
       api.defaults.baseURL = workingUrl;
       console.log("🔄 API URL atualizada para:", workingUrl);
     }
@@ -22,52 +31,60 @@ findWorkingApiUrl()
     console.debug("🔍 Detecção de API em background falhou");
   });
 
-const api = axios.create({
-  baseURL: dynamicBaseURL,
-  timeout: API_CONFIG.timeout,
-  headers: DEFAULT_HEADERS,
-});
-
+// ---------------------------
+// 3. INTERCEPTOR DE REQUEST
+// ---------------------------
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("finance_flow_token");
+  // Incluir token se existir
+  const token = localStorage.getItem(SESSION_CONFIG.tokenKey);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Desabilitar cache para requisições GET
+  // Forçar requisição fresh para GET
   if (config.method === "get") {
     config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     config.headers["Pragma"] = "no-cache";
     config.headers["Expires"] = "0";
-    // Adicionar timestamp para força requisição fresh
+
+    // Timestamp evita cache do navegador
     config.params = config.params || {};
-    config.params.t = new Date().getTime();
+    config.params._t = Date.now();
   }
 
   return config;
 });
 
+// ---------------------------
+// 4. INTERCEPTOR DE RESPOSTA
+// ---------------------------
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    // Não logar erros de rede para reduzir ruído no console
-    if (error.code === "ECONNREFUSED" || error.code === "ERR_NETWORK") {
-      console.debug("API não disponível, modo offline");
+  (error) => {
+    // API offline
+    if (error.code === "ERR_NETWORK" || error.code === "ECONNREFUSED") {
+      console.debug("⚠️ API offline ou indisponível");
       return Promise.reject(new Error("API_OFFLINE"));
     }
 
+    // Token inválido ou expirado
     if (error.response?.status === 401) {
       localStorage.removeItem("finance_flow_token");
-      // Só redirecionar se não estiver já na página de login
+
       if (!window.location.pathname.includes("/login")) {
         window.location.href = "/login";
       }
     }
+
     return Promise.reject(error);
   }
 );
 
-// Serviço de autenticação
+// --------------------------------------------------
+// Serviços externos usando a mesma instância "api"
+// --------------------------------------------------
+
+// 🔐 Autenticação
 export const authService = {
   login: async (credentials) => {
     const response = await api.post("/auth/login", credentials);
@@ -83,7 +100,7 @@ export const authService = {
   },
 };
 
-// Serviço de categorias
+// 📂 Categorias
 export const categoryService = {
   getAll: async () => {
     const response = await api.get("/categories");
@@ -102,7 +119,7 @@ export const categoryService = {
   },
 };
 
-// Serviço de transações
+// 💸 Transações
 export const transactionService = {
   getAll: async () => {
     const response = await api.get("/transactions");
