@@ -39,42 +39,6 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet">
 
-    <!-- CSP dinâmico para desenvolvimento -->
-    <script>
-      (function () {
-        // Detectar se estamos em desenvolvimento
-        const hostname = window.location.hostname;
-        const isDev = hostname === 'localhost' ||
-          hostname === '127.0.0.1' ||
-          /^192\.168\./.test(hostname) ||
-          /^10\./.test(hostname) ||
-          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
-
-        console.log('🔍 Hostname:', hostname, 'isDev:', isDev);
-
-        if (isDev) {
-          // Para desenvolvimento: CSP muito permissiva
-          const devCSP = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * ws: wss:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';";
-
-          const cspMeta = document.createElement('meta');
-          cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
-          cspMeta.setAttribute('content', devCSP);
-          document.head.appendChild(cspMeta);
-
-          console.log('🔓 CSP de desenvolvimento aplicada - todas as conexões permitidas');
-        } else {
-          // Para produção: CSP restritiva
-          const prodCSP = "default-src 'self'; script-src 'self' https://js.stripe.com https://www.mercadopago.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.stripe.com https://api.mercadopago.com; frame-src https://js.stripe.com https://www.mercadopago.com;";
-
-          const cspMeta = document.createElement('meta');
-          cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
-          cspMeta.setAttribute('content', prodCSP);
-          document.head.appendChild(cspMeta);
-
-          console.log('🔒 CSP de produção aplicada');
-        }
-      })();
-    </script>
   </head>
 
   <body>
