@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import { PrivateRoute } from "./components/PrivateRoute";
 import LoadingSpinner from "./components/LoadingSpinner";
+import Landing from "@pages/NewLanding";
 
 // Lazy loading das páginas para otimização de bundle
 const Dashboard = React.lazy(() => import("@pages/Dashboard"));
@@ -16,7 +17,6 @@ const Reports = React.lazy(() => import("@pages/Reports"));
 const Settings = React.lazy(() => import("@pages/Settings"));
 const RPG = React.lazy(() => import("@pages/RPG"));
 const Insights = React.lazy(() => import("@pages/Insights"));
-const Landing = React.lazy(() => import("@pages/NewLanding"));
 const ResponsiveTest = React.lazy(() => import("@pages/ResponsiveTest"));
 const PaymentSuccess = React.lazy(() => import("@pages/PaymentSuccess"));
 const PaymentFailure = React.lazy(() => import("@pages/PaymentFailure"));
@@ -33,11 +33,7 @@ export const router = createBrowserRouter(
   [
     {
       path: "/",
-      element: (
-        <SuspenseWrapper>
-          <Landing />
-        </SuspenseWrapper>
-      ),
+      element: <Landing />,
     },
     {
       path: "/dashboard",

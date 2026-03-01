@@ -26,6 +26,7 @@ import {
   Collapse,
   IconButton,
   Backdrop,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -64,8 +65,12 @@ const NewLanding = () => {
   const [typedText, setTypedText] = useState("");
   const [showFloatingElements, setShowFloatingElements] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Loader state - agora ativo por padrão
-  const [showLoader, setShowLoader] = useState(true);
+  const isMobile = useMediaQuery("(max-width:900px)");
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const enableVisualEffects = !isMobile && !prefersReducedMotion;
+
+  // Loader começa desativado para priorizar LCP
+  const [showLoader, setShowLoader] = useState(false);
   const [loaderProgress, setLoaderProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("Iniciando...");
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -280,6 +285,13 @@ const NewLanding = () => {
 
   // Controle do loader
   useEffect(() => {
+    if (!enableVisualEffects) {
+      setShowLoader(false);
+      return;
+    }
+
+    setShowLoader(true);
+
     const loadingMessages = [
       "Iniciando...",
       "Carregando recursos...",
@@ -320,7 +332,7 @@ const NewLanding = () => {
     }, 150);
 
     return () => clearInterval(loadingTimer);
-  }, []);
+  }, [enableVisualEffects]);
   useEffect(() => {
     let i = 0;
     const timer = setInterval(() => {
@@ -332,19 +344,26 @@ const NewLanding = () => {
       }
     }, 100);
     return () => clearInterval(timer);
-  }, []);
+  }, [enableVisualEffects]);
 
   // Efeito de elementos flutuantes - agora conectado ao loader
   useEffect(() => {
+    if (!enableVisualEffects) {
+      setShowFloatingElements(false);
+      return;
+    }
+
     // Só ativar elementos flutuantes após o loader terminar
     if (!showLoader) {
       const timer = setTimeout(() => setShowFloatingElements(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [showLoader]);
+  }, [showLoader, enableVisualEffects]);
 
   // Tracking do mouse para parallax
   useEffect(() => {
+    if (!enableVisualEffects) return;
+
     const handleMouseMove = (e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
 
@@ -376,13 +395,19 @@ const NewLanding = () => {
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [magneticButtons]);
+  }, [magneticButtons, enableVisualEffects]);
 
   // Sistema de Partículas Otimizado
   useEffect(() => {
+    if (!enableVisualEffects) {
+      setShowParticles(false);
+      setParticles([]);
+      return;
+    }
+
     const generateParticles = () => {
       const newParticles = [];
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 8; i++) {
         newParticles.push({
           id: i,
           x: Math.random() * window.innerWidth,
@@ -397,16 +422,19 @@ const NewLanding = () => {
       setShowParticles(true);
     };
 
-    setTimeout(generateParticles, 500);
-  }, []);
+    const timer = setTimeout(generateParticles, 500);
+    return () => clearTimeout(timer);
+  }, [enableVisualEffects]);
 
   // Background Morphing Otimizado
   useEffect(() => {
+    if (!enableVisualEffects) return;
+
     const interval = setInterval(() => {
       setCurrentBg((prev) => (prev + 1) % 3);
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [enableVisualEffects]);
 
   return (
     <>
@@ -575,7 +603,7 @@ const NewLanding = () => {
       </AnimatePresence>
 
       {/* Cursor Personalizado */}
-      <motion.div
+      {enableVisualEffects && <motion.div
         style={{
           position: "fixed",
           width: 20,
@@ -595,8 +623,9 @@ const NewLanding = () => {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-      />
+      />}
       {/* Sistema de Partículas */}
+      {enableVisualEffects && (
       <Box
         sx={{
           position: "fixed",
@@ -636,6 +665,7 @@ const NewLanding = () => {
           />
         ))}
       </Box>
+      )}
       {/* Background Morphing */}
       <Box
         sx={{
@@ -704,7 +734,7 @@ const NewLanding = () => {
         )}
       </AnimatePresence>
       {/* Cursor Customizado Otimizado */}
-      <motion.div
+      {enableVisualEffects && <motion.div
         style={{
           position: "fixed",
           top: 0,
@@ -726,7 +756,7 @@ const NewLanding = () => {
           stiffness: 800,
           damping: 40,
         }}
-      />
+      />}
       {/* Background Morphing */}
       <Box
         sx={{
