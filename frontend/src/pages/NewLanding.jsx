@@ -64,7 +64,6 @@ const NewLanding = () => {
   const [typedText] = useState("Transforme suas finanças em um jogo divertido!");
   const [showFloatingElements, setShowFloatingElements] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const ENABLE_CINEMATIC_LOADER = false;
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(min-width:601px) and (max-width:1200px)");
   const isTouchDevice = useMediaQuery("(pointer: coarse)");
@@ -113,6 +112,7 @@ const NewLanding = () => {
 
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
+
   const loaderParticles = useMemo(
     () =>
       Array.from({ length: 15 }).map((_, i) => ({
@@ -130,7 +130,7 @@ const NewLanding = () => {
 
   // Controle do loader
   useEffect(() => {
-    if (!ENABLE_CINEMATIC_LOADER || !enableVisualEffects) {
+
       setShowLoader(false);
       return;
     }
@@ -177,7 +177,6 @@ const NewLanding = () => {
     }, 150);
 
     return () => clearInterval(loadingTimer);
-  }, [ENABLE_CINEMATIC_LOADER, enableVisualEffects]);
 
   // Efeito de elementos flutuantes - agora conectado ao loader
   useEffect(() => {
@@ -1007,9 +1006,7 @@ const NewLanding = () => {
             >
               <Grid item xs={12} lg={6}>
                 <motion.div
-                  initial={enableVisualEffects ? { opacity: 0, y: 20 } : false}
-                  animate={enableVisualEffects ? { opacity: 1, y: 0 } : { opacity: 1 }}
-                  transition={enableVisualEffects ? { duration: 0.35 } : undefined}
+
                   style={enableVisualEffects ? { y: y1 } : undefined}
                 >
                   <motion.div
