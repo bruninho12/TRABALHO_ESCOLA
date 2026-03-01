@@ -2,8 +2,7 @@
  * @fileoverview Landing Page - DespFinancee - Mobile Optimized
  */
 
-import React, { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
   Container,
@@ -26,6 +25,7 @@ import {
   Collapse,
   IconButton,
   Backdrop,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -64,8 +64,15 @@ const NewLanding = () => {
   const [typedText, setTypedText] = useState("");
   const [showFloatingElements, setShowFloatingElements] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Loader state - agora ativo por padrão
-  const [showLoader, setShowLoader] = useState(true);
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(min-width:601px) and (max-width:1200px)");
+  const isTouchDevice = useMediaQuery("(pointer: coarse)");
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const enableVisualEffects =
+    !isMobile && !isTablet && !isTouchDevice && !prefersReducedMotion;
+
+  // Loader começa desativado para priorizar LCP
+  const [showLoader, setShowLoader] = useState(false);
   const [loaderProgress, setLoaderProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("Iniciando...");
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -103,183 +110,33 @@ const NewLanding = () => {
     }, 3000);
   };
 
-  // Componente do Loader como Portal
-  const LoaderPortal = () => {
-    if (!showLoader) return null;
-
-    return createPortal(
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            zIndex: 999999,
-            background: "linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-          }}
-        >
-          {/* Partículas flutuantes no loader */}
-          {Array.from({ length: 15 }).map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                opacity: 0,
-              }}
-              animate={{
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                opacity: [0, 0.6, 0],
-              }}
-              transition={{
-                duration: Math.random() * 10 + 5,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-              style={{
-                position: "absolute",
-                width: Math.random() * 4 + 2,
-                height: Math.random() * 4 + 2,
-                borderRadius: "50%",
-                background: `hsl(${Math.random() * 60 + 240}, 70%, 60%)`,
-                pointerEvents: "none",
-              }}
-            />
-          ))}
-
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0, transition: { duration: 0.5 } }}
-            transition={{ duration: 0.8, ease: "backOut" }}
-          >
-            <Box
-              sx={{
-                width: 100,
-                height: 100,
-                borderRadius: 2,
-                background: "linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-                mb: 4,
-              }}
-            >
-              <motion.div
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Typography
-                  variant="h2"
-                  sx={{
-                    color: "white",
-                    fontWeight: 900,
-                    textShadow: "0 0 20px rgba(255,255,255,0.5)",
-                  }}
-                >
-                  💰
-                </Typography>
-              </motion.div>
-            </Box>
-          </motion.div>
-
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            <Typography
-              variant="h4"
-              sx={{
-                color: "white",
-                fontWeight: 700,
-                mb: 2,
-                textAlign: "center",
-              }}
-            >
-              DespFinance
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: "rgba(255,255,255,0.7)",
-                textAlign: "center",
-                mb: 4,
-                minHeight: 24,
-              }}
-            >
-              {loadingMessage}
-            </Typography>
-          </motion.div>
-
-          {/* Barra de progresso real */}
-          <Box sx={{ width: 200, position: "relative", mb: 2 }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${loaderProgress}%` }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              style={{
-                height: 6,
-                background: "linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899)",
-                borderRadius: 3,
-                boxShadow: "0 0 10px rgba(99, 102, 241, 0.5)",
-              }}
-            />
-            <Box
-              sx={{
-                position: "absolute",
-                top: -2,
-                width: "100%",
-                height: 10,
-                background: "rgba(255,255,255,0.1)",
-                borderRadius: 3,
-                zIndex: -1,
-              }}
-            />
-          </Box>
-
-          <Typography
-            variant="body2"
-            sx={{
-              color: "rgba(255,255,255,0.8)",
-              fontFamily: "monospace",
-              letterSpacing: 1,
-            }}
-          >
-            {Math.round(loaderProgress)}%
-          </Typography>
-        </motion.div>
-      </AnimatePresence>,
-      document.body
-    );
-  };
-
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
   const fullText = "Transforme suas finanças em um jogo divertido!";
+  const loaderParticles = useMemo(
+    () =>
+      Array.from({ length: 15 }).map((_, i) => ({
+        id: i,
+        xStart: Math.random(),
+        yStart: Math.random(),
+        xEnd: Math.random(),
+        yEnd: Math.random(),
+        size: Math.random() * 4 + 2,
+        hue: Math.random() * 60 + 240,
+        duration: Math.random() * 10 + 5,
+      })),
+    []
+  );
 
   // Controle do loader
   useEffect(() => {
+    if (!enableVisualEffects) {
+      setShowLoader(false);
+      return;
+    }
+
+    setShowLoader(true);
+
     const loadingMessages = [
       "Iniciando...",
       "Carregando recursos...",
@@ -320,7 +177,7 @@ const NewLanding = () => {
     }, 150);
 
     return () => clearInterval(loadingTimer);
-  }, []);
+  }, [enableVisualEffects]);
   useEffect(() => {
     let i = 0;
     const timer = setInterval(() => {
@@ -332,19 +189,26 @@ const NewLanding = () => {
       }
     }, 100);
     return () => clearInterval(timer);
-  }, []);
+  }, [enableVisualEffects]);
 
   // Efeito de elementos flutuantes - agora conectado ao loader
   useEffect(() => {
+    if (!enableVisualEffects) {
+      setShowFloatingElements(false);
+      return;
+    }
+
     // Só ativar elementos flutuantes após o loader terminar
     if (!showLoader) {
       const timer = setTimeout(() => setShowFloatingElements(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [showLoader]);
+  }, [showLoader, enableVisualEffects]);
 
   // Tracking do mouse para parallax
   useEffect(() => {
+    if (!enableVisualEffects) return;
+
     const handleMouseMove = (e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
 
@@ -376,13 +240,19 @@ const NewLanding = () => {
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [magneticButtons]);
+  }, [magneticButtons, enableVisualEffects]);
 
   // Sistema de Partículas Otimizado
   useEffect(() => {
+    if (!enableVisualEffects) {
+      setShowParticles(false);
+      setParticles([]);
+      return;
+    }
+
     const generateParticles = () => {
       const newParticles = [];
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 8; i++) {
         newParticles.push({
           id: i,
           x: Math.random() * window.innerWidth,
@@ -391,22 +261,26 @@ const NewLanding = () => {
           speedX: (Math.random() - 0.5) * 1,
           speedY: (Math.random() - 0.5) * 1,
           opacity: Math.random() * 0.3 + 0.1,
+          color: `rgba(99, 102, 241, ${Math.random() * 0.3 + 0.2})`,
         });
       }
       setParticles(newParticles);
       setShowParticles(true);
     };
 
-    setTimeout(generateParticles, 500);
-  }, []);
+    const timer = setTimeout(generateParticles, 500);
+    return () => clearTimeout(timer);
+  }, [enableVisualEffects]);
 
   // Background Morphing Otimizado
   useEffect(() => {
+    if (!enableVisualEffects) return;
+
     const interval = setInterval(() => {
       setCurrentBg((prev) => (prev + 1) % 3);
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [enableVisualEffects]);
 
   return (
     <>
@@ -430,30 +304,30 @@ const NewLanding = () => {
             }}
           >
             {/* Partículas flutuantes no loader */}
-            {Array.from({ length: 15 }).map((_, i) => (
+            {loaderParticles.map((particle) => (
               <motion.div
-                key={i}
+                key={particle.id}
                 initial={{
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
+                  x: particle.xStart * window.innerWidth,
+                  y: particle.yStart * window.innerHeight,
                   opacity: 0,
                 }}
                 animate={{
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
+                  x: particle.xEnd * window.innerWidth,
+                  y: particle.yEnd * window.innerHeight,
                   opacity: [0, 0.6, 0],
                 }}
                 transition={{
-                  duration: Math.random() * 10 + 5,
+                  duration: particle.duration,
                   repeat: Infinity,
                   ease: "linear",
                 }}
                 style={{
                   position: "absolute",
-                  width: Math.random() * 4 + 2,
-                  height: Math.random() * 4 + 2,
+                  width: particle.size,
+                  height: particle.size,
                   borderRadius: "50%",
-                  background: `hsl(${Math.random() * 60 + 240}, 70%, 60%)`,
+                  background: `hsl(${particle.hue}, 70%, 60%)`,
                   pointerEvents: "none",
                 }}
               />
@@ -574,68 +448,6 @@ const NewLanding = () => {
         )}
       </AnimatePresence>
 
-      {/* Cursor Personalizado */}
-      <motion.div
-        style={{
-          position: "fixed",
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(99, 102, 241, 0.8), transparent)",
-          pointerEvents: "none",
-          zIndex: 9999,
-          mixBlendMode: "difference",
-        }}
-        animate={{
-          scale: [1, 1.5, 1],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-      {/* Sistema de Partículas */}
-      <Box
-        sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          zIndex: 0,
-          overflow: "hidden",
-        }}
-      >
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{
-              opacity: particle.opacity,
-              scale: 1,
-              x: [particle.x, particle.x + particle.speedX * 100],
-              y: [particle.y, particle.y + particle.speedY * 100],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            style={{
-              position: "absolute",
-              width: particle.size,
-              height: particle.size,
-              borderRadius: "50%",
-              background: particle.color,
-              filter: "blur(0.5px)",
-              boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
-            }}
-          />
-        ))}
-      </Box>
       {/* Background Morphing */}
       <Box
         sx={{
@@ -656,7 +468,7 @@ const NewLanding = () => {
       />
       {/* Sistema de Partículas Flutuantes */}
       <AnimatePresence>
-        {showParticles && (
+        {enableVisualEffects && showParticles && (
           <Box
             sx={{
               position: "fixed",
@@ -687,7 +499,7 @@ const NewLanding = () => {
                   duration: 6,
                   repeat: Infinity,
                   ease: "linear",
-                  delay: Math.random() * 1,
+                  delay: particle.id * 0.08,
                 }}
                 style={{
                   position: "absolute",
@@ -704,7 +516,7 @@ const NewLanding = () => {
         )}
       </AnimatePresence>
       {/* Cursor Customizado Otimizado */}
-      <motion.div
+      {enableVisualEffects && <motion.div
         style={{
           position: "fixed",
           top: 0,
@@ -723,10 +535,10 @@ const NewLanding = () => {
         }}
         transition={{
           type: "spring",
-          stiffness: 800,
-          damping: 40,
+          stiffness: 520,
+          damping: 42,
         }}
-      />
+      />}
       {/* Background Morphing */}
       <Box
         sx={{
@@ -747,7 +559,7 @@ const NewLanding = () => {
       <Box
         sx={{
           bgcolor: "transparent",
-          minHeight: "100vh",
+          minHeight: "var(--app-vh, 100vh)",
           position: "relative",
           zIndex: 1,
           width: "100%",
@@ -1210,7 +1022,7 @@ const NewLanding = () => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
-                  style={{ y: y1 }}
+                  style={enableVisualEffects ? { y: y1 } : undefined}
                 >
                   <motion.div
                     animate={{

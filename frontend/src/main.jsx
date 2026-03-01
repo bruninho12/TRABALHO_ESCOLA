@@ -6,12 +6,8 @@ import App from "./App.jsx";
 import "./utils/accessibilityPatch.js"; // Patch para acessibilidade com aria-hidden
 
 // Configurações de segurança para CSP
-if (import.meta.env.PROD) {
-  // Em produção, desabilitar console para evitar vazamento de informações
-  console.log = () => {};
-  console.warn = () => {};
-  console.error = () => {};
-}
+// Observabilidade em produção deve ser tratada por filtros/monitoramento,
+// sem sobrescrever logs nativos do browser.
 
 // Verificar se o DOM foi carregado de forma segura
 const rootElement = document.getElementById("root");
