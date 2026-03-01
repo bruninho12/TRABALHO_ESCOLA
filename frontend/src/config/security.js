@@ -104,7 +104,7 @@ class SecurityManager {
       "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://api.stripe.com https://api.mercadopago.com",
+      "connect-src 'self' https://trabalho-escola.onrender.com https://api.stripe.com https://api.mercadopago.com",
       "frame-src https://js.stripe.com https://www.mercadopago.com",
       "worker-src 'self' blob:",
       "child-src 'self' blob:",
@@ -140,6 +140,7 @@ export const CSP_CONFIG = {
     "img-src": ["'self'", "data:", "https:", "blob:"],
     "connect-src": [
       "'self'",
+      "https://trabalho-escola.onrender.com",
       "https://api.stripe.com",
       "https://api.mercadopago.com",
     ],
@@ -220,4 +221,3 @@ export const isSafeString = (input) => {
 };
 
 export { SecurityManager, SECURITY_MANAGER };
-
