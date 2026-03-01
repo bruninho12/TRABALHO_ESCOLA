@@ -7,6 +7,13 @@
   * {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
+  }
+
+  /* Bloqueio de seleção apenas em elementos interativos */
+  button,
+  [role="button"],
+  .MuiButtonBase-root,
+  .MuiIconButton-root {
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
@@ -14,7 +21,11 @@
     user-select: none;
   }
 
-  /* Seleção apenas para inputs */
+  /* Seleção permitida para conteúdo textual e formulários */
+  p,
+  span,
+  small,
+  strong,
   input,
   textarea,
   [contenteditable] {

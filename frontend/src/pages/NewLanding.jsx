@@ -2,7 +2,7 @@
  * @fileoverview Landing Page - DespFinancee - Mobile Optimized
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Box,
   Container,
@@ -113,6 +113,20 @@ const NewLanding = () => {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
   const fullText = "Transforme suas finanças em um jogo divertido!";
+  const loaderParticles = useMemo(
+    () =>
+      Array.from({ length: 15 }).map((_, i) => ({
+        id: i,
+        xStart: Math.random(),
+        yStart: Math.random(),
+        xEnd: Math.random(),
+        yEnd: Math.random(),
+        size: Math.random() * 4 + 2,
+        hue: Math.random() * 60 + 240,
+        duration: Math.random() * 10 + 5,
+      })),
+    []
+  );
 
   // Controle do loader
   useEffect(() => {
@@ -247,6 +261,7 @@ const NewLanding = () => {
           speedX: (Math.random() - 0.5) * 1,
           speedY: (Math.random() - 0.5) * 1,
           opacity: Math.random() * 0.3 + 0.1,
+          color: `rgba(99, 102, 241, ${Math.random() * 0.3 + 0.2})`,
         });
       }
       setParticles(newParticles);
@@ -289,30 +304,30 @@ const NewLanding = () => {
             }}
           >
             {/* Partículas flutuantes no loader */}
-            {Array.from({ length: 15 }).map((_, i) => (
+            {loaderParticles.map((particle) => (
               <motion.div
-                key={i}
+                key={particle.id}
                 initial={{
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
+                  x: particle.xStart * window.innerWidth,
+                  y: particle.yStart * window.innerHeight,
                   opacity: 0,
                 }}
                 animate={{
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
+                  x: particle.xEnd * window.innerWidth,
+                  y: particle.yEnd * window.innerHeight,
                   opacity: [0, 0.6, 0],
                 }}
                 transition={{
-                  duration: Math.random() * 10 + 5,
+                  duration: particle.duration,
                   repeat: Infinity,
                   ease: "linear",
                 }}
                 style={{
                   position: "absolute",
-                  width: Math.random() * 4 + 2,
-                  height: Math.random() * 4 + 2,
+                  width: particle.size,
+                  height: particle.size,
                   borderRadius: "50%",
-                  background: `hsl(${Math.random() * 60 + 240}, 70%, 60%)`,
+                  background: `hsl(${particle.hue}, 70%, 60%)`,
                   pointerEvents: "none",
                 }}
               />
@@ -433,70 +448,6 @@ const NewLanding = () => {
         )}
       </AnimatePresence>
 
-      {/* Cursor Personalizado */}
-      {enableVisualEffects && <motion.div
-        style={{
-          position: "fixed",
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(99, 102, 241, 0.8), transparent)",
-          pointerEvents: "none",
-          zIndex: 9999,
-          mixBlendMode: "difference",
-        }}
-        animate={{
-          scale: [1, 1.5, 1],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />}
-      {/* Sistema de Partículas */}
-      {enableVisualEffects && (
-      <Box
-        sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          zIndex: 0,
-          overflow: "hidden",
-        }}
-      >
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{
-              opacity: particle.opacity,
-              scale: 1,
-              x: [particle.x, particle.x + particle.speedX * 100],
-              y: [particle.y, particle.y + particle.speedY * 100],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            style={{
-              position: "absolute",
-              width: particle.size,
-              height: particle.size,
-              borderRadius: "50%",
-              background: particle.color,
-              filter: "blur(0.5px)",
-              boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
-            }}
-          />
-        ))}
-      </Box>
-      )}
       {/* Background Morphing */}
       <Box
         sx={{
@@ -548,7 +499,7 @@ const NewLanding = () => {
                   duration: 6,
                   repeat: Infinity,
                   ease: "linear",
-                  delay: Math.random() * 1,
+                  delay: particle.id * 0.08,
                 }}
                 style={{
                   position: "absolute",
@@ -584,8 +535,8 @@ const NewLanding = () => {
         }}
         transition={{
           type: "spring",
-          stiffness: 800,
-          damping: 40,
+          stiffness: 520,
+          damping: 42,
         }}
       />}
       {/* Background Morphing */}
@@ -1071,7 +1022,7 @@ const NewLanding = () => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
-                  style={{ y: y1 }}
+                  style={enableVisualEffects ? { y: y1 } : undefined}
                 >
                   <motion.div
                     animate={{
