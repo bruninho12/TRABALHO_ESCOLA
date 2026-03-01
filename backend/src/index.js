@@ -5,6 +5,7 @@ const compression = require("compression");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
+const fs = require("fs");
 const { errorHandler } = require("./middleware/errorHandler");
 const routes = require("./routes");
 const { connectDB } = require("./config/mongoConfig");
@@ -125,7 +126,7 @@ if (
     process.env.RATE_LIMIT_DISABLE === "true")
 ) {
   rateLimitEnabled = false;
-  console.log("⚠️ Rate limiting DESATIVADO (ambiente de desenvolvimento)");
+  console.log("Rate limiting desativado (ambiente de desenvolvimento)");
 }
 
 if (rateLimitEnabled) {
@@ -154,10 +155,27 @@ app.use("/api", routes);
 // Servir arquivos estáticos em produção (frontend)
 if (process.env.NODE_ENV === "production") {
   const frontendDistPath = path.join(__dirname, "../../frontend/dist");
-  app.use(express.static(frontendDistPath));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendDistPath, "index.html"));
-  });
+
+  if (fs.existsSync(frontendDistPath)) {
+    app.use(express.static(frontendDistPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(frontendDistPath, "index.html"));
+    });
+  } else {
+    console.warn(
+      `Frontend dist não encontrado em ${frontendDistPath}. ` +
+        "Assumindo que o frontend está hospedado separadamente."
+    );
+
+    // Resposta amigável para a raiz quando o frontend não está junto
+    app.get("/", (req, res) => {
+      res.status(200).json({
+        status: "ok",
+        message:
+          "Backend DespFinancee online. Frontend hospedado em outra URL.",
+      });
+    });
+  }
 }
 
 // Middleware para tratamento de erros
