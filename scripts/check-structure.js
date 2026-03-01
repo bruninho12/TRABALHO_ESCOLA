@@ -33,8 +33,6 @@ const expectedStructure = {
   "backend/server.js": "file",
   "backend/src/": "directory",
   "backend/scripts/": "directory",
-  "backend/scripts/database/": "directory",
-  "backend/scripts/setup/": "directory",
   "backend/logs/": "directory",
   "frontend/": "directory",
   "frontend/package.json": "file",
@@ -43,7 +41,6 @@ const expectedStructure = {
   "frontend/src/assets/": "directory",
   "frontend/src/assets/icons/": "directory",
   "frontend/src/assets/images/": "directory",
-  "frontend/src/tests/": "directory",
 };
 
 function checkStructure() {

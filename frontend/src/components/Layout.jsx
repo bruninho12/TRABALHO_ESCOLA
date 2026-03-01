@@ -468,16 +468,16 @@ const Layout = () => {
                       backgroundColor: isActive
                         ? undefined
                         : isDarkMode
-                        ? "rgba(255, 255, 255, 0.08)"
-                        : "rgba(102, 126, 234, 0.08)",
+                          ? "rgba(255, 255, 255, 0.08)"
+                          : "rgba(102, 126, 234, 0.08)",
                       transform: isActive
                         ? "translateX(4px)"
                         : "translateX(2px)",
                       boxShadow: isActive
                         ? undefined
                         : isDarkMode
-                        ? "0 2px 8px rgba(255,255,255,0.05)"
-                        : "0 2px 8px rgba(102,126,234,0.1)",
+                          ? "0 2px 8px rgba(255,255,255,0.05)"
+                          : "0 2px 8px rgba(102,126,234,0.1)",
                     },
                     "&:active": {
                       transform: "scale(0.98)",
@@ -491,8 +491,8 @@ const Layout = () => {
                           ? "white"
                           : "#667eea"
                         : isDarkMode
-                        ? "rgba(255, 255, 255, 0.7)"
-                        : "#64748b",
+                          ? "rgba(255, 255, 255, 0.7)"
+                          : "#64748b",
                       minWidth: { xs: 36, sm: 40 },
                       "& svg": {
                         fontSize: { xs: 20, sm: 22 },
@@ -514,8 +514,8 @@ const Layout = () => {
                             ? "white"
                             : "#667eea"
                           : isDarkMode
-                          ? "rgba(255, 255, 255, 0.9)"
-                          : "#374151",
+                            ? "rgba(255, 255, 255, 0.9)"
+                            : "#374151",
                         transition: "all 0.3s ease",
                       },
                     }}

@@ -5,6 +5,7 @@ import {
   DEFAULT_HEADERS,
   findWorkingApiUrl,
 } from "../config/api";
+import { SESSION_CONFIG } from "../config/security";
 
 // ---------------------------
 // 1. Criar Axios imediatamente
@@ -35,8 +36,7 @@ findWorkingApiUrl()
 // ---------------------------
 api.interceptors.request.use((config) => {
   // Incluir token se existir
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("finance_flow_token");
+  const token = localStorage.getItem(SESSION_CONFIG.tokenKey);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

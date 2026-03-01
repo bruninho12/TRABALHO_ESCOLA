@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import Swal from "sweetalert2";
 import api from "../services/api";
+import { SESSION_CONFIG } from "../config/security";
 
 const AuthContext = createContext({});
 
@@ -18,9 +19,18 @@ export function AuthProvider({ children }) {
     hasInitialized.current = true;
 
     console.log("🔐 AuthContext: Verificando autenticação...");
-    const token =
-      localStorage.getItem("token") ||
-      localStorage.getItem("finance_flow_token");
+    let token = localStorage.getItem(SESSION_CONFIG.tokenKey);
+
+    // Migração de sessões antigas que usavam a chave "token"
+    if (!token) {
+      const legacyToken = localStorage.getItem("token");
+      if (legacyToken) {
+        token = legacyToken;
+        localStorage.setItem(SESSION_CONFIG.tokenKey, legacyToken);
+        localStorage.removeItem("token");
+      }
+    }
+
     console.log("🔑 Token encontrado:", token ? "SIM" : "NÃO");
 
     if (token) {
@@ -48,7 +58,7 @@ export function AuthProvider({ children }) {
           if (error.response?.status === 401) {
             console.warn("🔓 Token inválido (401) - removendo");
             localStorage.removeItem("token");
-            localStorage.removeItem("finance_flow_token");
+            localStorage.removeItem(SESSION_CONFIG.tokenKey);
             setUser(null);
           } else if (error.response?.status === 429) {
             console.warn("⏸️ Erro 429 (Rate Limit) - usando cache");
@@ -86,20 +96,15 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password, rememberMe) => {
     try {
-      console.log("🔐 Tentando fazer login...");
       const response = await api.post("/auth/login", {
         email,
         password,
         rememberMe,
       });
-      console.log("✅ Resposta do login:", response.data);
 
       const { token, user: userData } = response.data.data || response.data;
-      console.log("🔑 Token recebido:", token ? "SIM" : "NÃO");
-      console.log("👤 Dados do usuário:", userData);
 
-      localStorage.setItem("finance_flow_token", token);
-      localStorage.setItem("token", token);
+      localStorage.setItem(SESSION_CONFIG.tokenKey, token);
       localStorage.setItem("cached_user", JSON.stringify(userData));
       api.defaults.headers.authorization = `Bearer ${token}`;
       setUser(userData);
@@ -137,7 +142,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("finance_flow_token");
+    localStorage.removeItem(SESSION_CONFIG.tokenKey);
+    localStorage.removeItem("token");
+    localStorage.removeItem("cached_user");
     api.defaults.headers.authorization = "";
     setUser(null);
   };
