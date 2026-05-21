@@ -2,11 +2,13 @@ const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
 const logger = require("../utils/logger"); // Supondo que você tenha um logger
+const { authenticate } = require("../middleware/auth");
+const { requireAdmin } = require("../middleware/adminAuth");
 
 // Simulação de um banco de dados em memória para feedbacks
 const feedbacks = [];
 
-// Rota para receber feedback
+// Rota para receber feedback (pode ser anônima)
 router.post(
   "/",
   [
@@ -47,11 +49,9 @@ router.post(
 );
 
 // Rota para administradores visualizarem os feedbacks (protegida)
-// Você precisaria de um middleware de autenticação e autorização aqui
-// Ex: router.get('/', authMiddleware, adminMiddleware, (req, res) => { ... });
-router.get("/", (req, res) => {
-  // Em um app real, proteja esta rota!
+router.get("/", authenticate, requireAdmin, (req, res) => {
   res.json(feedbacks);
 });
 
 module.exports = router;
+

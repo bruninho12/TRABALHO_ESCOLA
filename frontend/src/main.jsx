@@ -51,13 +51,13 @@ function addSecurityMetaTags() {
     if (import.meta.env.PROD) {
       cspMeta.setAttribute(
         "content",
-        "default-src 'self'; connect-src 'self' http://localhost:3001 https://*; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+        "default-src 'self'; connect-src 'self' http://localhost:3001 https://*; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com;"
       );
     } else {
       // Desenvolvimento: permitir localhost e conexões WebSocket
       cspMeta.setAttribute(
         "content",
-        "default-src 'self'; connect-src 'self' http://localhost:* ws://localhost:* https://*; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
+        "default-src 'self'; connect-src 'self' http://localhost:* ws://localhost:* https://*; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com;"
       );
     }
 
@@ -124,3 +124,4 @@ function registerServiceWorker() {
     });
   }
 }
+

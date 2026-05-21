@@ -61,15 +61,21 @@ const NewLanding = () => {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [typedText, setTypedText] = useState("");
+  const [typedText] = useState(
+    "Transforme suas finanças em um jogo divertido!",
+  );
   const [showFloatingElements, setShowFloatingElements] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const ENABLE_CINEMATIC_LOADER = false;
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(min-width:601px) and (max-width:1200px)");
   const isTouchDevice = useMediaQuery("(pointer: coarse)");
-  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const prefersReducedMotion = useMediaQuery(
+    "(prefers-reduced-motion: reduce)",
+  );
   const enableVisualEffects =
     !isMobile && !isTablet && !isTouchDevice && !prefersReducedMotion;
+  const [effectsReady, setEffectsReady] = useState(false);
 
   // Loader começa desativado para priorizar LCP
   const [showLoader, setShowLoader] = useState(false);
@@ -101,7 +107,7 @@ const NewLanding = () => {
   const handlePaymentSuccess = () => {
     setCheckoutOpen(false);
     setSnackbarMessage(
-      "🎉 Pagamento processado com sucesso! Seu plano será ativado em breve."
+      "🎉 Pagamento processado com sucesso! Seu plano será ativado em breve.",
     );
     setShowSnackbar(true);
     // Redirecionar para dashboard após alguns segundos
@@ -112,7 +118,6 @@ const NewLanding = () => {
 
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 300], [0, -50]);
-  const fullText = "Transforme suas finanças em um jogo divertido!";
   const loaderParticles = useMemo(
     () =>
       Array.from({ length: 15 }).map((_, i) => ({
@@ -125,12 +130,20 @@ const NewLanding = () => {
         hue: Math.random() * 60 + 240,
         duration: Math.random() * 10 + 5,
       })),
-    []
+    [],
   );
+
+  // Delay para ativar efeitos visuais pesados ap�s o conte�do principal
+  useEffect(() => {
+    if (!enableVisualEffects) return;
+
+    const timer = setTimeout(() => setEffectsReady(true), 1500);
+    return () => clearTimeout(timer);
+  }, [enableVisualEffects, effectsReady]);
 
   // Controle do loader
   useEffect(() => {
-    if (!enableVisualEffects) {
+    if (!ENABLE_CINEMATIC_LOADER || !enableVisualEffects) {
       setShowLoader(false);
       return;
     }
@@ -156,7 +169,7 @@ const NewLanding = () => {
 
       // Atualizar mensagem baseada no progresso
       const newMessageIndex = Math.floor(
-        (currentProgress / 100) * (loadingMessages.length - 1)
+        (currentProgress / 100) * (loadingMessages.length - 1),
       );
       if (
         newMessageIndex !== messageIndex &&
@@ -177,19 +190,7 @@ const NewLanding = () => {
     }, 150);
 
     return () => clearInterval(loadingTimer);
-  }, [enableVisualEffects]);
-  useEffect(() => {
-    let i = 0;
-    const timer = setInterval(() => {
-      if (i < fullText.length) {
-        setTypedText(fullText.slice(0, i + 1));
-        i++;
-      } else {
-        clearInterval(timer);
-      }
-    }, 100);
-    return () => clearInterval(timer);
-  }, [enableVisualEffects]);
+  }, [ENABLE_CINEMATIC_LOADER, enableVisualEffects, effectsReady]);
 
   // Efeito de elementos flutuantes - agora conectado ao loader
   useEffect(() => {
@@ -203,7 +204,7 @@ const NewLanding = () => {
       const timer = setTimeout(() => setShowFloatingElements(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [showLoader, enableVisualEffects]);
+  }, [showLoader, enableVisualEffects, effectsReady]);
 
   // Tracking do mouse para parallax
   useEffect(() => {
@@ -240,7 +241,7 @@ const NewLanding = () => {
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [magneticButtons, enableVisualEffects]);
+  }, [magneticButtons, enableVisualEffects, effectsReady]);
 
   // Sistema de Partículas Otimizado
   useEffect(() => {
@@ -270,7 +271,7 @@ const NewLanding = () => {
 
     const timer = setTimeout(generateParticles, 500);
     return () => clearTimeout(timer);
-  }, [enableVisualEffects]);
+  }, [enableVisualEffects, effectsReady]);
 
   // Background Morphing Otimizado
   useEffect(() => {
@@ -280,20 +281,20 @@ const NewLanding = () => {
       setCurrentBg((prev) => (prev + 1) % 3);
     }, 8000);
     return () => clearInterval(interval);
-  }, [enableVisualEffects]);
+  }, [enableVisualEffects, effectsReady]);
 
   return (
     <>
       {/* Loader Cinematográfico - Agora com máxima prioridade */}
       <AnimatePresence>
-        {showLoader && (
+        {ENABLE_CINEMATIC_LOADER && showLoader && (
           <Box
             sx={{
               position: "fixed",
               top: 0,
               left: 0,
-              width: "100vw",
-              height: "100vh",
+              width: "100%",
+              height: "var(--app-vh, 100vh)",
               zIndex: 999999, // Z-index máximo
               background: "linear-gradient(45deg, #0f0f23, #1a1a2e, #16213e)",
               display: "flex",
@@ -516,29 +517,31 @@ const NewLanding = () => {
         )}
       </AnimatePresence>
       {/* Cursor Customizado Otimizado */}
-      {enableVisualEffects && <motion.div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "16px",
-          height: "16px",
-          background: "rgba(99, 102, 241, 0.6)",
-          borderRadius: "50%",
-          pointerEvents: "none",
-          zIndex: 10000,
-          willChange: "transform",
-        }}
-        animate={{
-          x: mousePosition.x - 8,
-          y: mousePosition.y - 8,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 520,
-          damping: 42,
-        }}
-      />}
+      {enableVisualEffects && (
+        <motion.div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "16px",
+            height: "16px",
+            background: "rgba(99, 102, 241, 0.6)",
+            borderRadius: "50%",
+            pointerEvents: "none",
+            zIndex: 10000,
+            willChange: "transform",
+          }}
+          animate={{
+            x: mousePosition.x - 8,
+            y: mousePosition.y - 8,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 520,
+            damping: 42,
+          }}
+        />
+      )}
       {/* Background Morphing */}
       <Box
         sx={{
@@ -1019,20 +1022,23 @@ const NewLanding = () => {
             >
               <Grid item xs={12} lg={6}>
                 <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8 }}
+                  initial={false}
+                  animate={enableVisualEffects ? { y: y1 } : undefined}
                   style={enableVisualEffects ? { y: y1 } : undefined}
                 >
                   <motion.div
-                    animate={{
-                      scale: [1, 1.01, 1],
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
+                    animate={
+                      enableVisualEffects ? { scale: [1, 1.005, 1] } : undefined
+                    }
+                    transition={
+                      enableVisualEffects
+                        ? {
+                            duration: 6,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }
+                        : undefined
+                    }
                   >
                     <Typography
                       variant="h1"
@@ -1075,7 +1081,9 @@ const NewLanding = () => {
                             background:
                               "linear-gradient(135deg, #6366f1, #ec4899)",
                             borderRadius: 2,
-                            animation: "pulse 2s infinite",
+                            animation: enableVisualEffects
+                              ? "pulse 2s infinite"
+                              : "none",
                           },
                           "@keyframes pulse": {
                             "0%": { opacity: 0.5, transform: "scaleX(0.8)" },
@@ -1102,9 +1110,19 @@ const NewLanding = () => {
                     </Typography>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.3 }}
+                      initial={
+                        enableVisualEffects ? { opacity: 0, y: 12 } : false
+                      }
+                      animate={
+                        enableVisualEffects
+                          ? { opacity: 1, y: 0 }
+                          : { opacity: 1 }
+                      }
+                      transition={
+                        enableVisualEffects
+                          ? { duration: 0.25, delay: 0.05 }
+                          : undefined
+                      }
                     >
                       <Typography
                         variant="h6"
@@ -1124,21 +1142,7 @@ const NewLanding = () => {
                           fontWeight: 400,
                         }}
                       >
-                        {typedText ||
-                          "Transforme suas finanças em um jogo divertido!"}
-                        {typedText && (
-                          <motion.span
-                            animate={{ opacity: [0, 1, 0] }}
-                            transition={{ duration: 1, repeat: Infinity }}
-                            style={{
-                              color: "#6366f1",
-                              fontWeight: 700,
-                              fontSize: "1.2em",
-                            }}
-                          >
-                            |
-                          </motion.span>
-                        )}
+                        {typedText}
                       </Typography>
 
                       <Typography
@@ -3408,7 +3412,7 @@ const NewLanding = () => {
                       expanded={expandedFaq === index + 4}
                       onChange={() =>
                         setExpandedFaq(
-                          expandedFaq === index + 4 ? false : index + 4
+                          expandedFaq === index + 4 ? false : index + 4,
                         )
                       }
                       sx={{
@@ -3608,7 +3612,7 @@ const NewLanding = () => {
                         onClick={() => {
                           if (newsletterEmail) {
                             setSnackbarMessage(
-                              "🎉 Inscrição realizada com sucesso!"
+                              "🎉 Inscrição realizada com sucesso!",
                             );
                             setShowSnackbar(true);
                             setNewsletterEmail("");
@@ -3738,7 +3742,7 @@ const NewLanding = () => {
                       >
                         {link}
                       </Typography>
-                    )
+                    ),
                   )}
                 </Stack>
               </Grid>

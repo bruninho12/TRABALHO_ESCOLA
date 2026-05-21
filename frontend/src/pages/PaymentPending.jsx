@@ -46,7 +46,7 @@ const PaymentPending = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "var(--app-vh, 100vh)",
         background: "linear-gradient(135deg, #ffa751 0%, #ffe259 100%)",
         display: "flex",
         alignItems: "center",

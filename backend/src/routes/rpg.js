@@ -1,6 +1,6 @@
 const express = require("express");
 const RPGController = require("../controllers/rpgController");
-const { authenticate } = require("../controllers/authController");
+const { authenticate } = require("../middleware/auth");
 const RPGValidation = require("../middleware/rpgValidation");
 const CacheMiddleware = require("../middleware/cacheMiddleware");
 

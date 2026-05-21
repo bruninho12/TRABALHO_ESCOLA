@@ -111,7 +111,7 @@ export function useTransactions() {
   );
 
   const updateTransactionMutation = useMutation(
-    ({ id, transaction }) => transactionService.update(id, transaction),
+    ({ id, transaction }) => transactionService.update({ id, transaction }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries("transactions");
