@@ -121,7 +121,7 @@ const Layout = () => {
       style={{
         display: "flex",
         flexDirection: "column",
-        minHeight: "100vh",
+        minHeight: "var(--app-vh, 100vh)",
         overflow: "hidden", // Prevenir scroll horizontal
         position: "relative",
       }}
@@ -152,6 +152,9 @@ const Layout = () => {
               color="inherit"
               edge="start"
               onClick={handleMobileMenuToggle}
+              aria-label="Abrir menu de navegação"
+              aria-haspopup="true"
+              aria-expanded={mobileMenuOpen ? "true" : "false"}
               sx={{
                 mr: { xs: 0.5, sm: 1 },
                 p: { xs: 0.75, sm: 1 },
@@ -238,6 +241,9 @@ const Layout = () => {
             <IconButton
               color="inherit"
               onClick={handleThemeToggle}
+              aria-label={
+                isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"
+              }
               sx={{
                 color: isDarkMode ? "white" : "#1f2937",
                 p: { xs: 0.75, sm: 1 },
@@ -259,6 +265,7 @@ const Layout = () => {
             <IconButton
               color="inherit"
               onClick={handleNotificationMenu}
+              aria-label="Abrir notificações"
               sx={{
                 color: isDarkMode ? "white" : "#1f2937",
                 p: { xs: 0.75, sm: 1 },
@@ -290,6 +297,7 @@ const Layout = () => {
             <IconButton
               onClick={handleMenu}
               color="inherit"
+              aria-label="Abrir menu do usuário"
               sx={{
                 color: isDarkMode ? "white" : "#1f2937",
                 p: { xs: 0.5, sm: 0.75 },
@@ -380,7 +388,11 @@ const Layout = () => {
           },
         }}
       >
-        <Box sx={{ overflow: "auto", height: "100%" }}>
+        <Box
+          sx={{ overflow: "auto", height: "100%" }}
+          role="navigation"
+          aria-label="Navegação principal"
+        >
           {/* Header do Drawer - Muito Melhorado */}
           <Box
             sx={{
@@ -415,6 +427,7 @@ const Layout = () => {
             </Box>
             <IconButton
               onClick={handleMobileMenuClose}
+              aria-label="Fechar menu de navegação"
               sx={{
                 p: { xs: 0.75, sm: 1 },
                 borderRadius: 2,
@@ -591,7 +604,7 @@ const Layout = () => {
           paddingBottom: isMobile ? "16px" : "24px",
           backgroundColor: isDarkMode ? "#111827" : "#f9fafb",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          minHeight: `calc(100vh - ${isMobile ? "56px" : "64px"})`,
+          minHeight: `calc(var(--app-vh) - ${isMobile ? "56px" : "64px"})`,
           overflow: "auto",
           position: "relative",
           WebkitOverflowScrolling: "touch", // Smooth scrolling on iOS

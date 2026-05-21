@@ -4,7 +4,7 @@
 
 const express = require("express");
 const recurringController = require("../controllers/recurringTransactionController");
-const { authenticate } = require("../controllers/authController");
+const { authenticate } = require("../middleware/auth");
 
 const router = express.Router();
 

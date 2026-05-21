@@ -111,9 +111,10 @@ const getTransaction = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id || req.user._id;
 
+    // Aceitar tanto o _id padrão do Mongo quanto o campo "id" customizado
     const transaction = await Transaction.findOne({
-      _id: id,
       userId,
+      $or: [{ _id: id }, { id }],
     }).populate("category");
 
     if (!transaction) {
@@ -196,9 +197,10 @@ const updateTransaction = async (req, res) => {
     const userId = req.user.id || req.user._id;
     const { description, amount, date, category, type } = req.body;
 
+    // Aceitar tanto o _id padrão do Mongo quanto o campo "id" customizado
     const transaction = await Transaction.findOne({
-      _id: id,
       userId,
+      $or: [{ _id: id }, { id }],
     });
 
     if (!transaction) {
@@ -237,9 +239,10 @@ const deleteTransaction = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id || req.user._id;
 
+    // Aceitar tanto o _id padrão do Mongo quanto o campo "id" customizado
     const transaction = await Transaction.findOne({
-      _id: id,
       userId,
+      $or: [{ _id: id }, { id }],
     });
 
     if (!transaction) {
@@ -249,7 +252,7 @@ const deleteTransaction = async (req, res) => {
       });
     }
 
-    await Transaction.deleteOne({ _id: id });
+    await Transaction.deleteOne({ _id: transaction._id });
 
     return res.status(200).json({
       success: true,

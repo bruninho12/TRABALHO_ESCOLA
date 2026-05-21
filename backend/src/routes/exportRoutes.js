@@ -4,7 +4,7 @@
 
 const express = require("express");
 const exportController = require("../controllers/exportController");
-const { authenticate } = require("../controllers/authController");
+const { authenticate } = require("../middleware/auth");
 const { checkPremium } = require("../middleware/checkPremium");
 
 const router = express.Router();

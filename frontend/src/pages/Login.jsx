@@ -236,7 +236,10 @@ const Login = () => {
       if (success) {
         setSuccessMessage("Login realizado com sucesso! Redirecionando...");
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate(
+            location.state?.from?.pathname || "/dashboard",
+            { replace: true }
+          );
         }, 1000);
       } else {
         setError("Credenciais inválidas. Verifique seu e-mail e senha.");
@@ -274,7 +277,7 @@ const Login = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "var(--app-vh, 100vh)",
         background: darkMode
           ? "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)"
           : `linear-gradient(135deg, ${colors.brand.petrol}, ${colors.brand.mint})`,

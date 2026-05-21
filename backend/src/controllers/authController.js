@@ -135,44 +135,75 @@ exports.login = async (req, res) => {
 
 /**
  * Registro de novo usuário
+ *
+ * Compatível com o frontend atual, que envia:
+ * { name, email, password, confirmPassword }
  */
 exports.register = async (req, res) => {
   try {
-    const { username, email, fullName, password } = req.body;
+    const {
+      username: rawUsername,
+      name,
+      fullName: rawFullName,
+      email,
+      password,
+      confirmPassword,
+    } = req.body;
 
-    // Validação básica
-    if (!username || !email || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        error: "Username, email e senha são obrigatórios",
+        message: "Email e senha são obrigatórios",
+        error: "Email e senha são obrigatórios",
       });
     }
 
-    // Verificar se já existe usuário
+    if (confirmPassword && password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "As senhas não coincidem",
+        error: "As senhas não coincidem",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Gerar username automaticamente se o frontend não enviar
+    let username =
+      rawUsername ||
+      (name
+        ? name
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, ".")
+            .replace(/[^a-z0-9.]/g, "")
+        : normalizedEmail.split("@")[0]);
+
+    if (!username || username.length < 3) {
+      username = `${normalizedEmail.split("@")[0]}`.slice(0, 20) || "user";
+    }
+
+    const fullName = rawFullName || name || username;
+
+    // Verificar se já existe usuário com mesmo email ou username
     const existingUser = await User.findOne({
-      $or: [
-        { email: email.toLowerCase() },
-        { username: username.toLowerCase() },
-      ],
+      $or: [{ email: normalizedEmail }, { username }],
     });
 
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        error: "Email ou username já está em uso",
+        message: "Email ou nome de usuário já está em uso",
+        error: "Email ou nome de usuário já está em uso",
       });
     }
 
-    // Hash da senha
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Criar usuário
+    // Criar usuário (hash é feito pelo hook pre-save do modelo)
     const newUser = new User({
-      username: username.toLowerCase(),
-      email: email.toLowerCase(),
-      fullName: fullName || username,
-      password: hashedPassword,
+      username,
+      email: normalizedEmail,
+      fullName,
+      password,
       isActive: true,
       emailVerified: true, // Por simplicidade, vamos considerar verificado
       subscription: {
@@ -194,7 +225,7 @@ exports.register = async (req, res) => {
 
     const token = generateToken(tokenPayload);
 
-    logger.info(`Novo usuário registrado: ${email}`, {
+    logger.info(`Novo usuário registrado: ${normalizedEmail}`, {
       userId: newUser._id,
       ip: req.ip,
     });
@@ -204,7 +235,7 @@ exports.register = async (req, res) => {
       message: "Usuário criado com sucesso",
       data: {
         user: sanitizeUser(newUser),
-        token: token,
+        token,
       },
     });
   } catch (error) {
@@ -213,6 +244,7 @@ exports.register = async (req, res) => {
 
     return res.status(500).json({
       success: false,
+      message: "Erro interno do servidor",
       error: "Erro interno do servidor",
     });
   }

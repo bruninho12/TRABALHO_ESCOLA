@@ -56,6 +56,8 @@ const Register = () => {
   const planParam = searchParams.get("plan");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const enableHeavyEffects = !isMobile && !prefersReducedMotion;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -262,7 +264,7 @@ const Register = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "var(--app-vh, 100vh)",
         background: darkMode
           ? "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)"
           : `linear-gradient(135deg, ${colors.brand.petrol}, ${colors.brand.mint})`,
@@ -271,7 +273,7 @@ const Register = () => {
         justifyContent: "center",
         p: isMobile ? 1 : 2,
         position: "relative",
-        transition: "all 0.5s ease",
+        transition: "background 0.3s ease",
         "&::before": {
           content: '""',
           position: "absolute",
@@ -280,8 +282,8 @@ const Register = () => {
           right: 0,
           bottom: 0,
           background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='m36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          animation: "float 6s ease-in-out infinite",
-          opacity: darkMode ? 0.3 : 1,
+          animation: enableHeavyEffects ? "float 6s ease-in-out infinite" : "none",
+          opacity: enableHeavyEffects ? (darkMode ? 0.3 : 1) : 0.25,
         },
         "@keyframes float": {
           "0%, 100%": { transform: "translateY(0px)" },
@@ -306,7 +308,7 @@ const Register = () => {
               gap: 1,
               p: 1,
               borderRadius: 3,
-              backdropFilter: "blur(10px)",
+              backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
               background: "rgba(255, 255, 255, 0.1)",
               border: "1px solid rgba(255, 255, 255, 0.2)",
             }}
@@ -333,13 +335,13 @@ const Register = () => {
       </Box>
 
       <motion.div
-        initial={{ opacity: 0, y: 50, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        initial={enableHeavyEffects ? { opacity: 0, y: 24, scale: 0.98 } : false}
+        animate={enableHeavyEffects ? { opacity: 1, y: 0, scale: 1 } : { opacity: 1 }}
+        transition={enableHeavyEffects ? { duration: 0.35, ease: "easeOut" } : undefined}
         style={{ width: "100%", maxWidth: isMobile ? 360 : 480 }}
       >
         <GlassCard
-          blur={20}
+          blur={enableHeavyEffects ? 20 : 0}
           opacity={darkMode ? 0.1 : 0.15}
           padding={isMobile ? 3 : 4}
           sx={{
@@ -354,10 +356,10 @@ const Register = () => {
           {/* Header com animação */}
           <Box textAlign="center" mb={4}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              whileHover={{ scale: 1.1 }}
+              initial={enableHeavyEffects ? { opacity: 0, scale: 0.85 } : false}
+              animate={enableHeavyEffects ? { opacity: 1, scale: 1 } : { opacity: 1 }}
+              transition={enableHeavyEffects ? { delay: 0.05, duration: 0.25 } : undefined}
+              whileHover={enableHeavyEffects ? { scale: 1.05 } : undefined}
             >
               <Box
                 sx={{
@@ -381,7 +383,7 @@ const Register = () => {
                     borderRadius: "50%",
                     background: gradients.purpleBlue,
                     opacity: 0.5,
-                    animation: "pulse 2s infinite",
+                    animation: enableHeavyEffects ? "pulse 2s infinite" : "none",
                   },
                   "@keyframes pulse": {
                     "0%, 100%": { opacity: 0.5, scale: 1 },
@@ -493,7 +495,7 @@ const Register = () => {
                       icon={<CheckCircle />}
                       sx={{
                         borderRadius: 2,
-                        backdropFilter: "blur(10px)",
+                        backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                         background: "rgba(16, 185, 129, 0.1)",
                         border: `1px solid ${colors.success.main}`,
                         color: colors.success.main,
@@ -509,7 +511,7 @@ const Register = () => {
                       icon={<Warning />}
                       sx={{
                         borderRadius: 2,
-                        backdropFilter: "blur(10px)",
+                        backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                         background: "rgba(239, 68, 68, 0.1)",
                         border: `1px solid ${colors.error.main}`,
                         color: colors.error.main,
@@ -552,7 +554,7 @@ const Register = () => {
                   backgroundColor: darkMode
                     ? "rgba(255, 255, 255, 0.02)"
                     : "rgba(255, 255, 255, 0.05)",
-                  backdropFilter: "blur(10px)",
+                  backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                   borderRadius: 2,
                   transition: "all 0.3s ease",
                   border: validationErrors.name
@@ -562,14 +564,14 @@ const Register = () => {
                     backgroundColor: darkMode
                       ? "rgba(255, 255, 255, 0.05)"
                       : "rgba(255, 255, 255, 0.08)",
-                    transform: "translateY(-1px)",
+                    transform: enableHeavyEffects ? "translateY(-0.5px)" : "none",
                   },
                   "&.Mui-focused": {
                     backgroundColor: darkMode
                       ? "rgba(255, 255, 255, 0.08)"
                       : "rgba(255, 255, 255, 0.1)",
                     boxShadow: `0 0 0 2px ${colors.primary.main}40`,
-                    transform: "translateY(-2px)",
+                    transform: enableHeavyEffects ? "translateY(-1px)" : "none",
                   },
                 },
               }}
@@ -601,7 +603,7 @@ const Register = () => {
                   backgroundColor: darkMode
                     ? "rgba(255, 255, 255, 0.02)"
                     : "rgba(255, 255, 255, 0.05)",
-                  backdropFilter: "blur(10px)",
+                  backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                   borderRadius: 2,
                   transition: "all 0.3s ease",
                   border: validationErrors.email
@@ -611,14 +613,14 @@ const Register = () => {
                     backgroundColor: darkMode
                       ? "rgba(255, 255, 255, 0.05)"
                       : "rgba(255, 255, 255, 0.08)",
-                    transform: "translateY(-1px)",
+                    transform: enableHeavyEffects ? "translateY(-0.5px)" : "none",
                   },
                   "&.Mui-focused": {
                     backgroundColor: darkMode
                       ? "rgba(255, 255, 255, 0.08)"
                       : "rgba(255, 255, 255, 0.1)",
                     boxShadow: `0 0 0 2px ${colors.primary.main}40`,
-                    transform: "translateY(-2px)",
+                    transform: enableHeavyEffects ? "translateY(-1px)" : "none",
                   },
                 },
               }}
@@ -653,7 +655,7 @@ const Register = () => {
                         size="small"
                         sx={{
                           transition: "all 0.3s ease",
-                          "&:hover": { transform: "scale(1.1)" },
+                          "&:hover": enableHeavyEffects ? { transform: "scale(1.05)" } : undefined,
                         }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -666,7 +668,7 @@ const Register = () => {
                     backgroundColor: darkMode
                       ? "rgba(255, 255, 255, 0.02)"
                       : "rgba(255, 255, 255, 0.05)",
-                    backdropFilter: "blur(10px)",
+                    backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                     borderRadius: 2,
                     transition: "all 0.3s ease",
                     border: validationErrors.password
@@ -676,14 +678,14 @@ const Register = () => {
                       backgroundColor: darkMode
                         ? "rgba(255, 255, 255, 0.05)"
                         : "rgba(255, 255, 255, 0.08)",
-                      transform: "translateY(-1px)",
+                      transform: enableHeavyEffects ? "translateY(-0.5px)" : "none",
                     },
                     "&.Mui-focused": {
                       backgroundColor: darkMode
                         ? "rgba(255, 255, 255, 0.08)"
                         : "rgba(255, 255, 255, 0.1)",
                       boxShadow: `0 0 0 2px ${colors.primary.main}40`,
-                      transform: "translateY(-2px)",
+                      transform: enableHeavyEffects ? "translateY(-1px)" : "none",
                     },
                   },
                 }}
@@ -789,7 +791,7 @@ const Register = () => {
                   backgroundColor: darkMode
                     ? "rgba(255, 255, 255, 0.02)"
                     : "rgba(255, 255, 255, 0.05)",
-                  backdropFilter: "blur(10px)",
+                  backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                   borderRadius: 2,
                   transition: "all 0.3s ease",
                   border: validationErrors.confirmPassword
@@ -799,14 +801,14 @@ const Register = () => {
                     backgroundColor: darkMode
                       ? "rgba(255, 255, 255, 0.05)"
                       : "rgba(255, 255, 255, 0.08)",
-                    transform: "translateY(-1px)",
+                    transform: enableHeavyEffects ? "translateY(-0.5px)" : "none",
                   },
                   "&.Mui-focused": {
                     backgroundColor: darkMode
                       ? "rgba(255, 255, 255, 0.08)"
                       : "rgba(255, 255, 255, 0.1)",
                     boxShadow: `0 0 0 2px ${colors.primary.main}40`,
-                    transform: "translateY(-2px)",
+                    transform: enableHeavyEffects ? "translateY(-1px)" : "none",
                   },
                 },
               }}
@@ -869,8 +871,8 @@ const Register = () => {
 
             {/* Botão de Registro Principal */}
             <motion.div
-              whileHover={{ scale: loading ? 1 : 1.02 }}
-              whileTap={{ scale: loading ? 1 : 0.98 }}
+              whileHover={enableHeavyEffects ? { scale: loading ? 1 : 1.01 } : undefined}
+              whileTap={enableHeavyEffects ? { scale: loading ? 1 : 0.99 } : undefined}
             >
               <Button
                 type="submit"
@@ -888,7 +890,7 @@ const Register = () => {
                   overflow: "hidden",
                   "&:hover": {
                     background: gradients.purpleBlue,
-                    transform: "translateY(-2px)",
+                    transform: enableHeavyEffects ? "translateY(-1px)" : "none",
                     boxShadow: `0 12px 35px ${colors.primary.main}50`,
                   },
                   "&:disabled": {
@@ -945,7 +947,7 @@ const Register = () => {
                       ? "rgba(0,0,0,0.5)"
                       : "rgba(255,255,255,0.1)",
                     color: "rgba(255,255,255,0.8)",
-                    backdropFilter: "blur(10px)",
+                    backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                   }}
                 />
               </Divider>
@@ -955,8 +957,8 @@ const Register = () => {
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={6}>
                 <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={enableHeavyEffects ? { scale: 1.01 } : undefined}
+                  whileTap={enableHeavyEffects ? { scale: 0.99 } : undefined}
                 >
                   <Button
                     fullWidth
@@ -967,12 +969,12 @@ const Register = () => {
                       py: 1.5,
                       borderColor: "rgba(255, 255, 255, 0.3)",
                       background: "rgba(255, 255, 255, 0.05)",
-                      backdropFilter: "blur(10px)",
+                      backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                       color: darkMode ? "white" : "rgba(255, 255, 255, 0.9)",
                       "&:hover": {
                         borderColor: colors.error.main,
                         background: "rgba(234, 67, 53, 0.1)",
-                        transform: "translateY(-2px)",
+                        transform: enableHeavyEffects ? "translateY(-1px)" : "none",
                       },
                       transition: "all 0.3s ease",
                     }}
@@ -984,8 +986,8 @@ const Register = () => {
               </Grid>
               <Grid item xs={6}>
                 <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={enableHeavyEffects ? { scale: 1.01 } : undefined}
+                  whileTap={enableHeavyEffects ? { scale: 0.99 } : undefined}
                 >
                   <Button
                     fullWidth
@@ -996,12 +998,12 @@ const Register = () => {
                       py: 1.5,
                       borderColor: "rgba(255, 255, 255, 0.3)",
                       background: "rgba(255, 255, 255, 0.05)",
-                      backdropFilter: "blur(10px)",
+                      backdropFilter: enableHeavyEffects ? "blur(10px)" : "none",
                       color: darkMode ? "white" : "rgba(255, 255, 255, 0.9)",
                       "&:hover": {
                         borderColor: "#1877F2",
                         background: "rgba(24, 119, 242, 0.1)",
-                        transform: "translateY(-2px)",
+                        transform: enableHeavyEffects ? "translateY(-1px)" : "none",
                       },
                       transition: "all 0.3s ease",
                     }}
@@ -1025,7 +1027,7 @@ const Register = () => {
                 }}
               >
                 Já tem uma conta?{" "}
-                <motion.span whileHover={{ scale: 1.05 }}>
+                <motion.span whileHover={enableHeavyEffects ? { scale: 1.03 } : undefined}>
                   <Link
                     to="/login"
                     style={{

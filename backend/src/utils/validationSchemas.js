@@ -36,34 +36,35 @@ const authSchemas = {
 
 // Esquemas de validação para transações
 const transactionSchemas = {
+  // CompatÃ­vel com o payload atual do frontend e o modelo Transaction
   create: Joi.object({
-    description: Joi.string().min(3).max(100).required(),
+    description: Joi.string().min(3).max(500).required(),
     amount: Joi.number().required(),
-    type: Joi.string().valid("income", "expense").required(),
+    type: Joi.string().valid("income", "expense", "transfer").required(),
     date: Joi.date().iso().required(),
-    categoryId: Joi.number().integer().required(),
-    paymentMethod: Joi.string().max(50).optional(),
-    notes: Joi.string().max(500).optional(),
-    isRecurring: Joi.boolean().optional(),
-    recurrenceInterval: Joi.string()
-      .valid("weekly", "monthly", "yearly")
+    // No banco usamos `category` como ObjectId (string)
+    category: Joi.string().required(),
+    // Campos opcionais adicionais, caso venham do frontend no futuro
+    status: Joi.string()
+      .valid("pending", "completed", "failed", "cancelled")
       .optional(),
-    recurrenceEndDate: Joi.date().iso().optional(),
+    currency: Joi.string().max(10).optional(),
+    tags: Joi.array().items(Joi.string()).optional(),
+    notes: Joi.string().max(500).optional(),
   }),
 
   update: Joi.object({
-    description: Joi.string().min(3).max(100).optional(),
+    description: Joi.string().min(3).max(500).optional(),
     amount: Joi.number().optional(),
-    type: Joi.string().valid("income", "expense").optional(),
+    type: Joi.string().valid("income", "expense", "transfer").optional(),
     date: Joi.date().iso().optional(),
-    categoryId: Joi.number().integer().optional(),
-    paymentMethod: Joi.string().max(50).optional(),
-    notes: Joi.string().max(500).optional().allow(""),
-    isRecurring: Joi.boolean().optional(),
-    recurrenceInterval: Joi.string()
-      .valid("weekly", "monthly", "yearly")
+    category: Joi.string().optional(),
+    status: Joi.string()
+      .valid("pending", "completed", "failed", "cancelled")
       .optional(),
-    recurrenceEndDate: Joi.date().iso().optional().allow(null),
+    currency: Joi.string().max(10).optional(),
+    tags: Joi.array().items(Joi.string()).optional(),
+    notes: Joi.string().max(500).optional().allow(""),
   }),
 
   import: Joi.object({

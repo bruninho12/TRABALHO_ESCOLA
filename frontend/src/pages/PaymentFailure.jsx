@@ -50,7 +50,7 @@ const PaymentFailure = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "var(--app-vh, 100vh)",
         background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
         display: "flex",
         alignItems: "center",
